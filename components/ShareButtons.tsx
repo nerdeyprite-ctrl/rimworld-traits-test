@@ -1,9 +1,6 @@
+
 import React, { useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import {
-    TwitterShareButton,
-    TwitterIcon,
-} from 'next-share';
 
 declare global {
     interface Window {
@@ -13,18 +10,17 @@ declare global {
 
 const ShareButtons = () => {
     const { t } = useLanguage();
+    // Safely get current URL (client-side only)
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = t('app_title') + " - " + t('landing_subtitle');
 
     useEffect(() => {
         // Initialize Kakao SDK
-        if (window.Kakao && !window.Kakao.isInitialized()) {
+        if (typeof window !== 'undefined' && window.Kakao && !window.Kakao.isInitialized()) {
             // Replace with your actual Kakao JavaScript Key
-            // Since I don't have the user's key, I will leave a placeholder or try to use a dummy.
-            // But the user asked to MAKE it. I will assume they might fill it later or I put a placeholder.
-            // IMPORTANT: Real key is needed for it to work.
-            // I will use a placeholder and comment.
-            window.Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY');
+            // Since this project might be public, be careful with keys. Vercel env vars are better.
+            // For now, using a placeholder.
+            // window.Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY'); 
         }
     }, []);
 
@@ -52,8 +48,13 @@ const ShareButtons = () => {
                 ],
             });
         } else {
-            alert('Kakao SDK not initialized. Please set your JS Key.');
+            // alert('Kakao SDK not initialized/configured.');
         }
+    };
+
+    const shareTwitter = () => {
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(currentUrl)}`;
+        window.open(twitterUrl, '_blank');
     };
 
     const copyUrl = () => {
@@ -70,11 +71,9 @@ const ShareButtons = () => {
             </button>
 
             {/* Twitter (X) Share */}
-            <TwitterShareButton url={currentUrl} title={shareTitle}>
-                <div className="bg-black p-2 rounded-full hover:opacity-80 transition-opacity border border-gray-700">
-                    <span className="text-white font-bold text-xl px-2">X</span>
-                </div>
-            </TwitterShareButton>
+            <button onClick={shareTwitter} className="bg-black p-2 rounded-full hover:opacity-80 transition-opacity border border-gray-700" title="Share on X">
+                <span className="text-white font-bold text-xl px-2">X</span>
+            </button>
 
             {/* Instagram (Link Copy fallback as API is restricted) */}
             <button onClick={copyUrl} className="bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 p-2 rounded-full hover:opacity-80 transition-opacity" title="Copy Link (Instagram)">
