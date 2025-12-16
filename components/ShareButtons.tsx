@@ -100,8 +100,8 @@ const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
     };
 
     const shareTwitter = () => {
-        const text = result
-            ? `[변방계 정착민 테스트] 제 결과는 ${result.mbti}입니다. #${result.userInfo?.name}\n\n`
+        const text = result && userInfo
+            ? `[변방계 정착민 테스트] 제 결과는 ${result.mbti}입니다. #${userInfo.name}\n\n`
             : shareTitle;
 
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
