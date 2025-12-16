@@ -1,13 +1,3 @@
-
-import React, { useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
-
-declare global {
-    interface Window {
-        Kakao: any;
-    }
-}
-
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { TestResult } from '../types/rimworld';
