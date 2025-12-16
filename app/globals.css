@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #111111;
+  --foreground: #dddddd;
+  
+  /* Rimworld Palette */
+  --rimworld-bg: #111111;
+  --rimworld-panel: #1e1e1e;
+  --rimworld-test: #dddddd;
+  --rimworld-highlight: #9f752a;
+  --rimworld-border: #6b6b6b;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  --color-rimworld-bg: var(--rimworld-bg);
+  --color-rimworld-panel: var(--rimworld-panel);
+  --color-rimworld-text: var(--rimworld-test);
+  --color-rimworld-highlight: var(--rimworld-highlight);
+  --color-rimworld-border: var(--rimworld-border);
 }
 
 body {

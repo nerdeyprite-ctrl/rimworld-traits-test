@@ -11,10 +11,12 @@
   "dependencies": {
     "next": "16.0.10",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "react-share": "^5.2.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/kakao-js-sdk": "^1.39.5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
