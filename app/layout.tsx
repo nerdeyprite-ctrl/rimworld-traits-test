@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import Layout from "../components/Layout";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "변방계 정착민 테스트 (Rimworld Traits Test)",
@@ -31,6 +32,7 @@ export default function RootLayout({
             {children}
           </Layout>
         </Providers>
+        <Analytics />
 
         {/* Kakao SDK */}
         <Script
