@@ -330,7 +330,7 @@ export default function ResultPage() {
             <div className="w-full mt-6 space-y-4">
                 <AdPlaceholder />
 
-                <ShareButtons result={result} />
+                <ShareButtons result={result} userInfo={userInfo} />
 
                 <div className="flex justify-between items-center bg-[#111111] p-4 border border-[#6b6b6b]">
                     <button

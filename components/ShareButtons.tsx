@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { TestResult } from '../types/rimworld';
+import { UserInfo } from '../context/TestContext';
 
 declare global {
     interface Window {
@@ -10,9 +11,10 @@ declare global {
 
 interface ShareButtonsProps {
     result?: TestResult | null;
+    userInfo?: UserInfo | null;
 }
 
-const ShareButtons = ({ result }: ShareButtonsProps) => {
+const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
     const { t } = useLanguage();
     const [shareUrl, setShareUrl] = useState('');
     const [origin, setOrigin] = useState('');
@@ -24,17 +26,17 @@ const ShareButtons = ({ result }: ShareButtonsProps) => {
 
             // Construct Share URL with Query Params if result exists
             // This points to the /share page which generates dynamic OG tags
-            if (result) {
+            if (result && userInfo) {
                 const params = new URLSearchParams();
-                if (result.userInfo?.name) params.set('name', result.userInfo.name);
+                if (userInfo.name) params.set('name', userInfo.name);
                 if (result.mbti) params.set('mbti', result.mbti);
 
                 // Add top 3 traits
                 const traitNames = result.traits.slice(0, 3).map(tr => tr.name).join(',');
                 if (traitNames) params.set('traits', traitNames);
 
-                params.set('age', result.userInfo?.age.toString() || '20');
-                params.set('gender', result.userInfo?.gender || 'Male');
+                params.set('age', userInfo.age.toString() || '20');
+                params.set('gender', userInfo.gender || 'Male');
 
                 setShareUrl(`${currentOrigin}/share?${params.toString()}`);
             } else {
@@ -48,20 +50,20 @@ const ShareButtons = ({ result }: ShareButtonsProps) => {
                 window.Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY');
             }
         }
-    }, [result]);
+    }, [result, userInfo]);
 
     const shareTitle = t('app_title') + " - " + t('landing_subtitle');
 
     const shareKakao = () => {
         if (window.Kakao && window.Kakao.isInitialized()) {
             const traitNames = result?.traits.slice(0, 3).map(tr => tr.name).join(', ') || '';
-            const description = result
-                ? `${result.userInfo?.name}님은 ${result.mbti} 유형입니다. (특성: ${traitNames})`
+            const description = result && userInfo
+                ? `${userInfo.name}님은 ${result.mbti} 유형입니다. (특성: ${traitNames})`
                 : t('landing_subtitle');
 
             // Dynamic Image URL
-            const imageUrl = result
-                ? `${origin}/api/og?name=${encodeURIComponent(result.userInfo?.name || '')}&mbti=${encodeURIComponent(result.mbti || '')}&traits=${encodeURIComponent(traitNames)}`
+            const imageUrl = result && userInfo
+                ? `${origin}/api/og?name=${encodeURIComponent(userInfo.name || '')}&mbti=${encodeURIComponent(result.mbti || '')}&traits=${encodeURIComponent(traitNames)}`
                 : 'https://placeholder.com/rimworld-og.png';
 
             window.Kakao.Share.sendDefault({

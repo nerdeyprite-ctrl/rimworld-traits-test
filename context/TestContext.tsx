@@ -16,7 +16,7 @@ const R_SKILLS = [
     'Social', 'Intellectual'
 ];
 
-interface UserInfo {
+export interface UserInfo {
     name: string;
     age: number;
     gender: 'Male' | 'Female';

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import { useTest } from '../context/TestContext';
 import { useEffect } from 'react';
+import VisitorCounter from '../components/VisitorCounter';
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -28,9 +29,7 @@ export default function Home() {
         <Link href="/test/intro" className="inline-block px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]">
           {t('start_test')}
         </Link>
-        <div className="mt-4 text-xs font-bold text-gray-500">
-          총 <span className="text-[var(--rimworld-highlight)]">3,829</span>명이 이 테스트를 플레이했습니다.
-        </div>
+        <VisitorCounter />
       </section>
 
       {/* Theme Section: Skills & Traits */}
