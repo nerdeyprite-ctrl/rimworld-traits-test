@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 // Use a unique namespace for your app
 const NAMESPACE = 'rimworld-traits-test';
 const KEY = 'visits';
-const BASE_OFFSET = 3800; // Historic data estimate
 
 export default function VisitorCounter() {
     const [count, setCount] = useState<number | null>(null);
@@ -19,7 +18,7 @@ export default function VisitorCounter() {
                 const data = await response.json();
 
                 if (data && typeof data.count === 'number') {
-                    setCount(data.count + BASE_OFFSET);
+                    setCount(data.count);
                 } else {
                     // Fallback silently or just retry? For now, we rely on the component returning null if no count
                     console.warn('Invalid counter response', data);
