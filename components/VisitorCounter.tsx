@@ -1,53 +1,43 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
 
 // Use a unique namespace for your app
-const NAMESPACE = 'rimworld-traits-test-v1';
-const KEY = 'plays';
-// Fallback if API fails
-const FALLBACK_COUNT = 3829;
+const NAMESPACE = 'rimworld-traits-test';
+const KEY = 'visits';
+const BASE_OFFSET = 3800; // Historic data estimate
 
 export default function VisitorCounter() {
     const [count, setCount] = useState<number | null>(null);
 
     useEffect(() => {
-        // Fetch current count (GET)
-        // We only want to READ it on the home page, not increment.
-        // Increment should happen perhaps when they start the test or on a specific event?
-        // But for "User Count", usually "Page Views" or "Unique Visitors".
-        // Let's just fetch the info.
-
         const fetchCount = async () => {
             try {
-                // Using countapi.xyz
-                // GET https://api.countapi.xyz/get/NAMESPACE/KEY
-                const response = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/${KEY}`);
+                // Using counterapi.dev which is more reliable
+                // /up increments the counter and returns the new value
+                const response = await fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${KEY}/up`);
                 const data = await response.json();
-                if (data && typeof data.value === 'number') {
-                    setCount(data.value);
+
+                if (data && typeof data.count === 'number') {
+                    setCount(data.count + BASE_OFFSET);
                 } else {
-                    // If key doesn't exist, we might need to create/hit it once to initialize?
-                    // Or just fallback.
-                    setCount(FALLBACK_COUNT);
+                    // Fallback silently or just retry? For now, we rely on the component returning null if no count
+                    console.warn('Invalid counter response', data);
                 }
             } catch (error) {
                 console.error("Failed to fetch visitor count:", error);
-                setCount(FALLBACK_COUNT);
             }
         };
 
         fetchCount();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // If count is not loaded yet, maybe show nothing or a spinner? 
-    // Or just show fallback for immediate feedback.
-    const displayCount = count !== null ? count : FALLBACK_COUNT;
+    if (count === null) return null;
 
     return (
         <div className="mt-4 text-xs font-bold text-gray-500 animate-fade-in">
-            총 <span className="text-[var(--rimworld-highlight)]">{displayCount.toLocaleString()}</span>명이 이 테스트를 플레이했습니다.
+            총 <span className="text-[var(--rimworld-highlight)]">{count.toLocaleString()}</span>명이 이 테스트를 플레이했습니다.
         </div>
     );
 }
