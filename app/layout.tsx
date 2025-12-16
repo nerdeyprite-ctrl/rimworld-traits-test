@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from "./providers";
-import Layout from "../components/Layout";
-import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next";
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'http://localhost:3000';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ratkin.org"),
+  metadataBase: new URL(baseUrl),
   title: {
     default: "변방계 정착민 테스트 (Rimworld Traits Test)",
     template: "%s | 변방계 정착민 테스트",
