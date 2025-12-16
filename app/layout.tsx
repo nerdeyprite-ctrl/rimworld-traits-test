@@ -6,12 +6,39 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  title: "변방계 정착민 테스트 (Rimworld Traits Test)",
-  description: "당신이 림월드에 떨어진다면 어떤 특성을 가질까요? 변방계 생존 적합성 테스트.",
+  metadataBase: new URL("https://ratkin.org"),
+  title: {
+    default: "변방계 정착민 테스트 (Rimworld Traits Test)",
+    template: "%s | 변방계 정착민 테스트",
+  },
+  description: "당신이 림월드에 떨어진다면 어떤 특성을 가질까요? 변방계 생존 적합성 테스트로 당신의 정착민 유형을 확인하세요.",
+  keywords: ["림월드", "Rimworld", "성격 테스트", "MBTI", "변방계", "적성 검사", "심리 테스트", "게임", "생존", "특성"],
+  authors: [{ name: "Nerdeyprite" }],
   openGraph: {
     title: "변방계 정착민 테스트",
-    description: "당신은 낙천적인가요, 아니면 유리정신인가요? 지금 바로 확인하세요.",
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }], // Placeholder
+    description: "당신은 낙천적인가요, 아니면 유리정신인가요? 림월드 세계관으로 보는 나의 성격 유형.",
+    url: "https://ratkin.org",
+    siteName: "변방계 정착민 테스트",
+    images: [
+      {
+        url: "/og-image.png", // public 폴더에 해당 이미지 필요
+        width: 1200,
+        height: 630,
+        alt: "변방계 정착민 테스트 미리보기",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "변방계 정착민 테스트",
+    description: "당신의 림월드 특성을 확인해보세요!",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
