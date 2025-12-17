@@ -108,7 +108,8 @@ const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
                 ],
             });
         } else {
-            alert('Kakao SDK not initialized. Please set your JS Key.');
+            const hasKey = !!process.env.NEXT_PUBLIC_KAKAO_API_KEY;
+            alert(`Kakao SDK not initialized.\n- Key Configured: ${hasKey}\n- Script Loaded: ${!!window.Kakao}\n\nPlease check Vercel Env Vars and Redeploy.`);
         }
     };
 
