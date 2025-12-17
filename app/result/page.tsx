@@ -390,8 +390,12 @@ export default function ResultPage() {
                     </button>
 
                     <div className="flex space-x-4">
-                        <button className="px-6 py-2 bg-[#2a4d2a] hover:bg-[#3a6d3a] text-white border border-green-800 text-sm font-bold shadow-lg">
-                            {t('save_image')}
+                        <button
+                            onClick={() => router.push('/stats')}
+                            className="px-6 py-2 bg-[#1c3d5a] hover:bg-[#2c5282] text-white border border-blue-900 text-sm font-bold shadow-lg flex items-center gap-2"
+                        >
+                            <span>📊</span>
+                            {language === 'ko' ? '전체 통계 보기' : 'View Global Stats'}
                         </button>
                     </div>
                 </div>
