@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "변방계 정착민 테스트",
     description: "당신은 낙천적인가요, 아니면 유리정신인가요? 림월드 세계관으로 보는 나의 성격 유형.",
-    url: "https://ratkin.org",
+    url: "https://test.ratkin.org",
     siteName: "변방계 정착민 테스트",
     images: [
       {
