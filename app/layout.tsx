@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import { Providers } from "./providers";
+import Layout from "../components/Layout";
+import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+
 const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : 'http://localhost:3000';
