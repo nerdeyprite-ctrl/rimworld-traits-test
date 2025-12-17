@@ -7,6 +7,7 @@ import { TestResult, Trait } from '../../types/rimworld';
 import { useRouter } from 'next/navigation';
 import AdPlaceholder from '../../components/AdPlaceholder';
 import ShareButtons from '../../components/ShareButtons';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export default function ResultPage() {
     const { calculateFinalTraits, scores, userInfo, testPhase, startSkillTest } = useTest();
@@ -18,6 +19,22 @@ export default function ResultPage() {
     // Scroll Hint Logic
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showScrollHint, setShowScrollHint] = useState(false);
+    const isSavedRef = useRef(false);
+
+    useEffect(() => {
+        if (result && !isSavedRef.current && isSupabaseConfigured()) {
+            const saveStats = async () => {
+                await supabase.from('test_results').insert({
+                    mbti: result.mbti,
+                    traits: result.traits,
+                    backstory_childhood: result.backstory.childhood,
+                    backstory_adulthood: result.backstory.adulthood
+                });
+                isSavedRef.current = true;
+            };
+            saveStats();
+        }
+    }, [result]);
 
     useEffect(() => {
         const res = calculateFinalTraits();
