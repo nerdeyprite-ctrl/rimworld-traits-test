@@ -3027,9 +3027,9 @@
             {
                 "text": "어떤 상처도 금방 낫는 불사의 몸.",
                 "scores": {
-                    "super_immune": 2,
-                    "tough": 1,
-                    "transhumanist": 1
+                    "tough": 2,
+                    "transhumanist": 1,
+                    "Medicine": 1
                 }
             },
             {
@@ -3043,14 +3043,24 @@
             {
                 "text": "그냥 나를 좀 내버려 둬.",
                 "scores": {
-                    "recluse": 2,
-                    "greedy": 1
+                    "ascetic": 2,
+                    "Social": -2
                 }
             },
             {
-                "text": "빠르게 처리하고 잊어버리자.",
+                "text": "모든 지식과 기술을 습득하는 능력.",
                 "scores": {
-                    "hard_worker": 1
+                    "Intellectual": 2,
+                    "fast_learner": 1,
+                    "transhumanist": 1
+                }
+            },
+            {
+                "text": "완벽한 신체와 아름다운 외모.",
+                "scores": {
+                    "beautiful": 2,
+                    "vain": 1,
+                    "Social": 1
                 }
             }
         ]
@@ -3502,7 +3512,7 @@
     {
         "id": 211,
         "groupId": "p2_origin",
-        "text": "당신의 가문이나 출신 성분은 어땠나요?",
+        "text": "당신의 가문이나 출신 성분은 어때나요?",
         "answers": [
             {
                 "text": "행성을 지배하는 귀족 가문.",
@@ -3516,7 +3526,7 @@
                 "text": "악명 높은 우주 해적단의 노예.",
                 "scores": {
                     "Melee": 1,
-                    "tough": 1,
+                    "tough": 2,
                     "psychopath": 1
                 }
             },
@@ -3524,7 +3534,7 @@
                 "text": "평범하고 조용한 소시민.",
                 "scores": {
                     "hard_worker": 1,
-                    "steady_hands": 1
+                    "ascetic": 1
                 }
             },
             {
@@ -3533,6 +3543,22 @@
                     "transhumanist": 2,
                     "Social": -2,
                     "Intellectual": 1
+                }
+            },
+            {
+                "text": "부족의 장로 후계자.",
+                "scores": {
+                    "Social": 1,
+                    "Animals": 1,
+                    "Plants": 1
+                }
+            },
+            {
+                "text": "고아원에서 자란 부모 없는 아이.",
+                "scores": {
+                    "tough": 2,
+                    "Social": -1,
+                    "ascetic": 1
                 }
             }
         ]
@@ -3546,14 +3572,14 @@
                 "text": "성적 우수, 선생님의 사랑을 독차지한 모범생.",
                 "scores": {
                     "Intellectual": 2,
-                    "smart": 1,
-                    "fast_learner": 1
+                    "fast_learner": 1,
+                    "Social": 1
                 }
             },
             {
                 "text": "맨날 싸움박질하고 사고 치는 문제아.",
                 "scores": {
-                    "Melee": 1,
+                    "Melee": 2,
                     "brawler": 1,
                     "volatile": 1
                 }
@@ -3561,17 +3587,31 @@
             {
                 "text": "존재감 없이 구석에서 그림만 그리던 학생.",
                 "scores": {
-                    "Artistic": 2,
-                    "recluse": 1,
+                    "Artistic": 3,
                     "Social": -1
                 }
             },
             {
                 "text": "학교보다는 숲과 들판이 내 교실이었다.",
                 "scores": {
-                    "Plants": 1,
-                    "Animals": 1,
-                    "outdoors": 1
+                    "Plants": 2,
+                    "Animals": 2
+                }
+            },
+            {
+                "text": "체육시간에만 빛나던 운동선수.",
+                "scores": {
+                    "Melee": 1,
+                    "nimble": 1,
+                    "tough": 1
+                }
+            },
+            {
+                "text": "컴퓨터실에서 살던 코딩 너드.",
+                "scores": {
+                    "Intellectual": 2,
+                    "Crafting": 1,
+                    "Social": -1
                 }
             }
         ]
@@ -3593,23 +3633,39 @@
                 "text": "반복되는 단순 노동의 지루함.",
                 "scores": {
                     "Intellectual": 1,
-                    "impatient": 1,
+                    "lazy": 1,
                     "neurotic": 1
                 }
             },
             {
                 "text": "경쟁자들을 짓밟고 올라가야 하는 스트레스.",
                 "scores": {
-                    "ambitious": 2,
+                    "greedy": 2,
                     "psychopath": 1,
                     "bloodlust": 1
                 }
             },
             {
-                "text": "힘든 건 없었다. 나는 일하는 게 즐겁다.",
+                "text": "힘든 건 없었다. 나는 일하는 게 즐경다.",
                 "scores": {
-                    "industrious": 2,
+                    "hard_worker": 2,
                     "optimist": 1,
+                    "iron_willed": 1
+                }
+            },
+            {
+                "text": "불공정한 대우와 차별.",
+                "scores": {
+                    "depressive": 1,
+                    "jealous": 1,
+                    "Social": -1
+                }
+            },
+            {
+                "text": "상사의 불합리한 지시.",
+                "scores": {
+                    "abrasive": 1,
+                    "volatile": 1,
                     "iron_willed": 1
                 }
             }
@@ -3623,9 +3679,8 @@
             {
                 "text": "사랑하는 사람을 지키지 못하고 떠나보낸 것.",
                 "scores": {
-                    "kind": 1,
-                    "depressive": 1,
-                    "tortured_artist": 1
+                    "kind": 2,
+                    "depressive": 1
                 }
             },
             {
@@ -3639,16 +3694,30 @@
                 "text": "건강을 돌보지 않고 몸을 혹사시킨 것.",
                 "scores": {
                     "wimp": 1,
-                    "sickly": 1,
-                    "careful": 1
+                    "careful": 1,
+                    "Medicine": 1
                 }
             },
             {
                 "text": "후회는 없다. 그 모든 게 나를 만들었으니까.",
                 "scores": {
-                    "optimist": 1,
-                    "iron_willed": 1,
-                    "steadfast": 1
+                    "optimist": 2,
+                    "iron_willed": 1
+                }
+            },
+            {
+                "text": "더 공부하지 않은 것.",
+                "scores": {
+                    "Intellectual": 1,
+                    "fast_learner": 1
+                }
+            },
+            {
+                "text": "더 용감하게 싸우지 못한 것.",
+                "scores": {
+                    "Melee": 1,
+                    "brawler": 1,
+                    "wimp": -1
                 }
             }
         ]
@@ -3656,7 +3725,7 @@
     {
         "id": 215,
         "groupId": "p2_goal",
-        "text": "먼 훗날, 당신은 사람들에게 어떻게 기억되고 싶나요?",
+        "text": "먼 후날, 당신은 사람들에게 어떻게 기억되고 싶나요?",
         "answers": [
             {
                 "text": "많은 생명을 구한 자애로운 구원자.",
@@ -3670,7 +3739,7 @@
                 "text": "누구도 넘볼 수 없는 절대적인 지배자.",
                 "scores": {
                     "bloodlust": 1,
-                    "ambitious": 2,
+                    "greedy": 2,
                     "psychopath": 1
                 }
             },
@@ -3685,9 +3754,23 @@
             {
                 "text": "전설적인 작품을 남기고 사라진 장인.",
                 "scores": {
-                    "Artistic": 1,
+                    "Artistic": 2,
                     "Crafting": 1,
-                    "perfectionist": 1
+                    "ascetic": 1
+                }
+            },
+            {
+                "text": "기억되고 싶지 않다. 조용히 사라지고 싶다.",
+                "scores": {
+                    "ascetic": 2,
+                    "Social": -2
+                }
+            },
+            {
+                "text": "가족과 친구들에게 좋은 사람으로.",
+                "scores": {
+                    "kind": 2,
+                    "Social": 2
                 }
             }
         ]
