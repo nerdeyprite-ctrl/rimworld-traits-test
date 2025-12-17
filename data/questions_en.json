@@ -80,8 +80,7 @@
                 "scores": {
                     "wimp": 2,
                     "pessimist": 1,
-                    "Shooting": -20,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             },
             {
@@ -89,8 +88,7 @@
                 "scores": {
                     "slowpoke": 1,
                     "coward": 2,
-                    "Shooting": -20,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             },
             {
@@ -414,8 +412,7 @@
                 "scores": {
                     "wimp": 2,
                     "coward": 2,
-                    "Shooting": -10,
-                    "Melee": -10
+                    "inc_violence": 1
                 }
             },
             {
@@ -501,7 +498,7 @@
                 "text": "아파서 엉엉 운다. 다시는 동물 근처에 안 간다.",
                 "scores": {
                     "wimp": 2,
-                    "Animals": -20
+                    "inc_animals": 1
                 }
             }
         ]
@@ -665,7 +662,7 @@
                 "scores": {
                     "wimp": 2,
                     "coward": 2,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             }
         ]
@@ -1570,6 +1567,301 @@
                 "text": "필요하니 어쩔 수 없이 한다.",
                 "scores": {
                     "pragmatist": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 61,
+        "groupId": "p1_construction_skill",
+        "text": "There's a huge hole in the building wall. What will you do?",
+        "answers": [
+            {
+                "text": "Chop wood myself and repair it with my own hands.",
+                "scores": {
+                    "Construction": 2,
+                    "hard_worker": 1
+                }
+            },
+            {
+                "text": "Someone else will fix it... I'll wait until then.",
+                "scores": {
+                    "lazy": 1,
+                    "slothful": 1,
+                    "Construction": -1
+                }
+            },
+            {
+                "text": "Just cover it with a tarp and endure.",
+                "scores": {
+                    "ascetic": 1,
+                    "Construction": -1
+                }
+            }
+        ]
+    },
+    {
+        "id": 62,
+        "groupId": "p1_mining_danger",
+        "text": "You hear strange sounds deep in the mine.",
+        "answers": [
+            {
+                "text": "Grab a pickaxe and dig deeper. There might be treasure!",
+                "scores": {
+                    "Mining": 2,
+                    "greedy": 1,
+                    "brave": 1
+                }
+            },
+            {
+                "text": "Run back to the mine entrance in fear.",
+                "scores": {
+                    "wimp": 1,
+                    "nervous": 1,
+                    "Mining": -1
+                }
+            },
+            {
+                "text": "Identify the source of the sound and plan a response.",
+                "scores": {
+                    "Intellectual": 1,
+                    "careful": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 63,
+        "groupId": "p1_cooking_poison",
+        "text": "While cooking, you accidentally mixed in a toxic plant.",
+        "answers": [
+            {
+                "text": "Secretly throw it away without anyone knowing.",
+                "scores": {
+                    "careful": 1,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "A little bit won't hurt. Just serve it.",
+                "scores": {
+                    "psychopath": 1,
+                    "lazy": 1,
+                    "Cooking": -1
+                }
+            },
+            {
+                "text": "Start over from scratch.",
+                "scores": {
+                    "Cooking": 2,
+                    "hard_worker": 1,
+                    "kind": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 64,
+        "groupId": "p1_social_negotiation",
+        "text": "Hostile forces request negotiation. Will you represent?",
+        "answers": [
+            {
+                "text": "Of course. I'll persuade them for better terms.",
+                "scores": {
+                    "Social": 2,
+                    "optimist": 1
+                }
+            },
+            {
+                "text": "I'm not good with words... someone else should go.",
+                "scores": {
+                    "Social": -1,
+                    "nervous": 1,
+                    "inc_social": 1
+                }
+            },
+            {
+                "text": "Negotiation? I'll bring a weapon and threaten them.",
+                "scores": {
+                    "Shooting": 1,
+                    "bloodlust": 1,
+                    "abrasive": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 65,
+        "groupId": "p1_crafting_weapon",
+        "text": "You need to craft a new weapon. What will you make?",
+        "answers": [
+            {
+                "text": "A delicate and precise masterpiece of craftsmanship.",
+                "scores": {
+                    "Crafting": 2,
+                    "perfectionist": 1
+                }
+            },
+            {
+                "text": "Make it fast so it can be used quickly.",
+                "scores": {
+                    "Crafting": 1,
+                    "hard_worker": 1
+                }
+            },
+            {
+                "text": "I have no craftsman skills, I'll probably break it.",
+                "scores": {
+                    "Crafting": -1,
+                    "wimp": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 66,
+        "groupId": "p1_medical_emergency",
+        "text": "A colleague is shot and bleeding!",
+        "answers": [
+            {
+                "text": "Calmly perform first aid and stop the bleeding.",
+                "scores": {
+                    "Medicine": 2,
+                    "iron_willed": 1,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "The blood makes me sick. I'll call someone else.",
+                "scores": {
+                    "wimp": 1,
+                    "Medicine": -1,
+                    "inc_medical": 1
+                }
+            },
+            {
+                "text": "If I sell his organs now...",
+                "scores": {
+                    "psychopath": 2,
+                    "greedy": 1,
+                    "Medicine": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 67,
+        "groupId": "p1_farming_labor",
+        "text": "It's harvest season. You need to work the fields for days.",
+        "answers": [
+            {
+                "text": "Great! I enjoy working hard and sweating.",
+                "scores": {
+                    "Plants": 2,
+                    "hard_worker": 1,
+                    "outdoors": 1
+                }
+            },
+            {
+                "text": "This is exhausting... I'll slack off and rest.",
+                "scores": {
+                    "lazy": 1,
+                    "Plants": -1
+                }
+            },
+            {
+                "text": "Research mechanized farming for efficiency.",
+                "scores": {
+                    "Intellectual": 1,
+                    "Plants": 1,
+                    "transhumanist": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 68,
+        "groupId": "p1_animal_bonding",
+        "text": "A wild wolf pup follows you.",
+        "answers": [
+            {
+                "text": "Raise it and accept it as family.",
+                "scores": {
+                    "Animals": 2,
+                    "kind": 1,
+                    "optimist": 1
+                }
+            },
+            {
+                "text": "Keep it if useful, otherwise chase it away.",
+                "scores": {
+                    "Animals": 1,
+                    "pragmatist": 1
+                }
+            },
+            {
+                "text": "Animals scare me. Chase it away.",
+                "scores": {
+                    "wimp": 1,
+                    "inc_animals": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 69,
+        "groupId": "p1_research_breakthrough",
+        "text": "You found complex ancient technology documents.",
+        "answers": [
+            {
+                "text": "Stay up all night to decode and research it!",
+                "scores": {
+                    "Intellectual": 2,
+                    "night_owl": 1,
+                    "industrious": 1
+                }
+            },
+            {
+                "text": "Looks difficult, I'll do it later...",
+                "scores": {
+                    "lazy": 1,
+                    "Intellectual": -1
+                }
+            },
+            {
+                "text": "Better to leave this to experts.",
+                "scores": {
+                    "Social": 1,
+                    "careful": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 70,
+        "groupId": "p1_art_inspiration",
+        "text": "You have time to create art.",
+        "answers": [
+            {
+                "text": "I must create a masterpiece with my soul!",
+                "scores": {
+                    "Artistic": 2,
+                    "tortured_artist": 1
+                }
+            },
+            {
+                "text": "Make something practical that sells quickly.",
+                "scores": {
+                    "Artistic": 1,
+                    "greedy": 1
+                }
+            },
+            {
+                "text": "Art is a waste of time. Do other work.",
+                "scores": {
+                    "Artistic": -1,
+                    "hard_worker": 1,
+                    "ascetic": 1
                 }
             }
         ]

@@ -445,12 +445,42 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
         const incapabilities: string[] = [];
 
+        // Define Incapability Mapping
+        const INCAPABILITY_MAP: Record<string, string[]> = {
+            'inc_violence': ['Shooting', 'Melee'],
+            'inc_animals': ['Animals'],
+            // Add others if needed
+        };
+
         const finalSkills = R_SKILLS.map(skillName => {
             const rawScore = skillScores[skillName] || 0;
+            let finalLevelCalc = rawScore; // Start with raw score
+
+            // Check Incapability Counters
+            // Find which inc_key affects this skill
+            let isTotallyIncapable = false;
+            let penalty = 0;
+
+            Object.entries(INCAPABILITY_MAP).forEach(([incKey, affectedSkills]) => {
+                if (affectedSkills.includes(skillName)) {
+                    const count = scores[incKey] || 0;
+                    if (count >= 2) {
+                        isTotallyIncapable = true;
+                    } else if (count === 1) {
+                        penalty += 8; // -8 penalty for hesitation
+                    }
+                }
+            });
+
+            // Legacy Fallback (keeping just in case, though we replaced data)
+            if (rawScore <= -19) isTotallyIncapable = true;
 
             // Incapability Logic
-            if (rawScore <= -10) {
-                incapabilities.push(skillName);
+            if (isTotallyIncapable) {
+                // Avoid duplicates in list
+                if (!incapabilities.includes(skillName)) {
+                    incapabilities.push(skillName);
+                }
                 return {
                     name: skillName,
                     level: 0,
@@ -463,9 +493,9 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             const adulthoodBonus = selectedAdulthood.skillBonuses[skillName] || 0;
             const historyBonus = childhoodBonus + adulthoodBonus;
 
-            // Base level logic: random base (0-3) + score + history
+            // Base level logic: random base (0-3) + score + history - penalty
             const baseLevel = Math.floor(Math.random() * 3);
-            let calculatedLevel = baseLevel + rawScore + Math.floor(historyBonus / 2);
+            let calculatedLevel = baseLevel + finalLevelCalc + Math.floor(historyBonus / 2) - penalty;
 
             // Age Factor Logic
             // < 19: Low skill level (Learning phase)

@@ -80,8 +80,7 @@
                 "scores": {
                     "wimp": 2,
                     "pessimist": 1,
-                    "Shooting": -20,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             },
             {
@@ -89,8 +88,7 @@
                 "scores": {
                     "slowpoke": 1,
                     "coward": 2,
-                    "Shooting": -20,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             },
             {
@@ -425,8 +423,7 @@
                 "scores": {
                     "wimp": 2,
                     "coward": 2,
-                    "Shooting": -10,
-                    "Melee": -10
+                    "inc_violence": 1
                 }
             },
             {
@@ -515,7 +512,7 @@
                 "text": "아파서 엉엉 운다. 다시는 동물 근처에 안 간다.",
                 "scores": {
                     "wimp": 2,
-                    "Animals": -20
+                    "inc_animals": 1
                 }
             }
         ]
@@ -685,7 +682,7 @@
                 "scores": {
                     "wimp": 2,
                     "coward": 2,
-                    "Melee": -20
+                    "inc_violence": 1
                 }
             }
         ]
@@ -1605,6 +1602,301 @@
                 "text": "필요하니 어쩔 수 없이 한다.",
                 "scores": {
                     "pragmatist": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 61,
+        "groupId": "p1_construction_skill",
+        "text": "건물 벽에 큰 구멍이 났습니다. 어떻게 하시겠습니까?",
+        "answers": [
+            {
+                "text": "직접 나무를 베고 자재를 만들어 수리한다.",
+                "scores": {
+                    "Construction": 2,
+                    "hard_worker": 1
+                }
+            },
+            {
+                "text": "누군가 고쳐주겠지... 그때까지 기다린다.",
+                "scores": {
+                    "lazy": 1,
+                    "slothful": 1,
+                    "Construction": -1
+                }
+            },
+            {
+                "text": "대충 천막으로 막고 버틴다.",
+                "scores": {
+                    "ascetic": 1,
+                    "Construction": -1
+                }
+            }
+        ]
+    },
+    {
+        "id": 62,
+        "groupId": "p1_mining_danger",
+        "text": "광산 깊은 곳에서 이상한 소리가 들립니다.",
+        "answers": [
+            {
+                "text": "곡괭이를 들고 더 깊이 파들어간다. 보물이 있을지도!",
+                "scores": {
+                    "Mining": 2,
+                    "greedy": 1,
+                    "brave": 1
+                }
+            },
+            {
+                "text": "무서워서 광산 입구로 도망친다.",
+                "scores": {
+                    "wimp": 1,
+                    "nervous": 1,
+                    "Mining": -1
+                }
+            },
+            {
+                "text": "소리의 정체를 파악한 후 대응 계획을 세운다.",
+                "scores": {
+                    "Intellectual": 1,
+                    "careful": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 63,
+        "groupId": "p1_cooking_poison",
+        "text": "요리를 하다가 실수로 독성 식물을 섞어버렸습니다.",
+        "answers": [
+            {
+                "text": "아무도 모르게 몰래 버린다.",
+                "scores": {
+                    "careful": 1,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "어차피 조금만 먹으면 괜찮겠지. 그냥 낸다.",
+                "scores": {
+                    "psychopath": 1,
+                    "lazy": 1,
+                    "Cooking": -1
+                }
+            },
+            {
+                "text": "처음부터 다시 만든다.",
+                "scores": {
+                    "Cooking": 2,
+                    "hard_worker": 1,
+                    "kind": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 64,
+        "groupId": "p1_social_negotiation",
+        "text": "적대 세력이 협상을 요청해왔습니다. 당신이 대표로 나갑니까?",
+        "answers": [
+            {
+                "text": "당연하다. 내가 설득해서 좋은 조건을 얻어낸다.",
+                "scores": {
+                    "Social": 2,
+                    "optimist": 1
+                }
+            },
+            {
+                "text": "말주변이 없어서... 다른 사람이 가면 좋겠다.",
+                "scores": {
+                    "Social": -1,
+                    "nervous": 1,
+                    "inc_social": 1
+                }
+            },
+            {
+                "text": "협상? 무기를 들고 가서 위협한다.",
+                "scores": {
+                    "Shooting": 1,
+                    "bloodlust": 1,
+                    "abrasive": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 65,
+        "groupId": "p1_crafting_weapon",
+        "text": "새로운 무기를 제작해야 합니다. 어떤 걸 만드시겠습니까?",
+        "answers": [
+            {
+                "text": "섬세하고 정교한 장인의 걸작을 만든다.",
+                "scores": {
+                    "Crafting": 2,
+                    "perfectionist": 1
+                }
+            },
+            {
+                "text": "빨리 만들어서 빨리 쓸 수 있게만 하면 된다.",
+                "scores": {
+                    "Crafting": 1,
+                    "hard_worker": 1
+                }
+            },
+            {
+                "text": "손재주가 없어서 만들다가 망가뜨릴 것 같다.",
+                "scores": {
+                    "Crafting": -1,
+                    "wimp": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 66,
+        "groupId": "p1_medical_emergency",
+        "text": "동료가 총에 맞아 피를 흘리고 있습니다!",
+        "answers": [
+            {
+                "text": "침착하게 응급처치를 하고 지혈한다.",
+                "scores": {
+                    "Medicine": 2,
+                    "iron_willed": 1,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "피를 보니 토할 것 같다. 다른 사람을 부른다.",
+                "scores": {
+                    "wimp": 1,
+                    "Medicine": -1,
+                    "inc_medical": 1
+                }
+            },
+            {
+                "text": "이 기회에 그의 장기를 팔면...",
+                "scores": {
+                    "psychopath": 2,
+                    "greedy": 1,
+                    "Medicine": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 67,
+        "groupId": "p1_farming_labor",
+        "text": "농작물 수확 시즌입니다. 며칠 동안 밭일을 해야 합니다.",
+        "answers": [
+            {
+                "text": "좋아! 허리 펴고 땀 흘리며 일하는 게 즐겁다.",
+                "scores": {
+                    "Plants": 2,
+                    "hard_worker": 1,
+                    "outdoors": 1
+                }
+            },
+            {
+                "text": "힘들어 죽겠는데... 대충 하고 쉬어야지.",
+                "scores": {
+                    "lazy": 1,
+                    "Plants": -1
+                }
+            },
+            {
+                "text": "기계화 농법으로 효율을 높이는 방법을 연구한다.",
+                "scores": {
+                    "Intellectual": 1,
+                    "Plants": 1,
+                    "transhumanist": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 68,
+        "groupId": "p1_animal_bonding",
+        "text": "야생 늑대 새끼가 당신을 따라옵니다.",
+        "answers": [
+            {
+                "text": "키우면서 가족으로 받아들인다.",
+                "scores": {
+                    "Animals": 2,
+                    "kind": 1,
+                    "optimist": 1
+                }
+            },
+            {
+                "text": "쓸모가 있으면 키우고, 아니면 내쫓는다.",
+                "scores": {
+                    "Animals": 1,
+                    "pragmatist": 1
+                }
+            },
+            {
+                "text": "동물은 무섭다. 쫓아버린다.",
+                "scores": {
+                    "wimp": 1,
+                    "inc_animals": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 69,
+        "groupId": "p1_research_breakthrough",
+        "text": "복잡한 고대 기술 문서를 발견했습니다.",
+        "answers": [
+            {
+                "text": "밤새워서라도 해독하고 연구한다!",
+                "scores": {
+                    "Intellectual": 2,
+                    "night_owl": 1,
+                    "industrious": 1
+                }
+            },
+            {
+                "text": "어려워 보이니까 나중에 할래...",
+                "scores": {
+                    "lazy": 1,
+                    "Intellectual": -1
+                }
+            },
+            {
+                "text": "이런 건 전문가에게 맡기는 게 낫다.",
+                "scores": {
+                    "Social": 1,
+                    "careful": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 70,
+        "groupId": "p1_art_inspiration",
+        "text": "예술 작품을 만들 시간이 생겼습니다.",
+        "answers": [
+            {
+                "text": "내 영혼을 담은 걸작을 만들어야지!",
+                "scores": {
+                    "Artistic": 2,
+                    "tortured_artist": 1
+                }
+            },
+            {
+                "text": "빨리 팔릴 만한 실용적인 물건을 만든다.",
+                "scores": {
+                    "Artistic": 1,
+                    "greedy": 1
+                }
+            },
+            {
+                "text": "예술은 시간 낭비다. 다른 일을 한다.",
+                "scores": {
+                    "Artistic": -1,
+                    "hard_worker": 1,
+                    "ascetic": 1
                 }
             }
         ]
