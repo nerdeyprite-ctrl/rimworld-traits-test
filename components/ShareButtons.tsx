@@ -47,7 +47,7 @@ const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
             // Get your Kakao JavaScript Key from: https://developers.kakao.com/
             // Replace 'YOUR_KAKAO_JAVASCRIPT_KEY' below with your actual key
             if (window.Kakao && !window.Kakao.isInitialized()) {
-                window.Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY');
+                window.Kakao.init('f44e61667cf5a882b8ba9055e0a2c837');
             }
         }
     }, [result, userInfo]);

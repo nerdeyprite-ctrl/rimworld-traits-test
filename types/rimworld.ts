@@ -17,7 +17,7 @@ export interface Skill {
 
 export interface Answer {
   text: string;
-  scores: Record<string, number>; // traitId -> score impact
+  scores: Record<string, number | string>; // traitId -> score impact, or backstory_preference -> string
 }
 
 export interface Question {
@@ -30,10 +30,13 @@ export interface Question {
 export interface Backstory {
   id: string;
   title: string;
-  title_ko?: string;
-  type: 'childhood' | 'adulthood';
+  titleShort: string;
   description: string;
-  description_ko?: string;
+  skillBonuses?: Record<string, number>;
+  skillPenalties?: Record<string, number>;
+  workDisables?: string[];
+  traits?: string[];
+  spawnCategories?: string[];
 }
 
 export interface TestResult {

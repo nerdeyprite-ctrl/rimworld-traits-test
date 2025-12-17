@@ -1,12 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Answer, Trait, TestResult, Passion, Question } from '../types/rimworld';
+import { Answer, Trait, TestResult, Passion, Question, Backstory } from '../types/rimworld';
 import questionsKo from '../data/questions_ko.json';
 import questionsEn from '../data/questions_en.json';
 import traitsKo from '../data/traits_ko.json';
 import traitsEn from '../data/traits_en.json';
-import { BACKSTORIES } from '../data/backstories';
+import backstoriesKo from '../data/backstories_ko.json';
+import backstoriesEn from '../data/backstories_en.json';
 import { useLanguage } from './LanguageContext';
 
 // Rimworld Skills
@@ -392,24 +393,81 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // --- BACKSTORY LOGIC ---
-        const calculateBackstoryScore = (story: typeof BACKSTORIES[0]) => {
+        // Load backstory data based on language
+        const backstoriesData = language === 'ko' ? backstoriesKo : backstoriesEn;
+
+        // Extract backstory preferences from Part 2 answers
+        const backstoryPreferences: Record<string, number> = {};
+        Object.values(answers).forEach(answer => {
+            if (answer.scores && answer.scores['backstory_preference']) {
+                const pref = answer.scores['backstory_preference'] as string;
+                backstoryPreferences[pref] = (backstoryPreferences[pref] || 0) + 1;
+            }
+        });
+
+        // Calculate backstory score with multiple factors
+        const calculateBackstoryScore = (story: any) => {
             let score = 0;
-            // Dot product of skill bonuses and user scores
-            Object.entries(story.skillBonuses).forEach(([skill, bonus]) => {
-                score += (scores[skill] || 0) * bonus;
-            });
-            // Add randomness
-            return score + Math.random() * 5;
+
+            // 1. Skill bonuses alignment (30% weight)
+            if (story.skillBonuses) {
+                Object.entries(story.skillBonuses).forEach(([skill, bonus]) => {
+                    const skillScore = skillScores[skill] || 0;
+                    score += skillScore * (bonus as number) * 0.3;
+                });
+            }
+
+            // 2. Backstory preference from Part 2 (40% weight)
+            if (story.spawnCategories && story.spawnCategories.length > 0) {
+                story.spawnCategories.forEach((category: string) => {
+                    const categoryLower = category.toLowerCase();
+                    // Check if user has preference for this category
+                    Object.keys(backstoryPreferences).forEach(pref => {
+                        if (categoryLower.includes(pref.toLowerCase()) || pref.toLowerCase().includes(categoryLower)) {
+                            score += backstoryPreferences[pref] * 10; // 40% weight (10 points per preference)
+                        }
+                    });
+                });
+            }
+
+            // 3. Trait compatibility (20% weight)
+            if (story.traits && story.traits.length > 0) {
+                story.traits.forEach((traitId: string) => {
+                    if (selectedIds.has(traitId)) {
+                        score += 20; // Bonus if backstory trait matches selected trait
+                    }
+                });
+            }
+
+            // 4. Work disable penalty (10% weight)
+            if (story.workDisables && story.workDisables.length > 0) {
+                // Slight penalty for work disables
+                score -= story.workDisables.length * 2;
+            }
+
+            // 5. Small randomness for variety
+            score += Math.random() * 5;
+
+            return score;
         };
 
-        const childhoods = BACKSTORIES.filter(b => b.type === 'childhood');
-        const adulthoods = BACKSTORIES.filter(b => b.type === 'adulthood');
+        const childhoods = backstoriesData.childhood || [];
+        const adulthoods = backstoriesData.adulthood || [];
 
-        childhoods.sort((a, b) => calculateBackstoryScore(b) - calculateBackstoryScore(a));
-        adulthoods.sort((a, b) => calculateBackstoryScore(b) - calculateBackstoryScore(a));
+        // Sort by calculated score
+        const scoredChildhoods = childhoods.map(story => ({
+            story,
+            score: calculateBackstoryScore(story)
+        })).sort((a, b) => b.score - a.score);
 
-        const selectedChildhood = childhoods[0] || childhoods[Math.floor(Math.random() * childhoods.length)];
-        const selectedAdulthood = adulthoods[0] || adulthoods[Math.floor(Math.random() * adulthoods.length)];
+        const scoredAdulthoods = adulthoods.map(story => ({
+            story,
+            score: calculateBackstoryScore(story)
+        })).sort((a, b) => b.score - a.score);
+
+        // Select best matching backstories
+        const selectedChildhood = scoredChildhoods[0]?.story || childhoods[0];
+        const selectedAdulthood = scoredAdulthoods[0]?.story || adulthoods[0];
 
         // --- MBTI LOGIC ---
         // E vs I: Social + Animals
@@ -489,8 +547,8 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             }
 
             // Apply Backstory Bonuses to base level calculation
-            const childhoodBonus = selectedChildhood.skillBonuses[skillName] || 0;
-            const adulthoodBonus = selectedAdulthood.skillBonuses[skillName] || 0;
+            const childhoodBonus = (selectedChildhood?.skillBonuses?.[skillName as keyof typeof selectedChildhood.skillBonuses] as number) || 0;
+            const adulthoodBonus = (selectedAdulthood?.skillBonuses?.[skillName as keyof typeof selectedAdulthood.skillBonuses] as number) || 0;
             const historyBonus = childhoodBonus + adulthoodBonus;
 
             // Base level logic: random base (0-3) + score + history - penalty
@@ -539,8 +597,8 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             skills: finalSkills,
             scoreLog: scores,
             backstory: {
-                childhood: selectedChildhood,
-                adulthood: selectedAdulthood
+                childhood: selectedChildhood as unknown as Backstory,
+                adulthood: selectedAdulthood as unknown as Backstory
             },
             mbti: mbti,
             incapabilities: incapabilities
