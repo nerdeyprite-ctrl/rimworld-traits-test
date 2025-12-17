@@ -2539,8 +2539,7 @@
                 "scores": {
                     "Intellectual": 2,
                     "Artistic": 2,
-                    "wimp": 1,
-                    "gourmand": 1
+                    "backstory_preference": "glitterworld"
                 }
             },
             {
@@ -2548,8 +2547,8 @@
                 "scores": {
                     "Melee": 1,
                     "Shooting": 1,
-                    "psychopath": 1,
-                    "street_smart": 2
+                    "tough": 1,
+                    "backstory_preference": "urbworld"
                 }
             },
             {
@@ -2557,17 +2556,33 @@
                 "scores": {
                     "Plants": 2,
                     "Animals": 2,
-                    "psychic_sensitivity": 1,
-                    "body_purist": 1
+                    "backstory_preference": "tribal"
                 }
             },
             {
                 "text": "전쟁이 끊이지 않는 전장 한복판.",
                 "scores": {
                     "Shooting": 2,
-                    "tough": 2,
-                    "volatile": 1,
-                    "bloodlust": 1
+                    "Melee": 1,
+                    "tough": 1,
+                    "backstory_preference": "military"
+                }
+            },
+            {
+                "text": "제국의 화려한 궁전과 귀족 저택.",
+                "scores": {
+                    "Social": 2,
+                    "Artistic": 1,
+                    "greedy": 1,
+                    "backstory_preference": "imperial"
+                }
+            },
+            {
+                "text": "중세 시대 성벽으로 둘러싸인 왕국.",
+                "scores": {
+                    "Melee": 2,
+                    "Construction": 1,
+                    "backstory_preference": "medieval"
                 }
             }
         ]
@@ -2582,7 +2597,7 @@
                 "scores": {
                     "tough": 1,
                     "ascetic": 1,
-                    "cold_tolerant": 2
+                    "Plants": 1
                 }
             },
             {
@@ -2596,7 +2611,7 @@
             {
                 "text": "독성 낙진이 쏟아지는 오염된 황무지.",
                 "scores": {
-                    "super_immune": 2,
+                    "tough": 1,
                     "depressive": 1,
                     "Medicine": 1
                 }
@@ -2606,8 +2621,23 @@
                 "scores": {
                     "Plants": 2,
                     "Animals": 2,
-                    "Melee": 1,
-                    "Shooting": -1
+                    "lazy": 1
+                }
+            },
+            {
+                "text": "거대한 우주선 내부의 금속 복도.",
+                "scores": {
+                    "Intellectual": 1,
+                    "Crafting": 1,
+                    "undergrounder": 1
+                }
+            },
+            {
+                "text": "사막과 정글이 공존하는 극단적 기후.",
+                "scores": {
+                    "tough": 1,
+                    "Animals": 1,
+                    "Plants": 1
                 }
             }
         ]
@@ -2630,14 +2660,14 @@
                 "scores": {
                     "Social": 2,
                     "Melee": 1,
-                    "abrasive": 1
+                    "brawler": 1
                 }
             },
             {
                 "text": "숲속에서 곤충을 잡거나 식물을 관찰했다.",
                 "scores": {
-                    "Plants": 1,
-                    "Animals": 1,
+                    "Plants": 2,
+                    "Animals": 2,
                     "Intellectual": 1
                 }
             },
@@ -2645,8 +2675,22 @@
                 "text": "집에서 하루 종일 책만 읽었다.",
                 "scores": {
                     "Intellectual": 2,
-                    "slowpoke": 1,
-                    "recluse": 1
+                    "Artistic": 1,
+                    "Social": -1
+                }
+            },
+            {
+                "text": "그림을 그리거나 조각품을 만들었다.",
+                "scores": {
+                    "Artistic": 3,
+                    "Crafting": 1
+                }
+            },
+            {
+                "text": "동물을 돌보고 훈련시켰다.",
+                "scores": {
+                    "Animals": 3,
+                    "kind": 1
                 }
             }
         ]
@@ -2660,12 +2704,12 @@
                 "text": "엄격하고 무서웠던 군인 아버지.",
                 "scores": {
                     "Shooting": 2,
-                    "disciplined": 1,
-                    "psychopath": 1
+                    "Melee": 1,
+                    "iron_willed": 1
                 }
             },
             {
-                "text": "다정하고 솜씨 좋은 요리사 어머니.",
+                "text": "다정하고 솔씨 좋은 요리사 어머니.",
                 "scores": {
                     "Cooking": 2,
                     "kind": 2,
@@ -2675,17 +2719,32 @@
             {
                 "text": "미친 과학자였던 할아버지.",
                 "scores": {
-                    "Intellectual": 2,
-                    "neurotic": 1,
-                    "Crafting": 1
+                    "Intellectual": 3,
+                    "transhumanist": 1
                 }
             },
             {
                 "text": "거리에서 함께 살아남은 고아 친구들.",
                 "scores": {
-                    "street_smart": 2,
+                    "Social": 2,
                     "Melee": 1,
+                    "tough": 1
+                }
+            },
+            {
+                "text": "지혜로운 부족의 장로.",
+                "scores": {
+                    "Intellectual": 1,
+                    "Medicine": 1,
                     "Social": 1
+                }
+            },
+            {
+                "text": "아무도 없다. 혼자 자랐다.",
+                "scores": {
+                    "tough": 2,
+                    "ascetic": 1,
+                    "Social": -2
                 }
             }
         ]
@@ -2700,7 +2759,7 @@
                 "scores": {
                     "Shooting": 2,
                     "Melee": 1,
-                    "careful_shooter": 1
+                    "tough": 1
                 }
             },
             {
@@ -2708,7 +2767,7 @@
                 "scores": {
                     "Medicine": 3,
                     "kind": 1,
-                    "clean_freak": 1
+                    "Intellectual": 1
                 }
             },
             {
@@ -2716,7 +2775,7 @@
                 "scores": {
                     "Cooking": 2,
                     "Plants": 2,
-                    "ascetic": 1
+                    "hard_worker": 1
                 }
             },
             {
@@ -2724,6 +2783,20 @@
                 "scores": {
                     "Social": 3,
                     "greedy": 1
+                }
+            },
+            {
+                "text": "기계를 만들고 수리하는 일(엔지니어/장인).",
+                "scores": {
+                    "Crafting": 3,
+                    "Intellectual": 1
+                }
+            },
+            {
+                "text": "지식을 연구하고 가르치는 일(과학자/교사).",
+                "scores": {
+                    "Intellectual": 3,
+                    "Social": 1
                 }
             }
         ]
@@ -2738,8 +2811,7 @@
                 "scores": {
                     "Melee": 2,
                     "Shooting": 1,
-                    "psychopath": 1,
-                    "night_owl": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2751,11 +2823,11 @@
                 }
             },
             {
-                "text": "조용히 광물을 캐는 광부.",
+                "text": "조용히 광물을 캠는 광부.",
                 "scores": {
                     "Mining": 3,
-                    "undergrounder": 2,
-                    "tough": 1
+                    "tough": 1,
+                    "undergrounder": 1
                 }
             },
             {
@@ -2764,6 +2836,21 @@
                     "Construction": 3,
                     "hard_worker": 1,
                     "Crafting": 1
+                }
+            },
+            {
+                "text": "동물을 길들이고 훈련시키는 조련사.",
+                "scores": {
+                    "Animals": 3,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "우주를 항해하는 선원.",
+                "scores": {
+                    "Intellectual": 2,
+                    "Crafting": 1,
+                    "undergrounder": 1
                 }
             }
         ]
@@ -2776,15 +2863,15 @@
             {
                 "text": "집이 불타 모든 것을 잃은 적이 있다.",
                 "scores": {
-                    "pyromaniac": 1,
                     "Construction": 1,
-                    "pessimist": 1
+                    "pessimist": 1,
+                    "tough": 1
                 }
             },
             {
                 "text": "가장 믿었던 동료에게 배신당했다.",
                 "scores": {
-                    "careful": 2,
+                    "Social": -1,
                     "depressive": 1,
                     "abrasive": 1
                 }
@@ -2794,15 +2881,29 @@
                 "scores": {
                     "ascetic": 1,
                     "gourmand": 1,
-                    "food_hoarding": 1
+                    "tough": 1
                 }
             },
             {
                 "text": "특별한 사고 없이 평범하고 지루하게 살았다.",
                 "scores": {
-                    "steady_hands": 1,
-                    "depressive": 0,
-                    "optimist": 0
+                    "lazy": 1,
+                    "optimist": 1
+                }
+            },
+            {
+                "text": "사랑하는 사람을 잃었다.",
+                "scores": {
+                    "depressive": 2,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "죽을 고비를 넘기고 기적적으로 살아남았다.",
+                "scores": {
+                    "tough": 2,
+                    "iron_willed": 1,
+                    "optimist": 1
                 }
             }
         ]
@@ -2816,7 +2917,6 @@
                 "text": "우주선의 경보음과 붉은 비상등.",
                 "scores": {
                     "nervous": 1,
-                    "volatile": 1,
                     "Intellectual": 1
                 }
             },
@@ -2824,23 +2924,34 @@
                 "text": "냉동 수면기의 차가운 냉기.",
                 "scores": {
                     "tough": 1,
-                    "slowpoke": 1,
-                    "depressive": 1
+                    "ascetic": 1
                 }
             },
             {
                 "text": "창밖으로 보이던 이름 모를 아름다운 성운.",
                 "scores": {
                     "Artistic": 2,
-                    "optimist": 1,
-                    "sanguine": 1
+                    "optimist": 1
                 }
             },
             {
                 "text": "아무것도 기억나지 않는다.",
                 "scores": {
-                    "wimp": 1,
-                    "iron_willed": 1
+                    "wimp": 1
+                }
+            },
+            {
+                "text": "동료들의 비명 소리.",
+                "scores": {
+                    "depressive": 1,
+                    "kind": 1
+                }
+            },
+            {
+                "text": "폭발하는 엔진과 불길.",
+                "scores": {
+                    "pyromaniac": 1,
+                    "volatile": 1
                 }
             }
         ]
@@ -2853,13 +2964,13 @@
             {
                 "text": "우주선을 건조하여 이 행성을 탈출하는 것.",
                 "scores": {
-                    "Intellectual": 1,
+                    "Intellectual": 2,
                     "Construction": 1,
                     "transhumanist": 1
                 }
             },
             {
-                "text": "나만의 요새를 짓고 적들을 분쇄하며 지배하는 것.",
+                "text": "나만의 요세를 짓고 적들을 분쇄하며 지배하는 것.",
                 "scores": {
                     "Shooting": 1,
                     "Melee": 1,
@@ -2872,15 +2983,30 @@
                 "scores": {
                     "Plants": 2,
                     "Animals": 2,
-                    "pacifist": 1
+                    "ascetic": 1
                 }
             },
             {
                 "text": "그저 하루하루 죽지 않고 살아남는 것.",
                 "scores": {
-                    "tough": 1,
-                    "wimp": 1,
-                    "careful": 1
+                    "tough": 2,
+                    "wimp": 1
+                }
+            },
+            {
+                "text": "예술과 문화를 꽃피우는 문명을 건설하는 것.",
+                "scores": {
+                    "Artistic": 3,
+                    "Social": 1,
+                    "Intellectual": 1
+                }
+            },
+            {
+                "text": "부를 축적하고 거대한 제국을 세우는 것.",
+                "scores": {
+                    "greedy": 2,
+                    "Social": 1,
+                    "Construction": 1
                 }
             }
         ]
