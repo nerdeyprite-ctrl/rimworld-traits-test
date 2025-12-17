@@ -44,10 +44,23 @@ const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
             }
 
             // Initialize Kakao SDK
-            // Get your Kakao JavaScript Key from: https://developers.kakao.com/
-            // Replace 'YOUR_KAKAO_JAVASCRIPT_KEY' below with your actual key
-            if (window.Kakao && !window.Kakao.isInitialized()) {
-                window.Kakao.init('f44e61667cf5a882b8ba9055e0a2c837');
+            const initKakao = () => {
+                if (window.Kakao && !window.Kakao.isInitialized()) {
+                    window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_API_KEY);
+                }
+            };
+
+            if (window.Kakao) {
+                initKakao();
+            } else {
+                // Polling to wait for lazyOnload script
+                const timer = setInterval(() => {
+                    if (window.Kakao) {
+                        initKakao();
+                        clearInterval(timer);
+                    }
+                }, 300);
+                setTimeout(() => clearInterval(timer), 5000); // Stop polling after 5s
             }
         }
     }, [result, userInfo]);
