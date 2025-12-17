@@ -70,7 +70,7 @@ export default function RootLayout({
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
           integrity="sha384-DKYJZ8NLiK8MN4/C5NYuzXVrT00HNE/4/KxxPkggrGbPDHMcR6Rl52z0TunCVZCX"
           crossOrigin="anonymous"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
 
         {/* Google Analytics Skeleton */}
