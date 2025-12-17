@@ -224,7 +224,7 @@ export default function ResultPage() {
                             <div
                                 ref={scrollRef}
                                 onScroll={checkScroll}
-                                className="space-y-2 overflow-y-auto max-h-[350px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] h-full pb-6"
+                                className="space-y-2 overflow-y-auto max-h-[350px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] h-full pb-16"
                             >
                                 {traits.map(trait => {
                                     const isSelected = selectedTrait?.id === trait.id;
@@ -252,12 +252,13 @@ export default function ResultPage() {
 
                             {/* Scroll Hint Overlay */}
                             {showScrollHint && (
-                                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#212121] to-transparent pointer-events-none flex items-end justify-center pb-1 transition-opacity duration-300">
-                                    <div className="animate-bounce bg-[#111] bg-opacity-80 rounded-full p-1 border border-gray-600 mb-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#9f752a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#212121] via-[#212121]/90 to-transparent pointer-events-none flex items-end justify-center pb-6 transition-opacity duration-300 z-10">
+                                    <div className="animate-bounce bg-[#111] bg-opacity-90 rounded-full p-1.5 border border-[#6b6b6b] shadow-lg mb-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#9f752a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </div>
+                                    <span className="absolute bottom-2 text-[10px] text-gray-500 font-mono animate-pulse">SCROLL</span>
                                 </div>
                             )}
                         </div>
