@@ -1,0 +1,704 @@
+{
+    "childhood": [
+        {
+            "id": "tribe_child",
+            "title": "부족 아이",
+            "titleShort": "부족민",
+            "description": "부족 사회에서 자랐다. 마을을 뛰어다니고, 머팔로 무리와 함께 이동하며, 부모로부터 필수 기술을 배웠다.\n\n읽는 법을 배우지 못했고, 고대 유적이 아닌 기계를 본 적이 없다.",
+            "skillBonuses": {
+                "Plants": 2,
+                "Melee": 2,
+                "Shooting": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "abandoned_child",
+            "title": "버려진 아이",
+            "titleShort": "유기아",
+            "description": "병약하게 태어났다. 부족에 짐이 될 것이라 생각한 부모는 자연에 버렸다. 어떻게든 살아남았다.",
+            "skillBonuses": {
+                "Melee": 3,
+                "Crafting": 3
+            },
+            "skillPenalties": {
+                "Social": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "cave_child",
+            "title": "동굴 아이",
+            "titleShort": "동굴민",
+            "description": "산 깊숙이 뻗어 있는 거대하고 복잡한 동굴에서 자랐다. 어른들이 깊은 동굴을 유지하고 개선하는 것을 도왔다.",
+            "skillBonuses": {
+                "Mining": 3,
+                "Construction": 3
+            },
+            "workDisables": [],
+            "traits": [
+                "Undergrounder"
+            ],
+            "spawnCategories": [
+                "Tribal",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "medieval_slave",
+            "title": "중세 노예",
+            "titleShort": "노예",
+            "description": "중세 세계에서 수레를 끌고 구덩이를 파며 자랐다. 단순 육체노동은 채찍과 함께 가장 오래된 친구였다.\n\n9살이 되어서야 읽는 법을 배웠다.",
+            "skillBonuses": {
+                "Plants": 2,
+                "Construction": 2,
+                "Mining": 2
+            },
+            "skillPenalties": {
+                "Intellectual": -3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "medieval_lordling",
+            "title": "중세 귀족 자제",
+            "titleShort": "귀족",
+            "description": "중세 세계의 고대 왕국에서 하급 귀족이었다. 돌로 지은 저택에서 자랐으며, 고개 숙이는 하인들의 시중을 받았다.\n\n그런 삶은 기술적 기술을 가르치지 않았고 평생 육체노동에 대한 혐오감을 심어주었다. 하지만 사회적 조작의 방법은 일찍 배웠다.",
+            "skillBonuses": {
+                "Social": 4
+            },
+            "skillPenalties": {
+                "Construction": -1,
+                "Mining": -1,
+                "Plants": -1
+            },
+            "workDisables": [
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "urbworld_urchin",
+            "title": "어브월드 부랑아",
+            "titleShort": "부랑아",
+            "description": "어브월드 - 인류와 독으로 가득 찬 고대의 깊은 산업 도시. 그런 곳의 어둡고 원치 않는 구역에서 자랐다. 모든 음식 한 조각을 위해 싸워야 했다.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "industrial_orphan",
+            "title": "산업 세계 고아",
+            "titleShort": "고아",
+            "description": "부모를 알지 못했다. 가장 이른 기억은 산업 세계의 광산과 작업장에서의 고된 노동이다.\n\n이 때문에 제대로 된 교육을 받지 못했다.",
+            "skillBonuses": {
+                "Crafting": 3,
+                "Mining": 3
+            },
+            "skillPenalties": {
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "vatgrown_soldier",
+            "title": "시험관 병사",
+            "titleShort": "시험관",
+            "description": "사람이 아니라 파괴의 도구로 만들어졌다. 생물무기 시설에서 자랐고 가속 성장 중에 전투를 배웠다. 여전히 모든 종류의 전투에 소질이 있으며 인간 접촉을 싫어한다.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "skillPenalties": {
+                "Social": -3,
+                "Caring": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "sickly_child",
+            "title": "병약한 아이",
+            "titleShort": "환자",
+            "description": "어린 시절 희귀병을 앓았다. 병원에 격리되어 인간 접촉이 최소화되었고 신체 운동도 거의 하지 못했다. 하지만 무균 병원 환경에서 과학과 의학에 매우 익숙해졌다.",
+            "skillBonuses": {
+                "Intellectual": 4,
+                "Medicine": 5
+            },
+            "skillPenalties": {
+                "Melee": -2,
+                "Social": -2,
+                "Construction": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "child_spy",
+            "title": "아동 스파이",
+            "titleShort": "스파이",
+            "description": "아이들은 무고해 보이기 때문에 훌륭한 스파이가 된다. 어린 시절 침투 기술 훈련을 받았다.\n\n잠복 근무 기간 동안 사회적 조작과 거짓말 경험을 쌓았지만, 정상적인 교육은 받지 못했다.",
+            "skillBonuses": {
+                "Social": 4
+            },
+            "skillPenalties": {
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "scout",
+            "title": "정찰병",
+            "titleShort": "정찰병",
+            "description": "림월드 식민지 관리자의 자녀로 태어나 군사 정찰 기술을 가르치는 청소년 프로그램에 등록되었다.\n\n황야에서 생존하고, 복종하며, 질문하지 않는 법을 배웠다.",
+            "skillBonuses": {
+                "Shooting": 3,
+                "Crafting": 2,
+                "Construction": 1
+            },
+            "skillPenalties": {
+                "Artistic": -2,
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "rich_kid",
+            "title": "부유한 아이",
+            "titleShort": "부자",
+            "description": "부유하고 영향력 있는 혈통에서 태어났다. 비싼 교육에는 결투, 리더십, 군사 전략 수업이 포함되었다.",
+            "skillBonuses": {
+                "Melee": 2,
+                "Shooting": 2,
+                "Intellectual": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Imperial"
+            ]
+        },
+        {
+            "id": "military_cadet",
+            "title": "사관생도",
+            "titleShort": "생도",
+            "description": "어린 나이에 가족으로부터 징집되어 군인이 되었다. 다른 군인 아이들과 함께 막사에서 생활하며 의무, 무기, 고통, 승리에 대해 배웠다.\n\n훈련관들은 때때로 아이들이 기지를 벗어나 더 넓은 세계를 즐기도록 허락했다. 독립적으로 생각할 수 있는 군인을 원했기 때문이다.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3
+            },
+            "skillPenalties": {
+                "Animals": -2,
+                "Plants": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "bookworm",
+            "title": "책벌레",
+            "titleShort": "책벌레",
+            "description": "다른 아이들과 어울리기보다 문학에 빠져 지내는 것을 선호했다. 지나가는 상인들에게서 산 책으로 어린 나이에 스스로 읽는 법을 배웠다.",
+            "skillBonuses": {
+                "Intellectual": 6,
+                "Artistic": 2
+            },
+            "skillPenalties": {
+                "Social": -3
+            },
+            "workDisables": [
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "farm_kid",
+            "title": "농가 아이",
+            "titleShort": "농부",
+            "description": "림월드의 농부 가정에서 자랐다. 매일 농장 일을 도왔다.",
+            "skillBonuses": {
+                "Plants": 4,
+                "Animals": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Tribal"
+            ]
+        }
+    ],
+    "adulthood": [
+        {
+            "id": "house_servant",
+            "title": "하인",
+            "titleShort": "하인",
+            "description": "왕실의 하급 하인이었다.\n\n선임 직원의 지시에 따라 방을 청소하고 물건을 옮기면서, 저택의 영주와 귀부인들에게 보이지 않으려 노력했다.",
+            "skillBonuses": {
+                "Cooking": 3,
+                "Construction": 3,
+                "Mining": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "royal_cook",
+            "title": "왕실 요리사",
+            "titleShort": "요리사",
+            "description": "귀족 후원자들을 위한 식사를 만들었다.\n\n최고급 음식만 허용되었기에, 저택 부지의 작은 정원을 가꾸며 가장 신선한 허브와 채소를 얻었다. 음식 자체와 사랑에 빠졌다.",
+            "skillBonuses": {
+                "Cooking": 7,
+                "Plants": 2
+            },
+            "workDisables": [],
+            "traits": [
+                "Gourmand"
+            ],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "imperial_priest",
+            "title": "제국 사제",
+            "titleShort": "사제",
+            "description": "제국 교회의 사제였다.\n\n시간의 절반은 신의 양상과 사회의 측면 사이의 관계를 이해하기 위해 책을 공부하는 데 보냈다. 나머지 절반은 나태와 음주의 악을 설교하는 데 보냈다.",
+            "skillBonuses": {
+                "Social": 5,
+                "Intellectual": 5
+            },
+            "workDisables": [],
+            "traits": [
+                "Teetotaler"
+            ],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "line_infanteer",
+            "title": "보병",
+            "titleShort": "보병",
+            "description": "제국 대대의 평범한 보병이었다.\n\n어린 나이에 징집되어 군대에 인원을 추가했고, 장교들을 만족시킬 만큼 전투 방법을 배웠다. 하지만 주변에서 무슨 일이 일어나는지 충분히 이해하지 못해 진정으로 믿지는 못했다.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "space_marine",
+            "title": "우주 해병",
+            "titleShort": "해병",
+            "description": "제국 해군의 전사였다. 적 우주선에 침투하고, 승무원을 사살하고, 온전한 상태로 함선을 점령하는 것이 임무였다. 그리고 그 일을 잘했다.",
+            "skillBonuses": {
+                "Melee": 5,
+                "Shooting": 7
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "navy_scientist",
+            "title": "해군 과학자",
+            "titleShort": "과학자",
+            "description": "성간 전쟁은 기술로 승리하므로, 글리터월드 해군은 항상 현대 연구의 정점에 있다. 더 나아가, 우주에 떠다니는 아크호테크 유물을 가끔 발견한다.\n\n해군 연구소에서 일했다.",
+            "skillBonuses": {
+                "Intellectual": 8
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "glitterworld_surgeon",
+            "title": "글리터월드 외과의",
+            "titleShort": "외과의",
+            "description": "질병과 인간 고통이 거의 없는 세계에서 외과의로 일했기에, 정교하고 창의적인 미용 수술에 집중했다.\n\n인간 생물학을 깊이 이해하지만, 종양이나 총알을 제거한 적은 없다.",
+            "skillBonuses": {
+                "Artistic": 5,
+                "Medicine": 3,
+                "Social": 1
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "novelist",
+            "title": "소설가",
+            "titleShort": "작가",
+            "description": "글리터월드에 살면서 대성공한 소설을 썼다. 낮에는 글을 쓰고 밤에는 파티를 즐기는 평온한 생활을 했으며, 평생 육체노동을 한 적이 없다.",
+            "skillBonuses": {
+                "Artistic": 8
+            },
+            "skillPenalties": {
+                "Construction": -5,
+                "Mining": -5
+            },
+            "workDisables": [
+                "ManualDumb",
+                "Social"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "medieval_lord",
+            "title": "중세 영주",
+            "titleShort": "영주",
+            "description": "전산업 행성의 영주였다. 파티에 가고, 부하들을 관리하고, 검술까지 배웠다.\n\n그 기간 동안 부드러운 손으로 작업 도구를 잡은 적이 없다. 육체노동을 자신보다 낮은 것으로 여긴다.",
+            "skillBonuses": {
+                "Social": 7,
+                "Melee": 5,
+                "Shooting": 5
+            },
+            "workDisables": [
+                "ManualDumb",
+                "ManualSkilled"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "blacksmith",
+            "title": "대장장이",
+            "titleShort": "대장장이",
+            "description": "중세 세계의 대장장이로서 작품의 높은 품질로 명성을 얻었다. 자신이 만든 검을 사용하는 것도 나쁘지 않았다.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Crafting": 6
+            },
+            "skillPenalties": {
+                "Shooting": -5
+            },
+            "workDisables": [
+                "Intellectual"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "chef",
+            "title": "셰프",
+            "titleShort": "셰프",
+            "description": "고급 레스토랑을 운영했다. 창의적인 요리 특선 요리로 고객들 사이에서 유명했고, 허드렛일에 대한 무심한 경멸로 주방 직원들 사이에서 악명 높았다.",
+            "skillBonuses": {
+                "Cooking": 6,
+                "Social": 2
+            },
+            "workDisables": [
+                "Cleaning",
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "construction_engineer",
+            "title": "건설 엔지니어",
+            "titleShort": "엔지니어",
+            "description": "건설 현장에서 일하며 상사의 지시에 따라 일상적인 구조물을 건설했다.",
+            "skillBonuses": {
+                "Construction": 8
+            },
+            "skillPenalties": {
+                "Plants": -3
+            },
+            "workDisables": [
+                "Intellectual",
+                "Cooking"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "planetary_miner",
+            "title": "행성 광부",
+            "titleShort": "광부",
+            "description": "주요 행성 채광 기업의 채광 엔지니어였다. 일 때문에 한 번에 몇 주씩 지하에 있었고, 어둠을 좋아하게 되었다.",
+            "skillBonuses": {
+                "Mining": 8
+            },
+            "workDisables": [],
+            "traits": [
+                "Undergrounder"
+            ],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "crop_farmer",
+            "title": "농부",
+            "titleShort": "농부",
+            "description": "작물 농장을 운영했다. 토양, 농업 장비, 기상 패턴, 가격 추세를 분석하여 대규모 작물 밭의 파종과 수확을 최적화했다.",
+            "skillBonuses": {
+                "Plants": 8
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "livestock_farmer",
+            "title": "목축업자",
+            "titleShort": "목축업자",
+            "description": "가축 농장을 운영했다. 동물 유전학, 사료 유형, 출생 및 도축 방법, 가격 추세를 분석하여 거대한 동물 무리를 키우는 것을 최적화했다.",
+            "skillBonuses": {
+                "Animals": 7
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "space_pirate",
+            "title": "우주 해적",
+            "titleShort": "해적",
+            "description": "정부가 약하고 사회가 희박한 곳이면 어디든 해적이 나타난다. 인류 존재의 이 오래된 부분의 일원으로, 이익을 위해 평화로운 무역선을 갈취하고 파괴했다.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Pirate",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "pit_brawler",
+            "title": "격투장 싸움꾼",
+            "titleShort": "격투가",
+            "description": "아홉 살 때 첫 싸움을 했다. 이겼지만, 더 중요한 것은 관객들의 즐거움이었다. 격투장 싸움은 살아남을 수 있는 사람들에게 수익성 있는 직업으로 밝혀졌다. 그리고 대부분 합법적이었다.",
+            "skillBonuses": {
+                "Melee": 8
+            },
+            "workDisables": [
+                "Intellectual",
+                "Caring"
+            ],
+            "traits": [
+                "Brawler"
+            ],
+            "spawnCategories": [
+                "Outlander",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "assassin",
+            "title": "암살자",
+            "titleShort": "암살자",
+            "description": "전문 암살자였다. 냉정하고 계산적이며 좋은 수익을 올렸다. 이 사업에서 완전한 공감 능력 부족은 자산이었다.",
+            "skillBonuses": {
+                "Melee": 10,
+                "Shooting": 10
+            },
+            "workDisables": [
+                "Intellectual",
+                "ManualDumb",
+                "ManualSkilled",
+                "Social",
+                "Caring"
+            ],
+            "traits": [
+                "Psychopath"
+            ],
+            "spawnCategories": [
+                "Pirate",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "hunter",
+            "title": "사냥꾼",
+            "titleShort": "사냥꾼",
+            "description": "고기와 가죽을 위해 동물을 추적하고, 덫을 놓고, 사냥했다.\n\n원거리 무기와 근접 무기를 모두 사용했다. 때때로 동물과 함께 사냥했다.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3,
+                "Animals": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "gatherer",
+            "title": "채집가",
+            "titleShort": "채집가",
+            "description": "식물, 뿌리, 열매에 대한 지식을 사용하여 가장 황량한 풍경에서도 음식을 찾을 수 있었다. 동물은 멀리했다.",
+            "skillBonuses": {
+                "Plants": 8
+            },
+            "skillPenalties": {
+                "Animals": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "weaver",
+            "title": "직조공",
+            "titleShort": "직조공",
+            "description": "양모, 식물 섬유, 천연 염료를 아름다운 옷으로 만드는 전문가였다. 수공예품은 다른 정착지와 자주 거래되었다.",
+            "skillBonuses": {
+                "Crafting": 6,
+                "Plants": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "healer",
+            "title": "치료사",
+            "titleShort": "치료사",
+            "description": "부족의 연장자 치료사가 습격으로 사망한 후 그 역할을 맡았다. 근처 지역에서 허브와 광물 화합물을 모아 놀랍도록 효과적인 치료제를 만드는 데 시간을 보냈다.",
+            "skillBonuses": {
+                "Medicine": 5,
+                "Plants": 3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "warrior",
+            "title": "전사",
+            "titleShort": "전사",
+            "description": "무시무시한 전사로, 많은 무기에 능숙했다. 많은 전투에 참여했다.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "hermit",
+            "title": "은둔자",
+            "titleShort": "은둔자",
+            "description": "사회적 상호작용의 압박에 지쳐 붐비는 도시를 떠나 황야에서 단순한 삶을 살았다. 홀로 정원을 가꾸고 생존에 필요한 간단한 도구를 만들며 시간을 보냈다.",
+            "skillBonuses": {
+                "Plants": 4,
+                "Crafting": 3,
+                "Construction": 1
+            },
+            "workDisables": [
+                "Social"
+            ],
+            "traits": [
+                "Ascetic"
+            ],
+            "spawnCategories": [
+                "Outsider"
+            ]
+        }
+    ]
+}

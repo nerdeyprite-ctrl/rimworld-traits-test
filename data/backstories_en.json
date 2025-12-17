@@ -1,0 +1,704 @@
+{
+    "childhood": [
+        {
+            "id": "tribe_child",
+            "title": "Tribe Child",
+            "titleShort": "Tribal",
+            "description": "Grew up in a tribe, running around the village, moving with the muffalo herds, learning essential skills from parents.\n\nNever learned to read and never saw a machine that wasn't an ancient ruin.",
+            "skillBonuses": {
+                "Plants": 2,
+                "Melee": 2,
+                "Shooting": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "abandoned_child",
+            "title": "Abandoned Child",
+            "titleShort": "Abandoned",
+            "description": "Was born sickly. Thinking that would only burden the tribe, parents exposed to the elements. Somehow, survived.",
+            "skillBonuses": {
+                "Melee": 3,
+                "Crafting": 3
+            },
+            "skillPenalties": {
+                "Social": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "cave_child",
+            "title": "Cave Child",
+            "titleShort": "Cave Kid",
+            "description": "Grew up in a large and intricate cave complex that extended deep into a mountainside. Helped the adults maintain and improve the deep caves.",
+            "skillBonuses": {
+                "Mining": 3,
+                "Construction": 3
+            },
+            "workDisables": [],
+            "traits": [
+                "Undergrounder"
+            ],
+            "spawnCategories": [
+                "Tribal",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "medieval_slave",
+            "title": "Medieval Slave",
+            "titleShort": "Slave",
+            "description": "Grew up pulling carts and digging holes on a medieval world. Simple manual labor is oldest companion - along with the master's lash.\n\nDidn't learn to read until age nine.",
+            "skillBonuses": {
+                "Plants": 2,
+                "Construction": 2,
+                "Mining": 2
+            },
+            "skillPenalties": {
+                "Intellectual": -3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "medieval_lordling",
+            "title": "Medieval Lordling",
+            "titleShort": "Lordling",
+            "description": "Was a minor noble in an old kingdom on a medieval world. Grew up in a manor made of stone, served by bowing lowerclassmen.\n\nSuch a life teaches no technical skills and instils a lifelong aversion to manual labor - but learned early the ways of social manipulation.",
+            "skillBonuses": {
+                "Social": 4
+            },
+            "skillPenalties": {
+                "Construction": -1,
+                "Mining": -1,
+                "Plants": -1
+            },
+            "workDisables": [
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "urbworld_urchin",
+            "title": "Urbworld Urchin",
+            "titleShort": "Urchin",
+            "description": "The urbworlds - ancient and deep industrial cityscapes bursting with humanity and poison. Grew up in the dark, unwanted reaches of such a place. Had to fight for every scrap of food.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "industrial_orphan",
+            "title": "Industrial Orphan",
+            "titleShort": "Orphan",
+            "description": "Never knew parents. Earliest memories were of drudgery in the mines and workhouses of industrial world.\n\nBecause of this, never received a proper education.",
+            "skillBonuses": {
+                "Crafting": 3,
+                "Mining": 3
+            },
+            "skillPenalties": {
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "vatgrown_soldier",
+            "title": "Vatgrown Soldier",
+            "titleShort": "Vatgrown",
+            "description": "Wasn't made as a person, but as an instrument of destruction. Grown in a bioweapons facility and taught combat during accelerated growth, still has a proclivity for combat of all kinds and an aversion to human contact.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "skillPenalties": {
+                "Social": -3,
+                "Caring": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "sickly_child",
+            "title": "Sickly Child",
+            "titleShort": "Patient",
+            "description": "As a child, suffered from a rare disease. Quarantined in a hospital, had minimal human contact and got little physical exercise. In the sterile hospital environment, however, became very familiar with science and medicine.",
+            "skillBonuses": {
+                "Intellectual": 4,
+                "Medicine": 5
+            },
+            "skillPenalties": {
+                "Melee": -2,
+                "Social": -2,
+                "Construction": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "child_spy",
+            "title": "Child Spy",
+            "titleShort": "Spy",
+            "description": "Children are presumed innocent, which makes them excellent spies. Was trained in the art of infiltration when just a small child.\n\nYears undercover gave experience with social manipulation and lying, but never had a normal education.",
+            "skillBonuses": {
+                "Social": 4
+            },
+            "skillPenalties": {
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "scout",
+            "title": "Scout",
+            "titleShort": "Scout",
+            "description": "Born to the administrators of a rimworld colony, was enrolled in a youth program that taught military scouting skills.\n\nLearned to survive in the wilderness, to obey, and not to ask questions.",
+            "skillBonuses": {
+                "Shooting": 3,
+                "Crafting": 2,
+                "Construction": 1
+            },
+            "skillPenalties": {
+                "Artistic": -2,
+                "Intellectual": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "rich_kid",
+            "title": "Rich Kid",
+            "titleShort": "Rich Kid",
+            "description": "Came from a wealthy and influential bloodline. Expensive education included lessons on dueling, leadership, and military strategy.",
+            "skillBonuses": {
+                "Melee": 2,
+                "Shooting": 2,
+                "Intellectual": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld",
+                "Imperial"
+            ]
+        },
+        {
+            "id": "military_cadet",
+            "title": "Military Cadet",
+            "titleShort": "Cadet",
+            "description": "Was levied from family at a young age to become a soldier. Lived in barracks with other military kids, learning about duty, weapons, pain, and victory.\n\nThe trainers sometimes let the kids escape the base to enjoy the wider world. They wanted soldiers who can think independently.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3
+            },
+            "skillPenalties": {
+                "Animals": -2,
+                "Plants": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "bookworm",
+            "title": "Bookworm",
+            "titleShort": "Bookworm",
+            "description": "Rather than socialize with the other children, preferred to get lost in literature. Taught self to read at an early age with books bought from passing traders.",
+            "skillBonuses": {
+                "Intellectual": 6,
+                "Artistic": 2
+            },
+            "skillPenalties": {
+                "Social": -3
+            },
+            "workDisables": [
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "farm_kid",
+            "title": "Farm Kid",
+            "titleShort": "Farmer",
+            "description": "Grew up in a farmer household on a rimworld. Helped with farm work every day.",
+            "skillBonuses": {
+                "Plants": 4,
+                "Animals": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Tribal"
+            ]
+        }
+    ],
+    "adulthood": [
+        {
+            "id": "house_servant",
+            "title": "House Servant",
+            "titleShort": "Servant",
+            "description": "Was a low-level servant in a royal house.\n\nCleaned rooms and moved items as directed by the senior staff, while attempting to remain invisible to the lords and ladies of the house.",
+            "skillBonuses": {
+                "Cooking": 3,
+                "Construction": 3,
+                "Mining": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "royal_cook",
+            "title": "Royal Cook",
+            "titleShort": "Cook",
+            "description": "Made meals for aristocratic patrons.\n\nOnly the finest food was acceptable, so tended a small garden on the mansion grounds to get the freshest herbs and vegetables. Fell in love with the food itself.",
+            "skillBonuses": {
+                "Cooking": 7,
+                "Plants": 2
+            },
+            "workDisables": [],
+            "traits": [
+                "Gourmand"
+            ],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "imperial_priest",
+            "title": "Imperial Priest",
+            "titleShort": "Priest",
+            "description": "Was a priest in the imperial church.\n\nSpent half time studying books to understand the relationship between God's aspects and the facets of society. The other half was spent preaching the evils of sloth and drink.",
+            "skillBonuses": {
+                "Social": 5,
+                "Intellectual": 5
+            },
+            "workDisables": [],
+            "traits": [
+                "Teetotaler"
+            ],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "line_infanteer",
+            "title": "Line Infanteer",
+            "titleShort": "Infanteer",
+            "description": "Was an ordinary infanteer in an imperial battalion.\n\nConscripted at a young age to add bodies the army, learned the methods of fighting well enough to satisfy officers. However, never quite understood what was going on around enough to really believe in it.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial"
+            ]
+        },
+        {
+            "id": "space_marine",
+            "title": "Space Marine",
+            "titleShort": "Marine",
+            "description": "Was a warrior in an Imperial navy. Job was to punch into enemy starships, gun down the crew, and capture the ship intact. And was good at it.",
+            "skillBonuses": {
+                "Melee": 5,
+                "Shooting": 7
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Imperial",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "navy_scientist",
+            "title": "Navy Scientist",
+            "titleShort": "Scientist",
+            "description": "Interstellar warfare is won by technology, so glitterworld navies are always at the peak of modern research. Even better, they occasionally find archotechnological artifacts floating in space.\n\nWorked in a navy lab.",
+            "skillBonuses": {
+                "Intellectual": 8
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "glitterworld_surgeon",
+            "title": "Glitterworld Surgeon",
+            "titleShort": "Surgeon",
+            "description": "Worked as a surgeon on a world mostly free of disease and human suffering, so job focused on elaborate and creative cosmetic surgeries.\n\nUnderstands human biology, deeply, but has never had to remove a tumour — or a bullet.",
+            "skillBonuses": {
+                "Artistic": 5,
+                "Medicine": 3,
+                "Social": 1
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "novelist",
+            "title": "Novelist",
+            "titleShort": "Novelist",
+            "description": "Lived on a glitterworld, penning wildly successful novels. Lived a carefree lifestyle, spending days writing and nights partying - and has never done a day's manual labour in life.",
+            "skillBonuses": {
+                "Artistic": 8
+            },
+            "skillPenalties": {
+                "Construction": -5,
+                "Mining": -5
+            },
+            "workDisables": [
+                "ManualDumb",
+                "Social"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "medieval_lord",
+            "title": "Medieval Lord",
+            "titleShort": "Noble",
+            "description": "Was a lord on a preindustrial planet. Went to parties, managed the underlings, and even learned some swordplay.\n\nSoft hands did not hold a work tool during that entire time. Considers manual labor to be beneath.",
+            "skillBonuses": {
+                "Social": 7,
+                "Melee": 5,
+                "Shooting": 5
+            },
+            "workDisables": [
+                "ManualDumb",
+                "ManualSkilled"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "blacksmith",
+            "title": "Blacksmith",
+            "titleShort": "Blacksmith",
+            "description": "As a smith on a medieval world, gained a reputation for the high quality of work. Wasn't bad at using the swords forged either.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Crafting": 6
+            },
+            "skillPenalties": {
+                "Shooting": -5
+            },
+            "workDisables": [
+                "Intellectual"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Medieval",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "chef",
+            "title": "Chef",
+            "titleShort": "Chef",
+            "description": "Ran a high-class restaurant. Was famous among patrons for creative culinary specialties, and infamous among kitchen workers for casual disdain for grunt work.",
+            "skillBonuses": {
+                "Cooking": 6,
+                "Social": 2
+            },
+            "workDisables": [
+                "Cleaning",
+                "ManualDumb"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "construction_engineer",
+            "title": "Construction Engineer",
+            "titleShort": "Builder",
+            "description": "Worked on construction sites, building everyday structures according to boss' instructions.",
+            "skillBonuses": {
+                "Construction": 8
+            },
+            "skillPenalties": {
+                "Plants": -3
+            },
+            "workDisables": [
+                "Intellectual",
+                "Cooking"
+            ],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "planetary_miner",
+            "title": "Planetary Miner",
+            "titleShort": "Miner",
+            "description": "Was a mining engineer for a major planetary mining corporation. Work kept underground for weeks at a time, and grew to appreciate the darkness.",
+            "skillBonuses": {
+                "Mining": 8
+            },
+            "workDisables": [],
+            "traits": [
+                "Undergrounder"
+            ],
+            "spawnCategories": [
+                "Offworld"
+            ]
+        },
+        {
+            "id": "crop_farmer",
+            "title": "Crop Farmer",
+            "titleShort": "Farmer",
+            "description": "Ran a crop farm. Analyzed soil, agricultural equipment, weather patterns, and price trends to optimize the planting and harvesting of massive crop fields.",
+            "skillBonuses": {
+                "Plants": 8
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "livestock_farmer",
+            "title": "Livestock Farmer",
+            "titleShort": "Farmer",
+            "description": "Ran a livestock farm. Analyzed animal genetics, feed types, birth and slaughter methods, and price trends to optimize the raising of huge animal herds.",
+            "skillBonuses": {
+                "Animals": 7
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Outlander",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "space_pirate",
+            "title": "Space Pirate",
+            "titleShort": "Pirate",
+            "description": "Piracy appears everywhere that governments are weak and society spread thin. Was part of this age-old part of human existence, extorting and smashing peaceful trade ships for profit.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Pirate",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "pit_brawler",
+            "title": "Pit Brawler",
+            "titleShort": "Brawler",
+            "description": "Was nine years old when got in first fight. Won, but more important was the enjoyment of audience. Pit fighting turned out to be a lucrative career for those who could survive it. And it was even mostly legal.",
+            "skillBonuses": {
+                "Melee": 8
+            },
+            "workDisables": [
+                "Intellectual",
+                "Caring"
+            ],
+            "traits": [
+                "Brawler"
+            ],
+            "spawnCategories": [
+                "Outlander",
+                "Pirate"
+            ]
+        },
+        {
+            "id": "assassin",
+            "title": "Assassin",
+            "titleShort": "Assassin",
+            "description": "Was a professional assassin. Was cold, calculating, and made a good profit. In this business, an utter lack of empathy was an asset.",
+            "skillBonuses": {
+                "Melee": 10,
+                "Shooting": 10
+            },
+            "workDisables": [
+                "Intellectual",
+                "ManualDumb",
+                "ManualSkilled",
+                "Social",
+                "Caring"
+            ],
+            "traits": [
+                "Psychopath"
+            ],
+            "spawnCategories": [
+                "Pirate",
+                "Offworld"
+            ]
+        },
+        {
+            "id": "hunter",
+            "title": "Hunter",
+            "titleShort": "Hunter",
+            "description": "Tracked, trapped and killed animals for their meat and leather.\n\nUsed both ranged and melee weapons. Sometimes, hunted alongside animals.",
+            "skillBonuses": {
+                "Shooting": 4,
+                "Melee": 3,
+                "Animals": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal",
+                "Outlander"
+            ]
+        },
+        {
+            "id": "gatherer",
+            "title": "Gatherer",
+            "titleShort": "Gatherer",
+            "description": "Using knowledge of plants, roots, and berries, could find food in even the most barren landscapes. Stayed away from animals.",
+            "skillBonuses": {
+                "Plants": 8
+            },
+            "skillPenalties": {
+                "Animals": -2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "weaver",
+            "title": "Weaver",
+            "titleShort": "Weaver",
+            "description": "Was an expert at working wool, plant fibers and natural dyes into beautiful clothing for kin. Handicrafts were traded frequently with other settlements.",
+            "skillBonuses": {
+                "Crafting": 6,
+                "Plants": 2
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "healer",
+            "title": "Healer",
+            "titleShort": "Healer",
+            "description": "After tribe's elder healer was killed in a raid, took on the role. Spent days scrounging up herbs and mineral compounds from the nearby area to use in surprisingly effective remedies.",
+            "skillBonuses": {
+                "Medicine": 5,
+                "Plants": 3
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "warrior",
+            "title": "Warrior",
+            "titleShort": "Warrior",
+            "description": "Was a fearsome warrior, proficient with many weapons. Participated in many battles.",
+            "skillBonuses": {
+                "Melee": 4,
+                "Shooting": 4
+            },
+            "workDisables": [],
+            "traits": [],
+            "spawnCategories": [
+                "Tribal"
+            ]
+        },
+        {
+            "id": "hermit",
+            "title": "Hermit",
+            "titleShort": "Hermit",
+            "description": "Worn out by the pressures of social interaction, left crowded city to live a simple life in the wilderness. There, spent days alone, tending garden and crafting the simple tools needed to survive.",
+            "skillBonuses": {
+                "Plants": 4,
+                "Crafting": 3,
+                "Construction": 1
+            },
+            "workDisables": [
+                "Social"
+            ],
+            "traits": [
+                "Ascetic"
+            ],
+            "spawnCategories": [
+                "Outsider"
+            ]
+        }
+    ]
+}
