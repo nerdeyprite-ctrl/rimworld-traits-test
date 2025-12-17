@@ -2502,6 +2502,7 @@
             {
                 "text": "A Glitterworld, where everything is abundant and advanced.",
                 "scores": {
+                    "backstory_preference": "Aristocrat",
                     "Intellectual": 2,
                     "Artistic": 2,
                     "wimp": 1,
@@ -2511,6 +2512,7 @@
             {
                 "text": "An Urbworld slum, full of crime and pollution.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "Melee": 1,
                     "Shooting": 1,
                     "psychopath": 1,
@@ -2520,6 +2522,7 @@
             {
                 "text": "A Tribal village breathing with nature.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "Plants": 2,
                     "Animals": 2,
                     "psychic_sensitivity": 1,
@@ -2529,10 +2532,29 @@
             {
                 "text": "The middle of a war zone where fighting never stops.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "Shooting": 2,
                     "tough": 2,
                     "volatile": 1,
                     "bloodlust": 1
+                }
+            },
+            {
+                "text": "A peaceful countryside farm.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Plants": 1,
+                    "Cooking": 1,
+                    "Animals": 1
+                }
+            },
+            {
+                "text": "A high-tech space station floating in orbit.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "Intellectual": 1,
+                    "Crafting": 1,
+                    "transhumanist": 1
                 }
             }
         ]
@@ -2545,6 +2567,7 @@
             {
                 "text": "A frozen tundra planet, ice all year round.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "tough": 1,
                     "ascetic": 1,
                     "cold_tolerant": 2
@@ -2553,6 +2576,7 @@
             {
                 "text": "A Mechanoid hive ruled by ancient machines.",
                 "scores": {
+                    "backstory_preference": "Researcher",
                     "transhumanist": 2,
                     "Intellectual": 1,
                     "Construction": 1
@@ -2561,6 +2585,7 @@
             {
                 "text": "A polluted wasteland with toxic fallout.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "super_immune": 2,
                     "depressive": 1,
                     "Medicine": 1
@@ -2569,10 +2594,29 @@
             {
                 "text": "A peaceful and boring medieval farming society.",
                 "scores": {
+                    "backstory_preference": "Medieval",
                     "Plants": 2,
                     "Animals": 2,
                     "Melee": 1,
                     "Shooting": -1
+                }
+            },
+            {
+                "text": "A dark cave world deep underground.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Mining": 2,
+                    "undergrounder": 2,
+                    "Melee": 1
+                }
+            },
+            {
+                "text": "An ocean world covered in water.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "Artistic": 1,
+                    "Shooting": 1,
+                    "nimble": 1
                 }
             }
         ]
@@ -2585,6 +2629,7 @@
             {
                 "text": "Disassembling and fixing broken machines or toys.",
                 "scores": {
+                    "backstory_preference": "Researcher",
                     "Crafting": 2,
                     "Construction": 1,
                     "transhumanist": 1
@@ -2593,6 +2638,7 @@
             {
                 "text": "Leading neighborhood kids as the boss.",
                 "scores": {
+                    "backstory_preference": "Aristocrat",
                     "Social": 2,
                     "Melee": 1,
                     "abrasive": 1
@@ -2601,6 +2647,7 @@
             {
                 "text": "Catching insects or observing plants in the forest.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "Plants": 1,
                     "Animals": 1,
                     "Intellectual": 1
@@ -2609,9 +2656,28 @@
             {
                 "text": "Staying home and reading books all day.",
                 "scores": {
+                    "backstory_preference": "Researcher",
                     "Intellectual": 2,
                     "slowpoke": 1,
                     "recluse": 1
+                }
+            },
+            {
+                "text": "Excelling in sports during P.E. class.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "Melee": 1,
+                    "nimble": 1,
+                    "tough": 1
+                }
+            },
+            {
+                "text": "Coding all night in the computer lab.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "Intellectual": 2,
+                    "Crafting": 1,
+                    "Social": -1
                 }
             }
         ]
@@ -2624,6 +2690,7 @@
             {
                 "text": "My strict and scary soldier father.",
                 "scores": {
+                    "backstory_preference": "Soldier",
                     "Shooting": 2,
                     "disciplined": 1,
                     "psychopath": 1
@@ -2632,6 +2699,7 @@
             {
                 "text": "My kind and skilled chef mother.",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "Cooking": 2,
                     "kind": 2,
                     "Social": 1
@@ -2640,6 +2708,7 @@
             {
                 "text": "My grandfather, who was a mad scientist.",
                 "scores": {
+                    "backstory_preference": "Researcher",
                     "Intellectual": 2,
                     "neurotic": 1,
                     "Crafting": 1
@@ -2648,9 +2717,28 @@
             {
                 "text": "Orphan friends who survived the streets with me.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "street_smart": 2,
                     "Melee": 1,
                     "Social": 1
+                }
+            },
+            {
+                "text": "A strict private tutor who taught etiquette.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Social": 2,
+                    "Artistic": 1,
+                    "snob": 1
+                }
+            },
+            {
+                "text": "The village elder who taught me wisdom.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Social": 1,
+                    "Plants": 1,
+                    "Animals": 1
                 }
             }
         ]
@@ -2663,6 +2751,7 @@
             {
                 "text": "Protecting or killing someone with a gun (Soldier/Mercenary).",
                 "scores": {
+                    "backstory_preference": "Soldier",
                     "Shooting": 2,
                     "Melee": 1,
                     "careful_shooter": 1
@@ -2671,6 +2760,7 @@
             {
                 "text": "Treating and caring for the sick (Medic).",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "Medicine": 3,
                     "kind": 1,
                     "clean_freak": 1
@@ -2679,6 +2769,7 @@
             {
                 "text": "Cooking food or growing crops (Farmer/Cook).",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "Cooking": 2,
                     "Plants": 2,
                     "ascetic": 1
@@ -2687,8 +2778,26 @@
             {
                 "text": "Persuading others or selling goods (Merchant/Politician).",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "Social": 3,
                     "greedy": 1
+                }
+            },
+            {
+                "text": "Researching new technologies inside a lab.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 3,
+                    "Crafting": 1
+                }
+            },
+            {
+                "text": "Creating art that moves people's hearts.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Artistic": 3,
+                    "beautiful": 1,
+                    "Social": 1
                 }
             }
         ]
@@ -2701,6 +2810,7 @@
             {
                 "text": "A fixer in the dark underworld.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "Melee": 2,
                     "Shooting": 1,
                     "psychopath": 1,
@@ -2710,6 +2820,7 @@
             {
                 "text": "An artist/performer on a flashy stage.",
                 "scores": {
+                    "backstory_preference": "Aristocrat",
                     "Artistic": 3,
                     "Social": 2,
                     "beautiful": 1
@@ -2718,6 +2829,7 @@
             {
                 "text": "A miner digging quietly in the dark.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "Mining": 3,
                     "undergrounder": 2,
                     "tough": 1
@@ -2726,9 +2838,28 @@
             {
                 "text": "A builder constructing and repairing structures.",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "Construction": 3,
                     "hard_worker": 1,
                     "Crafting": 1
+                }
+            },
+            {
+                "text": "A leader guiding the community.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Social": 3,
+                    "Intellectual": 1,
+                    "leader": 1
+                }
+            },
+            {
+                "text": "A hunter tracking prey in the wild.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Shooting": 2,
+                    "Animals": 2,
+                    "Stealth": 1
                 }
             }
         ]
@@ -2741,6 +2872,7 @@
             {
                 "text": "My house burned down and I lost everything.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "pyromaniac": 1,
                     "Construction": 1,
                     "pessimist": 1
@@ -2749,6 +2881,7 @@
             {
                 "text": "I was betrayed by my most trusted ally.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "careful": 2,
                     "depressive": 1,
                     "abrasive": 1
@@ -2757,6 +2890,7 @@
             {
                 "text": "I experienced extreme starvation.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "ascetic": 1,
                     "gourmand": 1,
                     "food_hoarding": 1
@@ -2765,9 +2899,27 @@
             {
                 "text": "I lived a normal, boring life without any special incidents.",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "steady_hands": 1,
                     "depressive": 0,
                     "optimist": 0
+                }
+            },
+            {
+                "text": "I regret not studying enough when I had the chance.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 1,
+                    "fast_learner": 1
+                }
+            },
+            {
+                "text": "Surviving a deadly plague that killed everyone else.",
+                "scores": {
+                    "backstory_preference": "Medieval",
+                    "super_immune": 2,
+                    "Medicine": 1,
+                    "pessimist": 1
                 }
             }
         ]
@@ -2780,6 +2932,7 @@
             {
                 "text": "Spaceship alarms and red warning lights.",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "nervous": 1,
                     "volatile": 1,
                     "Intellectual": 1
@@ -2788,6 +2941,7 @@
             {
                 "text": "The cold chill of the cryptosleep casket.",
                 "scores": {
+                    "backstory_preference": "Spacer",
                     "tough": 1,
                     "slowpoke": 1,
                     "depressive": 1
@@ -2796,6 +2950,7 @@
             {
                 "text": "A beautiful unknown nebula outside the window.",
                 "scores": {
+                    "backstory_preference": "Aristocrat",
                     "Artistic": 2,
                     "optimist": 1,
                     "sanguine": 1
@@ -2804,8 +2959,27 @@
             {
                 "text": "I don't remember anything.",
                 "scores": {
+                    "backstory_preference": "Pirate",
                     "wimp": 1,
                     "iron_willed": 1
+                }
+            },
+            {
+                "text": "A tearful goodbye with my family.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "Social": 1,
+                    "kind": 1,
+                    "family_oriented": 1
+                }
+            },
+            {
+                "text": "The sound of explosions and screams.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "Shooting": 1,
+                    "brave": 1,
+                    "psychopath": 1
                 }
             }
         ]
@@ -2818,6 +2992,7 @@
             {
                 "text": "Building a spaceship to escape this planet.",
                 "scores": {
+                    "backstory_preference": "Spacer",
                     "Intellectual": 1,
                     "Construction": 1,
                     "transhumanist": 1
@@ -2826,6 +3001,7 @@
             {
                 "text": "Building my own fortress and crushing enemies to dominate.",
                 "scores": {
+                    "backstory_preference": "Soldier",
                     "Shooting": 1,
                     "Melee": 1,
                     "bloodlust": 1,
@@ -2835,6 +3011,7 @@
             {
                 "text": "Peacefully farming and raising animals in a quiet life.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "Plants": 2,
                     "Animals": 2,
                     "pacifist": 1
@@ -2843,9 +3020,27 @@
             {
                 "text": "Just surviving day by day without dying.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "tough": 1,
                     "wimp": 1,
                     "careful": 1
+                }
+            },
+            {
+                "text": "Discovering the ancient secrets of this planet.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 2,
+                    "Artistic": 1
+                }
+            },
+            {
+                "text": "Establishing a new nation with new laws.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Social": 2,
+                    "Intellectual": 1,
+                    "leader": 1
                 }
             }
         ]
@@ -2858,6 +3053,7 @@
             {
                 "text": "Infinite wealth and resources.",
                 "scores": {
+                    "backstory_preference": "Aristocrat",
                     "greedy": 2,
                     "jealous": 1,
                     "Social": 1
@@ -2866,6 +3062,7 @@
             {
                 "text": "An immortal body that heals instantly.",
                 "scores": {
+                    "backstory_preference": "Researcher",
                     "super_immune": 2,
                     "tough": 1,
                     "transhumanist": 1
@@ -2874,6 +3071,7 @@
             {
                 "text": "A true partner who understands me.",
                 "scores": {
+                    "backstory_preference": "Offworld",
                     "kind": 2,
                     "Social": 2,
                     "beautiful": 1
@@ -2882,9 +3080,322 @@
             {
                 "text": "Just leave me alone, please.",
                 "scores": {
+                    "backstory_preference": "Tribal",
                     "recluse": 2,
                     "ascetic": 1,
                     "undergrounder": 1
+                }
+            },
+            {
+                "text": "All knowledge and skills in the universe.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 2,
+                    "fast_learner": 1
+                }
+            },
+            {
+                "text": "Perfect body and appearance.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "beautiful": 2,
+                    "Social": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 211,
+        "groupId": "p2_origin",
+        "text": "What was your family background?",
+        "answers": [
+            {
+                "text": "Noble family ruling the planet.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Social": 2,
+                    "greedy": 1,
+                    "jealous": 1
+                }
+            },
+            {
+                "text": "Slaves of a notorious pirate band.",
+                "scores": {
+                    "backstory_preference": "Pirate",
+                    "Melee": 1,
+                    "tough": 2,
+                    "psychopath": 1
+                }
+            },
+            {
+                "text": "Ordinary and quiet citizens.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "hard_worker": 1,
+                    "ascetic": 1
+                }
+            },
+            {
+                "text": "Genetically engineered experiment born in a lab.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "transhumanist": 2,
+                    "Social": -2,
+                    "Intellectual": 1
+                }
+            },
+            {
+                "text": "Heir to the tribal elder.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Social": 1,
+                    "Animals": 1,
+                    "Plants": 1
+                }
+            },
+            {
+                "text": "Orphan raised in an orphanage without parents.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "tough": 2,
+                    "Social": -1,
+                    "ascetic": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 212,
+        "groupId": "p2_childhood",
+        "text": "What kind of student were you in school?",
+        "answers": [
+            {
+                "text": "Model student loved by teachers.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 2,
+                    "fast_learner": 1,
+                    "Social": 1
+                }
+            },
+            {
+                "text": "Troublemaker always fighting.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "Melee": 2,
+                    "brawler": 1,
+                    "volatile": 1
+                }
+            },
+            {
+                "text": "Invisible student drawing in the corner.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Artistic": 3,
+                    "Social": -1
+                }
+            },
+            {
+                "text": "Forest and fields were my classroom.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Plants": 2,
+                    "Animals": 2
+                }
+            },
+            {
+                "text": "Star athlete shining only in P.E.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "Melee": 1,
+                    "nimble": 1,
+                    "tough": 1
+                }
+            },
+            {
+                "text": "Coding nerd living in the computer room.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 2,
+                    "Crafting": 1,
+                    "Social": -1
+                }
+            }
+        ]
+    },
+    {
+        "id": 213,
+        "groupId": "p2_adulthood",
+        "text": "What was the hardest part of your adult life?",
+        "answers": [
+            {
+                "text": "Dealing with people with a fake smile.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Social": -1,
+                    "ascetic": 1,
+                    "abrasive": 1
+                }
+            },
+            {
+                "text": "Boredom of repetitive simple labor.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "Intellectual": 1,
+                    "lazy": 1,
+                    "neurotic": 1
+                }
+            },
+            {
+                "text": "Stress of trampling competitors to rise up.",
+                "scores": {
+                    "backstory_preference": "Pirate",
+                    "greedy": 2,
+                    "psychopath": 1,
+                    "bloodlust": 1
+                }
+            },
+            {
+                "text": "Nothing was hard. I enjoy working.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "hard_worker": 2,
+                    "optimist": 1,
+                    "iron_willed": 1
+                }
+            },
+            {
+                "text": "Unfair treatment and discrimination.",
+                "scores": {
+                    "backstory_preference": "Pirate",
+                    "depressive": 1,
+                    "jealous": 1,
+                    "Social": -1
+                }
+            },
+            {
+                "text": "Unreasonable orders from the boss.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "abrasive": 1,
+                    "volatile": 1,
+                    "iron_willed": 1
+                }
+            }
+        ]
+    },
+    {
+        "id": 214,
+        "groupId": "p2_event",
+        "text": "What is your biggest regret from the past?",
+        "answers": [
+            {
+                "text": "Failing to protect a loved one.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "kind": 2,
+                    "depressive": 1
+                }
+            },
+            {
+                "text": "Missing a chance to make big money.",
+                "scores": {
+                    "backstory_preference": "Pirate",
+                    "greedy": 2,
+                    "jealous": 1
+                }
+            },
+            {
+                "text": "Ruining my health by overworking.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "wimp": 1,
+                    "careful": 1,
+                    "Medicine": 1
+                }
+            },
+            {
+                "text": "No regrets. Everything made me who I am.",
+                "scores": {
+                    "backstory_preference": "Soldier",
+                    "optimist": 2,
+                    "iron_willed": 1
+                }
+            },
+            {
+                "text": "Not studying more when I had the chance.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 1,
+                    "fast_learner": 1
+                }
+            },
+            {
+                "text": "Not fighting more bravely.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "Melee": 1,
+                    "brawler": 1,
+                    "wimp": -1
+                }
+            }
+        ]
+    },
+    {
+        "id": 215,
+        "groupId": "p2_goal",
+        "text": "How do you want to be remembered in the distant future?",
+        "answers": [
+            {
+                "text": "Benevolent savior who saved many lives.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "kind": 2,
+                    "Social": 1,
+                    "Medicine": 1
+                }
+            },
+            {
+                "text": "Absolute ruler no one dares to challenge.",
+                "scores": {
+                    "backstory_preference": "Pirate",
+                    "bloodlust": 1,
+                    "greedy": 2,
+                    "psychopath": 1
+                }
+            },
+            {
+                "text": "Genius inventor ahead of the times.",
+                "scores": {
+                    "backstory_preference": "Researcher",
+                    "Intellectual": 2,
+                    "fast_learner": 1,
+                    "transhumanist": 1
+                }
+            },
+            {
+                "text": "Legendary artisan who left masterpieces.",
+                "scores": {
+                    "backstory_preference": "Aristocrat",
+                    "Artistic": 2,
+                    "Crafting": 1,
+                    "ascetic": 1
+                }
+            },
+            {
+                "text": "I don't want to be remembered. Just disappear quietly.",
+                "scores": {
+                    "backstory_preference": "Tribal",
+                    "ascetic": 2,
+                    "Social": -2
+                }
+            },
+            {
+                "text": "A good person to family and friends.",
+                "scores": {
+                    "backstory_preference": "Offworld",
+                    "kind": 2,
+                    "Social": 2
                 }
             }
         ]

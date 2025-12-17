@@ -105,28 +105,60 @@ export default function ResultPage() {
                         <div className="bg-[#111111] border border-[#6b6b6b] p-3 space-y-4">
                             {/* Childhood */}
                             <div>
-                                <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm">{t('childhood')}</h4>
-                                <div className="bg-[#111] p-3 border border-[#333]">
+                                <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm flex justify-between">
+                                    <span>{t('childhood')}</span>
+                                    {backstory.childhood.spawnCategories && (
+                                        <span className="text-xs text-[#666] font-normal">[{backstory.childhood.spawnCategories[0]}]</span>
+                                    )}
+                                </h4>
+                                <div className="bg-[#111] p-3 border border-[#333] group hover:border-[#555] transition-colors">
                                     <div className="text-[#e2c178] font-bold mb-1">
-                                        {language === 'ko' ? (backstory.childhood.title_ko || backstory.childhood.title) : backstory.childhood.title}
+                                        {backstory.childhood.title}
                                     </div>
-                                    <p className="text-gray-400 text-xs italic">
-                                        {language === 'ko' ? (backstory.childhood.description_ko || backstory.childhood.description) : backstory.childhood.description}
+                                    <p className="text-gray-400 text-xs italic mb-2 leading-relaxed">
+                                        {backstory.childhood.description}
                                     </p>
+
+                                    {/* Skill Bonuses */}
+                                    {backstory.childhood.skillBonuses && Object.keys(backstory.childhood.skillBonuses).length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2 border-t border-gray-800 pt-2">
+                                            {Object.entries(backstory.childhood.skillBonuses).map(([skill, bonus]) => (
+                                                <span key={skill} className={`text-[10px] px-1.5 py-0.5 rounded border ${bonus > 0 ? 'border-green-900 text-green-500 bg-green-900/10' : 'border-red-900 text-red-500 bg-red-900/10'}`}>
+                                                    {getSkillName(skill)} {bonus > 0 ? `+${bonus}` : bonus}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Adulthood (Only if adult) */}
                             {backstory?.adulthood && userInfo.age >= 20 && (
                                 <div>
-                                    <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm">{t('adulthood')}</h4>
-                                    <div className="bg-[#111] p-3 border border-[#333]">
+                                    <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm flex justify-between">
+                                        <span>{t('adulthood')}</span>
+                                        {backstory.adulthood.spawnCategories && (
+                                            <span className="text-xs text-[#666] font-normal">[{backstory.adulthood.spawnCategories[0]}]</span>
+                                        )}
+                                    </h4>
+                                    <div className="bg-[#111] p-3 border border-[#333] group hover:border-[#555] transition-colors">
                                         <div className="text-[#e2c178] font-bold mb-1">
-                                            {language === 'ko' ? (backstory.adulthood.title_ko || backstory.adulthood.title) : backstory.adulthood.title}
+                                            {backstory.adulthood.title}
                                         </div>
-                                        <p className="text-gray-400 text-xs italic">
-                                            {language === 'ko' ? (backstory.adulthood.description_ko || backstory.adulthood.description) : backstory.adulthood.description}
+                                        <p className="text-gray-400 text-xs italic mb-2 leading-relaxed">
+                                            {backstory.adulthood.description}
                                         </p>
+
+                                        {/* Skill Bonuses */}
+                                        {backstory.adulthood.skillBonuses && Object.keys(backstory.adulthood.skillBonuses).length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2 border-t border-gray-800 pt-2">
+                                                {Object.entries(backstory.adulthood.skillBonuses).map(([skill, bonus]) => (
+                                                    <span key={skill} className={`text-[10px] px-1.5 py-0.5 rounded border ${bonus > 0 ? 'border-green-900 text-green-500 bg-green-900/10' : 'border-red-900 text-red-500 bg-red-900/10'}`}>
+                                                        {getSkillName(skill)} {bonus > 0 ? `+${bonus}` : bonus}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
