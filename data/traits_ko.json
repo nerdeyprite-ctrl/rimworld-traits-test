@@ -588,5 +588,33 @@
     "conflicts": [
       "super_immune"
     ]
+  },
+  {
+    "id": "transhumanist",
+    "name": "신체 개조주의자",
+    "group": "특수",
+    "description": "인간의 육체는 한계가 있다고 믿으며, 기계로 대체하는 것을 갈망합니다.",
+    "effect": "신체 강화물 장착 시 무드 보너스",
+    "conflicts": [
+      "body_purist"
+    ]
+  },
+  {
+    "id": "body_purist",
+    "name": "신체 순수주의자",
+    "group": "특수",
+    "description": "인간의 육체는 그대로가 가장 아름답다고 믿으며, 인공적인 신체 부위를 혐오합니다.",
+    "effect": "신체 강화물 장착 시 무드 페널티",
+    "conflicts": [
+      "transhumanist"
+    ]
+  },
+  {
+    "id": "pragmatist",
+    "name": "실용주의자",
+    "group": "사교",
+    "description": "감정보다는 이익과 효율을 중시합니다.",
+    "effect": "사교적 능력치 소폭 상승, 도덕적 결단에 둔감함",
+    "conflicts": []
   }
 ]

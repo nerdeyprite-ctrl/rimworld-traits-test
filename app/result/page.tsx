@@ -19,22 +19,38 @@ export default function ResultPage() {
     // Scroll Hint Logic
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showScrollHint, setShowScrollHint] = useState(false);
+    const [shareId, setShareId] = useState<string | null>(null);
     const isSavedRef = useRef(false);
 
     useEffect(() => {
-        if (result && !isSavedRef.current && isSupabaseConfigured()) {
+        if (result && userInfo && !isSavedRef.current && isSupabaseConfigured()) {
             const saveStats = async () => {
-                await supabase.from('test_results').insert({
-                    mbti: result.mbti,
-                    traits: result.traits,
-                    backstory_childhood: result.backstory.childhood,
-                    backstory_adulthood: result.backstory.adulthood
-                });
+                try {
+                    const { data, error } = await supabase
+                        .from('test_results')
+                        .insert({
+                            mbti: result.mbti,
+                            traits: result.traits,
+                            backstory_childhood: result.backstory.childhood,
+                            backstory_adulthood: result.backstory.adulthood,
+                            name: userInfo.name,
+                            age: userInfo.age,
+                            gender: userInfo.gender
+                        })
+                        .select('id')
+                        .single();
+
+                    if (data && !error) {
+                        setShareId(data.id.toString());
+                    }
+                } catch (err) {
+                    console.error("Failed to save result:", err);
+                }
                 isSavedRef.current = true;
             };
             saveStats();
         }
-    }, [result]);
+    }, [result, userInfo]);
 
     useEffect(() => {
         const res = calculateFinalTraits();
@@ -380,7 +396,7 @@ export default function ResultPage() {
             <div className="w-full mt-6 space-y-4">
                 <AdPlaceholder />
 
-                <ShareButtons result={result} userInfo={userInfo} />
+                <ShareButtons result={result} userInfo={userInfo} shareId={shareId} />
 
                 <div className="flex justify-between items-center bg-[#111111] p-4 border border-[#6b6b6b]">
                     <button

@@ -1,12 +1,48 @@
-
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { headers } from 'next/headers';
+import { supabase } from '../../lib/supabase';
 
 // Define the shape of searchParams we expect
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+async function getShareData(searchParams: { [key: string]: string | string[] | undefined }) {
+    const s = (searchParams.s as string);
+    if (s) {
+        try {
+            const { data, error } = await supabase
+                .from('test_results')
+                .select('*')
+                .eq('id', s)
+                .single();
+
+            if (data && !error) {
+                const traits = Array.isArray(data.traits)
+                    ? data.traits.map((t: any) => typeof t === 'string' ? t : t.name).join(',')
+                    : '';
+                return {
+                    name: data.name || '정착민',
+                    mbti: data.mbti || 'Unknown',
+                    traits: traits,
+                    age: data.age?.toString() || '20',
+                    gender: data.gender || 'Male'
+                };
+            }
+        } catch (e) {
+            console.error("Error fetching share data:", e);
+        }
+    }
+
+    // Legacy / Fallback
+    return {
+        name: (searchParams.name as string) || '정착민',
+        mbti: (searchParams.mbti as string) || 'Unknown',
+        traits: (searchParams.traits as string) || '',
+        age: (searchParams.age as string) || '20',
+        gender: (searchParams.gender as string) || 'Male'
+    };
 }
 
 // Generate Metadata for Social Sharing (Dynamic OG Image)
@@ -14,28 +50,25 @@ export async function generateMetadata(
     { searchParams }: Props
 ): Promise<Metadata> {
     const params = await searchParams;
-    const name = (params.name as string) || '정착민';
-    const mbti = (params.mbti as string) || 'Unknown';
-    const traits = (params.traits as string) || '';
+    const { name, mbti, traits } = await getShareData(params);
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://test.ratkin.org';
 
     // Construct Traits Query for Image
-    const traitList = traits.split(',');
-    const tQuery = traitList.map((t, i) => `t${i + 1}=${encodeURIComponent(t)}`).join('&');
+    const traitList = traits ? traits.split(',') : [];
+    const tQuery = traitList.map((t: string, i: number) => `t${i + 1}=${encodeURIComponent(t)}`).join('&');
 
-    const ogUrl = `/api/og?name=${encodeURIComponent(name)}&mbti=${encodeURIComponent(mbti)}&${tQuery}`;
-
-    // Use Vercel URL in production, or localhost in dev
-    // Important: Metadata Base needs absolute URL usually
-    // But Next.js handles relative URLs in openGraph.images if metadataBase is set in layout.
-    // We'll try to rely on relative, or standard Vercel ENV.
+    const ogUrl = `${siteUrl}/api/og?name=${encodeURIComponent(name)}&mbti=${encodeURIComponent(mbti)}&${tQuery}`;
 
     return {
+        metadataBase: new URL(siteUrl),
         title: `${name}의 변방계 적성 검사 결과`,
         description: `"${name}"님은 ${mbti} 유형입니다. 주요 특성: ${traits}`,
         openGraph: {
             title: `${name}의 변방계 생존 시뮬레이션 결과`,
             description: `특성: ${traits} | 유형: ${mbti}\n당신도 지금 테스트해보세요!`,
             images: [ogUrl],
+            url: `${siteUrl}/share?name=${encodeURI(name)}&mbti=${mbti}&traits=${encodeURI(traits)}`,
         },
         twitter: {
             card: 'summary_large_image',
@@ -48,11 +81,8 @@ export async function generateMetadata(
 
 export default async function SharePage({ searchParams }: Props) {
     const params = await searchParams;
-    const name = (params.name as string) || '정착민';
-    const mbti = (params.mbti as string) || '????';
-    const traits = (params.traits as string)?.split(',') || [];
-    const age = (params.age as string) || '20';
-    const gender = (params.gender as string) || 'Male';
+    const { name, mbti, traits: traitsStr, age, gender } = await getShareData(params);
+    const traits = traitsStr ? traitsStr.split(',') : [];
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4 animate-fade-in text-center">
@@ -77,7 +107,7 @@ export default async function SharePage({ searchParams }: Props) {
                 <div className="bg-[#111] border border-[#333] p-6 mb-8 rounded">
                     <div className="text-[#9f752a] font-bold text-3xl mb-4">{mbti}</div>
                     <div className="flex flex-wrap justify-center gap-2">
-                        {traits.map((t, i) => (
+                        {traits.map((t: string, i: number) => (
                             <span key={i} className="px-3 py-1 bg-[#333] border border-gray-600 text-white text-sm rounded">
                                 {t}
                             </span>

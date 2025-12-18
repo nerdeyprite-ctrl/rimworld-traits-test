@@ -12,9 +12,10 @@ declare global {
 interface ShareButtonsProps {
     result?: TestResult | null;
     userInfo?: UserInfo | null;
+    shareId?: string | null;
 }
 
-const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
+const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
     const { t } = useLanguage();
     const [shareUrl, setShareUrl] = useState('');
     const [origin, setOrigin] = useState('');
@@ -24,9 +25,13 @@ const ShareButtons = ({ result, userInfo }: ShareButtonsProps) => {
             const currentOrigin = window.location.origin;
             setOrigin(currentOrigin);
 
-            // Construct Share URL with Query Params if result exists
-            // This points to the /share page which generates dynamic OG tags
-            if (result && userInfo) {
+            // Construct Share URL
+            // If we have a shareId (Supabase ID), use the short version
+            if (shareId) {
+                setShareUrl(`${currentOrigin}/share?s=${shareId}`);
+            }
+            // Fallback to long version if shareId is missing but we have result/userInfo
+            else if (result && userInfo) {
                 const params = new URLSearchParams();
                 if (userInfo.name) params.set('name', userInfo.name);
                 if (result.mbti) params.set('mbti', result.mbti);
