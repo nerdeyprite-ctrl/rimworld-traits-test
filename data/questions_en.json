@@ -7,22 +7,38 @@
             {
                 "text": "Another day of survival... the world is so harsh.",
                 "scores": {
-                    "depressive": 2,
+                    "depressive": 1
+                }
+            },
+            {
+                "text": "Today will be another tough day. Nothing goes my way.",
+                "scores": {
                     "pessimist": 1
                 }
             },
             {
-                "text": "What amazing things await me today? Can't wait!",
+                "text": "I'm awake, so I should do something. A normal day begins.",
                 "scores": {
-                    "sanguine": 2,
+                    "hard_worker": 1
+                }
+            },
+            {
+                "text": "It's a good morning! Let's start the day with a positive mind.",
+                "scores": {
                     "optimist": 1
                 }
             },
             {
-                "text": "No thoughts. Just get to work.",
+                "text": "What a blessed day! My energy is already over the limit. Get out of my way!",
                 "scores": {
-                    "hard_worker": 1,
-                    "iron_willed": 1
+                    "sanguine": 1
+                }
+            },
+            {
+                "text": "I want to start a fire... I need something to heat up this quiet morning.",
+                "scores": {
+                    "pyromaniac": 1,
+                    "volatile": 1
                 }
             }
         ]

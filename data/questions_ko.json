@@ -5648,6 +5648,14 @@
                     "transhumanist": 2,
                     "Intellectual": 1
                 }
+            },
+            {
+                "text": "이런 잔혹한 짓을 하라고 시킨 기지 지도자에게 저주를 퍼붓는다.",
+                "scores": {
+                    "abrasive": 1,
+                    "kind": 1,
+                    "volatile": 1
+                }
             }
         ]
     },
