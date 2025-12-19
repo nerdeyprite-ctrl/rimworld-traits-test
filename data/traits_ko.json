@@ -1,7 +1,7 @@
 [
   {
     "id": "depressive",
-    "name": "우울증 (Depressive)",
+    "name": "우울증",
     "group": "기분",
     "description": "항시 무드 -12",
     "effect": "항시 무드 -12",
@@ -13,7 +13,7 @@
   },
   {
     "id": "pessimist",
-    "name": "부정적 (Pessimist)",
+    "name": "부정적",
     "group": "기분",
     "description": "항시 무드 -6",
     "effect": "항시 무드 -6",
@@ -25,7 +25,7 @@
   },
   {
     "id": "optimist",
-    "name": "긍정적 (Optimist)",
+    "name": "긍정적",
     "group": "기분",
     "description": "항시 무드 +6",
     "effect": "항시 무드 +6",
@@ -37,7 +37,7 @@
   },
   {
     "id": "sanguine",
-    "name": "낙천적 (Sanguine)",
+    "name": "낙천적",
     "group": "기분",
     "description": "항시 무드 +12",
     "effect": "항시 무드 +12",
@@ -49,7 +49,7 @@
   },
   {
     "id": "volatile",
-    "name": "유리정신 (Volatile)",
+    "name": "유리정신",
     "group": "신경/정신붕괴",
     "description": "정신붕괴 한계점 +15% (매우 쉽게 미침)",
     "effect": "정신붕괴 한계점 +15% (매우 쉽게 미침)",
@@ -61,7 +61,7 @@
   },
   {
     "id": "nervous",
-    "name": "신경과민 (Nervous)",
+    "name": "신경과민",
     "group": "신경/정신붕괴",
     "description": "정신붕괴 한계점 +8%",
     "effect": "정신붕괴 한계점 +8%",
@@ -73,7 +73,7 @@
   },
   {
     "id": "steadfast",
-    "name": "확고한 의지 (Steadfast)",
+    "name": "확고한 의지",
     "group": "신경/정신붕괴",
     "description": "정신붕괴 한계점 -9%",
     "effect": "정신붕괴 한계점 -9%",
@@ -85,7 +85,7 @@
   },
   {
     "id": "iron_willed",
-    "name": "철의 의지 (Iron-willed)",
+    "name": "철의 의지",
     "group": "신경/정신붕괴",
     "description": "정신붕괴 한계점 -18% (잘 미치지 않음), [Conflict: 괴짜 천재]",
     "effect": "정신붕괴 한계점 -18% (잘 미치지 않음)",
@@ -98,7 +98,7 @@
   },
   {
     "id": "slowpoke",
-    "name": "느림보 (Slowpoke)",
+    "name": "느림보",
     "group": "이동 속도",
     "description": "이동속도 -0.2 c/s",
     "effect": "이동속도 -0.2 c/s",
@@ -109,7 +109,7 @@
   },
   {
     "id": "fast_walker",
-    "name": "가벼운 발 (Fast walker)",
+    "name": "가벼운 발",
     "group": "이동 속도",
     "description": "이동속도 +0.2 c/s",
     "effect": "이동속도 +0.2 c/s",
@@ -120,7 +120,7 @@
   },
   {
     "id": "jogger",
-    "name": "신속 (Jogger)",
+    "name": "신속",
     "group": "이동 속도",
     "description": "이동속도 +0.4 c/s",
     "effect": "이동속도 +0.4 c/s",
@@ -131,7 +131,7 @@
   },
   {
     "id": "slothful",
-    "name": "나태 (Slothful)",
+    "name": "나태",
     "group": "작업 속도",
     "description": "작업 속도 -35%",
     "effect": "작업 속도 -35%",
@@ -143,7 +143,7 @@
   },
   {
     "id": "lazy",
-    "name": "게으름 (Lazy)",
+    "name": "게으름",
     "group": "작업 속도",
     "description": "작업 속도 -20%",
     "effect": "작업 속도 -20%",
@@ -155,7 +155,7 @@
   },
   {
     "id": "hard_worker",
-    "name": "근면성실 (Hard Worker)",
+    "name": "근면성실",
     "group": "작업 속도",
     "description": "작업 속도 +20%",
     "effect": "작업 속도 +20%",
@@ -167,7 +167,7 @@
   },
   {
     "id": "industrious",
-    "name": "일벌레 (Industrious)",
+    "name": "일벌레",
     "group": "작업 속도",
     "description": "작업 속도 +35%",
     "effect": "작업 속도 +35%",
@@ -179,7 +179,7 @@
   },
   {
     "id": "staggeringly_ugly",
-    "name": "충격적인 외모 (Staggeringly Ugly)",
+    "name": "충격적인 외모",
     "group": "외모/매력",
     "description": "매력 -2 (관계도 최악)",
     "effect": "매력 -2 (관계도 최악)",
@@ -191,7 +191,7 @@
   },
   {
     "id": "ugly",
-    "name": "못생김 (Ugly)",
+    "name": "못생김",
     "group": "외모/매력",
     "description": "매력 -1",
     "effect": "매력 -1",
@@ -203,7 +203,7 @@
   },
   {
     "id": "pretty",
-    "name": "잘생김 (Pretty)",
+    "name": "잘생김",
     "group": "외모/매력",
     "description": "매력 +1",
     "effect": "매력 +1",
@@ -215,7 +215,7 @@
   },
   {
     "id": "beautiful",
-    "name": "아름다움 (Beautiful)",
+    "name": "아름다움",
     "group": "외모/매력",
     "description": "매력 +2",
     "effect": "매력 +2",
@@ -227,7 +227,7 @@
   },
   {
     "id": "psychically_deaf",
-    "name": "정신적 무감각 (Psychically Deaf)",
+    "name": "정신적 무감각",
     "group": "정신 감응력",
     "description": "감응력 -100% (면역)",
     "effect": "감응력 -100% (면역)",
@@ -239,7 +239,7 @@
   },
   {
     "id": "psychically_dull",
-    "name": "둔감한 정신 (Psychically dull)",
+    "name": "둔감한 정신",
     "group": "정신 감응력",
     "description": "감응력 -50%",
     "effect": "감응력 -50%",
@@ -251,7 +251,7 @@
   },
   {
     "id": "psychically_sensitive",
-    "name": "민감한 정신 (Psychically sensitive)",
+    "name": "민감한 정신",
     "group": "정신 감응력",
     "description": "감응력 +40%",
     "effect": "감응력 +40%",
@@ -263,7 +263,7 @@
   },
   {
     "id": "psychically_hypersensitive",
-    "name": "정신적 초감각 (Psychically Hypersensitive)",
+    "name": "정신적 초감각",
     "group": "정신 감응력",
     "description": "감응력 +80%",
     "effect": "감응력 +80%",
@@ -275,7 +275,7 @@
   },
   {
     "id": "slow_learner",
-    "name": "느린 학습가 (Slow Learner)",
+    "name": "느린 학습가",
     "group": "학습 속도",
     "description": "경험치 습득 -75%",
     "effect": "경험치 습득 -75%",
@@ -285,7 +285,7 @@
   },
   {
     "id": "fast_learner",
-    "name": "빠른 학습가 (Fast Learner)",
+    "name": "빠른 학습가",
     "group": "학습 속도",
     "description": "경험치 습득 +75%",
     "effect": "경험치 습득 +75%",
@@ -295,7 +295,7 @@
   },
   {
     "id": "teetotaler",
-    "name": "금주 (Teetotaler)",
+    "name": "금주",
     "group": "약물 선호도",
     "description": "약물 혐오. 복용 시 무드 하락.",
     "effect": "약물 혐오. 복용 시 무드 하락.",
@@ -306,7 +306,7 @@
   },
   {
     "id": "chemical_interest",
-    "name": "약물 선호 (Chemical Interest)",
+    "name": "약물 선호",
     "group": "약물 선호도",
     "description": "약물 갈망 발생, 무드 보너스/페널티 존재.",
     "effect": "약물 갈망 발생, 무드 보너스/페널티 존재.",
@@ -317,7 +317,7 @@
   },
   {
     "id": "chemical_fascination",
-    "name": "약물광 (Chemical Fascination)",
+    "name": "약물광",
     "group": "약물 선호도",
     "description": "약물 갈망 빈도 높음 (통제 어려움).",
     "effect": "약물 갈망 빈도 높음 (통제 어려움).",
@@ -328,7 +328,7 @@
   },
   {
     "id": "tough",
-    "name": "강인함 (Tough)",
+    "name": "강인함",
     "group": "특성",
     "description": "받는 피해량 -50% (매우 강력). [Conflict: 연약함]",
     "effect": "받는 피해량 -50% (매우 강력)",
@@ -338,7 +338,7 @@
   },
   {
     "id": "delicate",
-    "name": "연약함 (Delicate)",
+    "name": "연약함",
     "group": "특성",
     "description": "받는 피해량 +15%. [Conflict: 강인함]",
     "effect": "받는 피해량 +15%",
@@ -348,7 +348,7 @@
   },
   {
     "id": "brawler",
-    "name": "싸움꾼 (Brawler)",
+    "name": "싸움꾼",
     "group": "특성",
     "description": "격투 +4, 사격 -4, 원거리 무기 착용 시 무드 하락. [Conflict: 신중한 사수, 난사광, 엄살쟁이]",
     "effect": "격투 +4, 사격 -4, 원거리 무기 착용 시 무드 하락",
@@ -360,7 +360,7 @@
   },
   {
     "id": "careful_shooter",
-    "name": "신중한 사수 (Careful shooter)",
+    "name": "신중한 사수",
     "group": "특성",
     "description": "명중률 +5, 조준 시간 길어짐. [Conflict: 난사광, 싸움꾼]",
     "effect": "명중률 +5, 조준 시간 길어짐",
@@ -371,7 +371,7 @@
   },
   {
     "id": "trigger_happy",
-    "name": "난사광 (Trigger-happy)",
+    "name": "난사광",
     "group": "특성",
     "description": "조준 시간 -50%, 명중률 -5. [Conflict: 신중한 사수, 싸움꾼]",
     "effect": "조준 시간 -50%, 명중률 -5",
@@ -382,7 +382,7 @@
   },
   {
     "id": "nimble",
-    "name": "재빠름 (Nimble)",
+    "name": "재빠름",
     "group": "특성",
     "description": "근접 회피율 +15.",
     "effect": "근접 회피율 +15.",
@@ -390,7 +390,7 @@
   },
   {
     "id": "wimp",
-    "name": "엄살쟁이 (Wimp)",
+    "name": "엄살쟁이",
     "group": "특성",
     "description": "고통 한계 -50% (쉽게 기절). [Conflict: 강인함, 싸움꾼, 피학적]",
     "effect": "고통 한계 -50% (쉽게 기절)",
@@ -402,7 +402,7 @@
   },
   {
     "id": "masochist",
-    "name": "피학적 (Masochist)",
+    "name": "피학적",
     "group": "특성",
     "description": "고통을 느낄 때 무드 상승. [Conflict: 엄살쟁이]",
     "effect": "고통을 느낄 때 무드 상승",
@@ -412,7 +412,7 @@
   },
   {
     "id": "pyromaniac",
-    "name": "방화광 (Pyromaniac)",
+    "name": "방화광",
     "group": "특성",
     "description": "스트레스 시 방화 충동. 소방 작업 불가.",
     "effect": "스트레스 시 방화 충동. 소방 작업 불가.",
@@ -420,7 +420,7 @@
   },
   {
     "id": "gourmand",
-    "name": "식탐 (Gourmand)",
+    "name": "식탐",
     "group": "특성",
     "description": "요리 +4, 굶주림 빨리 짐. 스트레스 시 폭식. [Conflict: 검소]",
     "effect": "요리 +4, 굶주림 빨리 짐. 스트레스 시 폭식",
@@ -430,7 +430,7 @@
   },
   {
     "id": "ascetic",
-    "name": "검소 (Ascetic)",
+    "name": "검소",
     "group": "특성",
     "description": "좁고 나쁜 침실 선호, 생식 페널티 없음. [Conflict: 탐욕, 시샘, 식탐]",
     "effect": "좁고 나쁜 침실 선호, 생식 페널티 없음",
@@ -442,7 +442,7 @@
   },
   {
     "id": "greedy",
-    "name": "탐욕 (Greedy)",
+    "name": "탐욕",
     "group": "특성",
     "description": "좋은 침실 원함 (없으면 무드 하락). [Conflict: 검소]",
     "effect": "좋은 침실 원함 (없으면 무드 하락)",
@@ -452,7 +452,7 @@
   },
   {
     "id": "jealous",
-    "name": "시샘 (Jealous)",
+    "name": "시샘",
     "group": "특성",
     "description": "남보다 좋은 침실 원함 (없으면 무드 하락). [Conflict: 검소]",
     "effect": "남보다 좋은 침실 원함 (없으면 무드 하락)",
@@ -462,7 +462,7 @@
   },
   {
     "id": "night_owl",
-    "name": "야행성 (Night Owl)",
+    "name": "야행성",
     "group": "특성",
     "description": "밤(23~6시) 활동 선호, 낮 활동 시 무드 하락.",
     "effect": "밤(23~6시) 활동 선호, 낮 활동 시 무드 하락.",
@@ -470,7 +470,7 @@
   },
   {
     "id": "undergrounder",
-    "name": "실내 선호 (Undergrounder)",
+    "name": "실내 선호",
     "group": "특성",
     "description": "실내 욕구 있음, 갇혀 있어도 답답해하지 않음.",
     "effect": "실내 욕구 있음, 갇혀 있어도 답답해하지 않음.",
@@ -478,7 +478,7 @@
   },
   {
     "id": "nudist",
-    "name": "나체주의자 (Nudist)",
+    "name": "나체주의자",
     "group": "특성",
     "description": "알몸일 때 무드 상승, 옷 입으면 하락.",
     "effect": "알몸일 때 무드 상승, 옷 입으면 하락.",
@@ -486,7 +486,7 @@
   },
   {
     "id": "body_modder",
-    "name": "신체 개조주의자 (Body Modder)",
+    "name": "신체 개조주의자",
     "group": "특성",
     "description": "인공 신체 이식 원함. [Conflict: 신체 순수주의자]",
     "effect": "인공 신체 이식 원함",
@@ -496,7 +496,7 @@
   },
   {
     "id": "body_purist",
-    "name": "신체 순수주의자 (Body Purist)",
+    "name": "신체 순수주의자",
     "group": "특성",
     "description": "인공 신체 이식 혐오. [Conflict: 신체 개조주의자]",
     "effect": "인공 신체 이식 혐오",
@@ -506,7 +506,7 @@
   },
   {
     "id": "quick_sleeper",
-    "name": "숙면가 (Quick Sleeper)",
+    "name": "숙면가",
     "group": "특성",
     "description": "수면 효율 +50% (잠을 적게 잠).",
     "effect": "수면 효율 +50% (잠을 적게 잠).",
@@ -514,7 +514,7 @@
   },
   {
     "id": "too_smart",
-    "name": "괴짜 천재 (Too smart)",
+    "name": "괴짜 천재",
     "group": "특성",
     "description": "학습 속도 +75%, 정신붕괴 한계점 +14% (잘 배우지만 예민함). [Conflict: 철의 의지]",
     "effect": "학습 속도 +75%, 정신붕괴 한계점 +14% (잘 배우지만 예민함)",
@@ -524,7 +524,7 @@
   },
   {
     "id": "great_memory",
-    "name": "대단한 기억력 (Great Memory)",
+    "name": "대단한 기억력",
     "group": "특성",
     "description": "기술 레벨 하락 속도 절반.",
     "effect": "기술 레벨 하락 속도 절반.",
@@ -532,7 +532,7 @@
   },
   {
     "id": "tortured_artist",
-    "name": "괴로운 예술가 (Tortured Artist)",
+    "name": "괴로운 예술가",
     "group": "특성",
     "description": "항시 무드 -8, 정신붕괴 후 예술 영감 획득.",
     "effect": "항시 무드 -8, 정신붕괴 후 예술 영감 획득.",
@@ -540,7 +540,7 @@
   },
   {
     "id": "abrasive",
-    "name": "직설적 (Abrasive)",
+    "name": "직설적",
     "group": "특성",
     "description": "모욕 확률 높음. [Conflict: 다정다감]",
     "effect": "모욕 확률 높음",
@@ -550,7 +550,7 @@
   },
   {
     "id": "kind",
-    "name": "다정다감 (Kind)",
+    "name": "다정다감",
     "group": "특성",
     "description": "절대 모욕하지 않음, 타인 위로. [Conflict: 직설적, 사이코패스]",
     "effect": "절대 모욕하지 않음, 타인 위로",
@@ -561,7 +561,7 @@
   },
   {
     "id": "annoying_voice",
-    "name": "거슬리는 목소리 (Annoying Voice)",
+    "name": "거슬리는 목소리",
     "group": "특성",
     "description": "타인으로부터 관계도 하락 -25.",
     "effect": "타인으로부터 관계도 하락 -25.",
@@ -569,7 +569,7 @@
   },
   {
     "id": "creepy_breathing",
-    "name": "거친 숨소리 (Creepy Breathing)",
+    "name": "거친 숨소리",
     "group": "특성",
     "description": "타인으로부터 관계도 하락 -25.",
     "effect": "타인으로부터 관계도 하락 -25.",
@@ -577,7 +577,7 @@
   },
   {
     "id": "misandrist",
-    "name": "남성 혐오 (Misandrist)",
+    "name": "남성 혐오",
     "group": "특성",
     "description": "남성 대상 관계도 -25.",
     "effect": "남성 대상 관계도 -25.",
@@ -585,7 +585,7 @@
   },
   {
     "id": "misogynist",
-    "name": "여성 혐오 (Misogynist)",
+    "name": "여성 혐오",
     "group": "특성",
     "description": "여성 대상 관계도 -25.",
     "effect": "여성 대상 관계도 -25.",
@@ -593,7 +593,7 @@
   },
   {
     "id": "recluse",
-    "name": "은둔자 (Recluse)",
+    "name": "은둔자",
     "group": "특성",
     "description": "사람이 적으면 무드 상승, 많으면 하락.",
     "effect": "사람이 적으면 무드 상승, 많으면 하락.",
@@ -601,7 +601,7 @@
   },
   {
     "id": "cannibal",
-    "name": "식인종 (Cannibal)",
+    "name": "식인종",
     "group": "특성",
     "description": "인육 섭취/도축 시 무드 상승.",
     "effect": "인육 섭취/도축 시 무드 상승.",
@@ -609,7 +609,7 @@
   },
   {
     "id": "bloodlust",
-    "name": "피의 갈망 (Bloodlust)",
+    "name": "피의 갈망",
     "group": "특성",
     "description": "살해/시체 관찰 시 무드 상승, 인피 의류 선호. 싸움 잦음.",
     "effect": "살해/시체 관찰 시 무드 상승, 인피 의류 선호. 싸움 잦음.",
@@ -617,7 +617,7 @@
   },
   {
     "id": "psychopath",
-    "name": "사이코패스 (Psychopath)",
+    "name": "사이코패스",
     "group": "특성",
     "description": "타인의 고통/도축/사망에 무드 변화 없음. 사교 활동 효과 없음. [Conflict: 다정다감]",
     "effect": "타인의 고통/도축/사망에 무드 변화 없음. 사교 활동 효과 없음",
@@ -627,7 +627,7 @@
   },
   {
     "id": "sickly",
-    "name": "병약체질 (Sickly)",
+    "name": "병약체질",
     "group": "특성",
     "description": "주기적으로 질병 발생, 의학 +4.",
     "effect": "주기적으로 질병 발생, 의학 +4.",
@@ -635,7 +635,7 @@
   },
   {
     "id": "super_immune",
-    "name": "면역체질 (Super Immune)",
+    "name": "면역체질",
     "group": "특성",
     "description": "항체 생성 속도 +30%.",
     "effect": "항체 생성 속도 +30%.",
@@ -643,7 +643,7 @@
   },
   {
     "id": "gay",
-    "name": "동성애 (Gay)",
+    "name": "동성애",
     "group": "특성",
     "description": "동성에게 끌림.",
     "effect": "동성에게 끌림.",
@@ -651,7 +651,7 @@
   },
   {
     "id": "bisexual",
-    "name": "양성애 (Bisexual)",
+    "name": "양성애",
     "group": "특성",
     "description": "남녀 모두에게 끌림.",
     "effect": "남녀 모두에게 끌림.",
@@ -659,7 +659,7 @@
   },
   {
     "id": "asexual",
-    "name": "무성애 (Asexual)",
+    "name": "무성애",
     "group": "특성",
     "description": "누구에게도 끌리지 않음.",
     "effect": "누구에게도 끌리지 않음.",
