@@ -45,7 +45,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Undergrounder"
+                "undergrounder"
             ],
             "spawnCategories": [
                 "Tribal",
@@ -309,7 +309,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Gourmand"
+                "gourmand"
             ],
             "spawnCategories": [
                 "Imperial"
@@ -326,7 +326,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Teetotaler"
+                "teetotaler"
             ],
             "spawnCategories": [
                 "Imperial"
@@ -505,7 +505,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Undergrounder"
+                "undergrounder"
             ],
             "spawnCategories": [
                 "Offworld"
@@ -570,7 +570,7 @@
                 "Caring"
             ],
             "traits": [
-                "Brawler"
+                "brawler"
             ],
             "spawnCategories": [
                 "Outlander",
@@ -594,7 +594,7 @@
                 "Caring"
             ],
             "traits": [
-                "Psychopath"
+                "psychopath"
             ],
             "spawnCategories": [
                 "Pirate",
@@ -694,7 +694,7 @@
                 "Social"
             ],
             "traits": [
-                "Ascetic"
+                "ascetic"
             ],
             "spawnCategories": [
                 "Outsider"

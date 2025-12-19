@@ -616,5 +616,112 @@
     "description": "감정보다는 이익과 효율을 중시합니다.",
     "effect": "사교적 능력치 소폭 상승, 도덕적 결단에 둔감함",
     "conflicts": []
+  },
+  {
+    "id": "brave",
+    "name": "용감함",
+    "group": "전투",
+    "description": "위험한 상황에서도 침착함을 유지하며 정면으로 맞섭니다.",
+    "effect": "공포에 잘 질리지 않음",
+    "conflicts": [
+      "coward"
+    ]
+  },
+  {
+    "id": "coward",
+    "name": "겁쟁이",
+    "group": "전투",
+    "description": "위험이 닥치면 누구보다 먼저 도망칩니다.",
+    "effect": "피해를 입으면 쉽게 후퇴함",
+    "conflicts": [
+      "brave",
+      "tough"
+    ]
+  },
+  {
+    "id": "nimble",
+    "name": "재빠름",
+    "group": "전투",
+    "description": "몸놀림이 매우 가볍고 빠릅니다.",
+    "effect": "근접 회피율 +15",
+    "conflicts": []
+  },
+  {
+    "id": "masochist",
+    "name": "마조히스트",
+    "group": "특수",
+    "description": "고통을 느낄 때 묘한 쾌감을 느낍니다.",
+    "effect": "고통 시 무드 상승",
+    "conflicts": [
+      "wimp"
+    ]
+  },
+  {
+    "id": "ambitious",
+    "name": "야심가",
+    "group": "성격",
+    "description": "더 높은 지위와 성공을 갈망합니다.",
+    "effect": "작업 속도 보너스",
+    "conflicts": []
+  },
+  {
+    "id": "recluse",
+    "name": "은둔자",
+    "group": "생활",
+    "description": "혼자 있는 시간을 진심으로 즐기며 타인과의 접촉을 꺼립니다.",
+    "effect": "고립 시 무드 보너스, 사교 활동 시 무드 하락",
+    "conflicts": []
+  },
+  {
+    "id": "perfectionist",
+    "name": "완벽주의자",
+    "group": "작업",
+    "description": "모든 일을 아주 꼼꼼하고 완벽하게 처리하려 합니다.",
+    "effect": "작업 품질 향상, 작업 속도 감소",
+    "conflicts": []
+  },
+  {
+    "id": "vain",
+    "name": "허영심",
+    "group": "사교",
+    "description": "자신의 외모와 평판을 매우 중요하게 생각합니다.",
+    "effect": "사회적 영향력 증가",
+    "conflicts": []
+  },
+  {
+    "id": "heat_tolerant",
+    "name": "내열성",
+    "group": "환경",
+    "description": "뜨거운 열기 속에서도 평소처럼 활동할 수 있습니다.",
+    "effect": "적응 온도 상한 상승",
+    "conflicts": []
+  },
+  {
+    "id": "outdoors",
+    "name": "야외 선호",
+    "group": "환경",
+    "description": "탁 트인 밖에서 지내는 것을 좋아합니다.",
+    "effect": "야외 활동 시 무드 보너스",
+    "conflicts": [
+      "undergrounder"
+    ]
+  },
+  {
+    "id": "impatient",
+    "name": "조급함",
+    "group": "성격",
+    "description": "기다리는 것을 매우 힘들어하며 서두르는 경향이 있습니다.",
+    "effect": "이동 속도 증가, 비활동 시 무드 하락",
+    "conflicts": []
+  },
+  {
+    "id": "smart",
+    "name": "영리함",
+    "group": "지능",
+    "description": "상황 판단이 빠르고 이해력이 좋습니다.",
+    "effect": "학습 속도 +20%",
+    "conflicts": [
+      "slow_learner"
+    ]
   }
 ]

@@ -45,7 +45,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Undergrounder"
+                "undergrounder"
             ],
             "spawnCategories": [
                 "Tribal",
@@ -309,7 +309,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Gourmand"
+                "gourmand"
             ],
             "spawnCategories": [
                 "Imperial"
@@ -326,7 +326,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Teetotaler"
+                "teetotaler"
             ],
             "spawnCategories": [
                 "Imperial"
@@ -505,7 +505,7 @@
             },
             "workDisables": [],
             "traits": [
-                "Undergrounder"
+                "undergrounder"
             ],
             "spawnCategories": [
                 "Offworld"
@@ -560,7 +560,7 @@
         {
             "id": "pit_brawler",
             "title": "Pit Brawler",
-            "titleShort": "Brawler",
+            "titleShort": "brawler",
             "description": "Was nine years old when got in first fight. Won, but more important was the enjoyment of audience. Pit fighting turned out to be a lucrative career for those who could survive it. And it was even mostly legal.",
             "skillBonuses": {
                 "Melee": 8
@@ -570,7 +570,7 @@
                 "Caring"
             ],
             "traits": [
-                "Brawler"
+                "brawler"
             ],
             "spawnCategories": [
                 "Outlander",
@@ -594,7 +594,7 @@
                 "Caring"
             ],
             "traits": [
-                "Psychopath"
+                "psychopath"
             ],
             "spawnCategories": [
                 "Pirate",
@@ -694,7 +694,7 @@
                 "Social"
             ],
             "traits": [
-                "Ascetic"
+                "ascetic"
             ],
             "spawnCategories": [
                 "Outsider"
