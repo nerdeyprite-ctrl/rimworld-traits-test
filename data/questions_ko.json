@@ -94,7 +94,6 @@
                 "text": "너무 무서워! 비명 지르며 반대편으로 도망친다.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
@@ -213,7 +212,6 @@
                 "text": "어쩔 수 없지. 오랜만에 모닥불 피워서 요리 실력을 뽐낸다.",
                 "scores": {
                     "hard_worker": 1,
-                    "farm_kid": 1,
                     "Cooking": 1
                 }
             }
@@ -359,7 +357,7 @@
             {
                 "text": "나약하고 부패하기 쉬운 육체를 버리고, 차가운 강철과 논리적인 전자회로로 대체하는 초월적인 진화의 완성.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -373,8 +371,7 @@
             {
                 "text": "드디어 내 계절이 왔군! 옷을 벗어던지고 열기를 만끽하겠다.",
                 "scores": {
-                    "nudist": 1,
-                    "heat_tolerant": 1
+                    "nudist": 1
                 }
             },
             {
@@ -417,13 +414,13 @@
             {
                 "text": "당장 내 팔을 기계로 강화해줘! 더 강해져서, 상위의 존재가 되고 싶어.",
                 "scores": {
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
                 "text": "물건을 들거나 총을 쏠 수만 있다면 어떤 팔이든 상관없다. 생존을 위해 필요한 도구일 뿐이야.",
                 "scores": {
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -451,7 +448,7 @@
                 "scores": {
                     "ascetic": 1,
                     "iron_willed": 1,
-                    "smart": 1
+                    "too_smart": 1
                 }
             },
             {
@@ -492,14 +489,14 @@
             {
                 "text": "죽기 직전의 상황이 아니라면 절대 이 위험한 가루에 손대지 않는다.",
                 "scores": {
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "악마의 유혹이다! 발견 즉시 소각로에 던져버려야 해. 내 신성한 영혼과 육체를 이딴 것에 맡길 순 없다.",
                 "scores": {
                     "teetotaler": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "iron_willed": 1
                 }
             },
@@ -534,8 +531,7 @@
             {
                 "text": "여긴 감옥이나 다름없어! 당장 밖으로 나가서 태양광 아래 자유를 만끽하며 사람들과 어울리고 싶단 말이야.",
                 "scores": {
-                    "Social": 1,
-                    "impatient": 1
+                    "Social": 1
                 }
             },
             {
@@ -556,7 +552,6 @@
                 "text": "내 몽둥이 맛을 봐라! 야만적인 근접 전투야말로 내 타고난 본능이다. 녀석의 외골격을 박살 내주마!",
                 "scores": {
                     "brawler": 1,
-                    "brave": 1,
                     "Melee": 1
                 }
             },
@@ -564,14 +559,13 @@
                 "text": "살려주세요! 비명을 지르며 반대 방향으로 전력 질주한다. 이런 괴물과 싸울 순 없어!",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
             {
                 "text": "침착하게 거리를 유지하며 녀석의 공격을 흘려내고, 미리 가동해둔 킬존의 함정 쪽으로 교묘하게 유인한다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nimble": 1
                 }
             },
@@ -591,7 +585,6 @@
             {
                 "text": "으아악! 불이야! 수조에서 물을 퍼 날라 불을 끄기 시작한다. 식량이 없으면 우린 끝이야!",
                 "scores": {
-                    "brave": 1,
                     "iron_willed": 1,
                     "Social": 1
                 }
@@ -678,7 +671,7 @@
             {
                 "text": "치료가 우선이야. 즉시 약품 창고로 달려가 상처를 소독하고 회복에 집중하겠다. 흉터가 남으면 어쩌지?",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -700,7 +693,6 @@
             {
                 "text": "드디어 기회가 왔군. 수단과 방법을 가리지 않고 정보를 뺏거나 은화 뭉치를 던져주고 이곳을 영원히 떠나겠다.",
                 "scores": {
-                    "ambitious": 1,
                     "psychopath": 1
                 }
             },
@@ -714,7 +706,7 @@
             {
                 "text": "함정일 가능성이 농후해. 상인의 눈을 노려보며 정보의 진위를 파헤치고, 위조된 좌표인지 검증한다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 1
                 }
             },
@@ -757,7 +749,7 @@
             {
                 "text": "나약한 육체니까 외모 따위를 따지는 거다. 내 얼굴과 몸을 기계 파츠로 교체하면 모두가 나를 두려워하며 경외하게 될 거다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -897,7 +889,6 @@
                 "text": "으아악! 살려줘! 비명 지르며 도망친다.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
@@ -979,7 +970,7 @@
             {
                 "text": "기계 몸이었다면 걱정 없었을 텐데. 정화 필터로 교체하고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1054,7 +1045,7 @@
             {
                 "text": "쓸만한 기계 부품을 적출할 수 있는지 살핀다.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1113,13 +1104,13 @@
                 "scores": {
                     "pyromaniac": 1,
                     "optimist": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "불꽃은 불안정해. 난 정교한 기계 장치가 더 좋아.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Artistic": 1
                 }
             },
@@ -1163,7 +1154,7 @@
             {
                 "text": "유기체라 아픈 거야. 기계 팔다리로 교체해줘.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1
                 }
             }
@@ -1235,7 +1226,7 @@
             {
                 "text": "수면 중에도 지식을 주입하고 싶어. 자는 시간도 연구야.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1258,7 +1249,6 @@
                 "text": "아름다운 명작을 만들자. 번영과 희망을 상징하는 작품을 만들래.",
                 "scores": {
                     "Artistic": 1,
-                    "perfectionist": 1,
                     "sanguine": 1
                 }
             },
@@ -1307,7 +1297,7 @@
             {
                 "text": "인간보단 기체 신체가 끌려. 유기체는 너무 지저분해.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1330,7 +1320,7 @@
             {
                 "text": "농담할 기분 아냐. 감염되기 전에 즉시 치료하러 간다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -1456,7 +1446,7 @@
             {
                 "text": "인간보다는 기계 개조 제안이 훨씬 더 설렐 것 같아.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1486,7 +1476,7 @@
                 "text": "상황을 지켜보기만 한다. 귀찮은 일에 엮이기 싫어.",
                 "scores": {
                     "lazy": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -1547,7 +1537,6 @@
             {
                 "text": "경이롭다. 저 힘을 얻어 정착지의 지배자가 되고 싶다.",
                 "scores": {
-                    "ambitious": 1,
                     "greedy": 1,
                     "Social": 1
                 }
@@ -1564,7 +1553,7 @@
                 "text": "인위적인 기술은 파멸을 부를 뿐이야. 위험한 힘은 거부한다.",
                 "scores": {
                     "body_purist": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "lazy": 1
                 }
             },
@@ -1587,7 +1576,7 @@
                 "scores": {
                     "sanguine": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -1595,7 +1584,7 @@
                 "scores": {
                     "kind": 1,
                     "Social": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1
                 }
             },
@@ -1624,7 +1613,6 @@
             {
                 "text": "메카노이드가 있을지도 몰라. 상황을 더 지켜본다.",
                 "scores": {
-                    "careful": 1,
                     "careful_shooter": 1,
                     "wimp": 1,
                     "pessimist": 1
@@ -1642,14 +1630,14 @@
                 "text": "고대 기술의 정수다. 원형을 보존하며 신중하게 연구한다.",
                 "scores": {
                     "Intellectual": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "lazy": 1
                 }
             },
             {
                 "text": "부품을 내 몸에 이식할 기회야! 초월적인 존재가 되고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1681,7 +1669,7 @@
                 "text": "전염병 걸릴지도 몰라. 비가 그칠 때까지 기다린다.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "sickly": 1
                 }
             },
@@ -1719,7 +1707,6 @@
                 "scores": {
                     "ascetic": 1,
                     "steadfast": 1,
-                    "ambitious": 1,
                     "hard_worker": 1
                 }
             },
@@ -1750,14 +1737,14 @@
             {
                 "text": "도구일 뿐이야. 적들을 효율적으로 전멸시킬래.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "careful_shooter": 1
                 }
             },
             {
                 "text": "너무 위험해! 아군이 휘말릴 수 있으니 안전한 전술을 짠다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1
                 }
             },
@@ -1787,7 +1774,7 @@
             {
                 "text": "함정이 있을 거야. 내부를 신중하게 분석한다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 1,
                     "wimp": 1,
                     "nervous": 1
@@ -1797,15 +1784,14 @@
                 "text": "보물이 우선이야. 입구를 부수고 진입한다.",
                 "scores": {
                     "greedy": 1,
-                    "pragmatist": 1,
-                    "bloodlust": 1,
-                    "psychopath": 1
+                    "psychopath": 1,
+                    "bloodlust": 1
                 }
             },
             {
                 "text": "고대인 유전 정보가 탐나네. 실험 샘플로 쓰겠다.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1827,7 +1813,7 @@
             {
                 "text": "가까이 가면 위험해. 진정할 때까지 문 잠그고 본다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -1869,7 +1855,6 @@
             {
                 "text": "갇혀 있는 건 고문이야. 밖으로 뛰어 나가고 싶어.",
                 "scores": {
-                    "outdoors": 1,
                     "volatile": 1,
                     "bloodlust": 1,
                     "tough": 1
@@ -1885,7 +1870,7 @@
             {
                 "text": "내 몸이 기계였다면 낙진 따위 무시했을 텐데. 빨리 개조할래.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1902,7 +1887,7 @@
                     "kind": 1,
                     "Medicine": 1,
                     "Social": 2,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -1943,7 +1928,7 @@
                     "chemical_interest": 1,
                     "sanguine": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -1959,7 +1944,7 @@
             {
                 "text": "거래용으로만 쓰자. 은화 챙길 궁리나 해야지.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1,
                     "Social": 1
                 }
@@ -1990,10 +1975,9 @@
             {
                 "text": "합리적인 선택이야. 무표정으로 장기를 꺼낸다.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1,
-                    "Medicine": 1,
-                    "psychopath": 1
+                    "Medicine": 1
                 }
             },
             {
@@ -2032,9 +2016,8 @@
             {
                 "text": "노동력이지. 한 명 사서 온종일 채굴이나 시킬래.",
                 "scores": {
-                    "pragmatist": 1,
-                    "hard_worker": 1,
-                    "psychopath": 1
+                    "psychopath": 1,
+                    "hard_worker": 1
                 }
             },
             {
@@ -2049,7 +2032,7 @@
             {
                 "text": "노예 몸속 기계 부품이 탐나. 분해해서 팔 수 없을까?",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -2065,7 +2048,6 @@
                 "text": "곤충 젤리다! 맛있는 간식을 얻을 기회니 당장 나간다.",
                 "scores": {
                     "gourmand": 1,
-                    "brave": 1,
                     "undergrounder": 1
                 }
             },
@@ -2080,7 +2062,7 @@
             {
                 "text": "징그러워! 당장 입구를 막고 반대편으로 도망친다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1,
                     "nervous": 1,
                     "pessimist": 2
@@ -2089,7 +2071,7 @@
             {
                 "text": "곤충의 강인한 외골격이 탐나. 내 피부랑 바꾸고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -2145,7 +2127,7 @@
                 "scores": {
                     "hard_worker": 1,
                     "industrious": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "steadfast": 1
                 }
             },
@@ -2186,7 +2168,7 @@
                     "psychopath": 1,
                     "Artistic": 1,
                     "Intellectual": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -2199,7 +2181,7 @@
             {
                 "text": "죽음의 징조야! 보자마자 비명 지르며 도망친다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "pessimist": 1,
                     "nervous": 1,
                     "wimp": 1
@@ -2222,16 +2204,15 @@
             {
                 "text": "기계의 힘은 위대하다. 당장 이식하고 다른 곳도 바꾸고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
-                    "ambitious": 1,
                     "Shooting": 1
                 }
             },
             {
                 "text": "장애 극복 수단일 뿐이야. 실리적으로 받아들인다.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1
                 }
             },
@@ -2262,8 +2243,7 @@
                 "text": "내가 직접 수리한다. 오차 없는 화강암 벽을 쌓겠어.",
                 "scores": {
                     "Construction": 1,
-                    "hard_worker": 1,
-                    "perfectionist": 1
+                    "hard_worker": 1
                 }
             },
             {
@@ -2272,7 +2252,7 @@
                     "Construction": 1,
                     "lazy": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2302,15 +2282,14 @@
                 "text": "희귀 광맥이 근처에 있다는 증거야. 더 깊이 파헤친다.",
                 "scores": {
                     "Mining": 1,
-                    "greedy": 1,
-                    "brave": 1
+                    "greedy": 1
                 }
             },
             {
                 "text": "위험하니 멈추고 구조물 보강! 할 일에 집중한다.",
                 "scores": {
                     "Mining": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "hard_worker": 1,
                     "steadfast": 1
                 }
@@ -2344,7 +2323,7 @@
                     "Cooking": 1,
                     "kind": 1,
                     "hard_worker": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2424,10 +2403,9 @@
                 "text": "걸작 단검을 완성하겠어. 내 장인 정신을 쏟는다.",
                 "scores": {
                     "Crafting": 2,
-                    "perfectionist": 1,
                     "Artistic": 1,
                     "hard_worker": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2437,7 +2415,7 @@
                     "wimp": 1,
                     "Crafting": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2451,7 +2429,7 @@
             {
                 "text": "단검 손잡이에 플라즈마 분사기를 달고 싶다. 미래 기술이 최고야.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -2469,14 +2447,14 @@
                     "Medicine": 1,
                     "iron_willed": 1,
                     "fast_learner": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "죽으면 손해야. 상처 누르며 기지로 업고 뛴다.",
                 "scores": {
                     "hard_worker": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Medicine": 1
                 }
             },
@@ -2493,7 +2471,7 @@
                 "scores": {
                     "psychopath": 1,
                     "greedy": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1,
                     "Intellectual": 1
                 }
@@ -2509,7 +2487,6 @@
                 "text": "풍년이네. 보람을 느끼며 낫질을 한다.",
                 "scores": {
                     "Plants": 1,
-                    "outdoors": 1,
                     "optimist": 1,
                     "hard_worker": 1,
                     "steadfast": 1
@@ -2526,7 +2503,7 @@
             {
                 "text": "흙 묻는 거 싫어. 더위 먹었다고 핑계 대고 도망칠래.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "abrasive": 1,
                     "Plants": -1,
                     "wimp": 1
@@ -2562,14 +2539,14 @@
                     "kind": 1,
                     "optimist": 1,
                     "Social": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "hard_worker": 1
                 }
             },
             {
                 "text": "벌레라도 옮아오면 어쩌지. 위험하니 쫓아낸다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Animals": 1,
                     "wimp": 1,
                     "abrasive": 1,
@@ -2587,7 +2564,7 @@
             {
                 "text": "능력치 올리는 칩을 이식하고 싶다. 강력한 병기가 될 거야.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Animals": 1,
                     "Intellectual": 1
                 }
@@ -2606,8 +2583,7 @@
                     "fast_learner": 1,
                     "night_owl": 1,
                     "industrious": 1,
-                    "steadfast": 1,
-                    "perfectionist": 1
+                    "steadfast": 1
                 }
             },
             {
@@ -2621,7 +2597,7 @@
             {
                 "text": "지식은 저주야. 당장 용광로에 던져 태워버려야 해.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nervous": 1,
                     "pessimist": 1,
                     "abrasive": 1,
@@ -2631,7 +2607,7 @@
             {
                 "text": "데이터를 내 뇌에 동기화하고 싶어. 지식의 신이 되는 거야.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2
                 }
             }
@@ -2646,7 +2622,6 @@
                 "text": "우리의 생존기를 묘사할래. 영혼을 담은 걸작을 깎는다.",
                 "scores": {
                     "Artistic": 1,
-                    "perfectionist": 1,
                     "hard_worker": 1,
                     "tortured_artist": 1,
                     "volatile": 1
@@ -2657,7 +2632,7 @@
                 "scores": {
                     "Artistic": 1,
                     "greedy": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2700,7 +2675,7 @@
                 "scores": {
                     "ascetic": 1,
                     "Intellectual": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2733,13 +2708,13 @@
                     "kind": 2,
                     "Medicine": 1,
                     "Social": 2,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "죽지만 않게 하겠어. 약이 아까우니 붕대만 감아준다.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1,
                     "psychopath": 1,
                     "lazy": 1
@@ -2756,7 +2731,7 @@
             {
                 "text": "몸속 기계 부품이 탐나네. 신기한 게 있는지 검사한다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -2772,7 +2747,6 @@
                 "text": "구역질 나네. 바닥이 반짝일 때까지 청소하겠다.",
                 "scores": {
                     "industrious": 1,
-                    "neurotic": 1,
                     "hard_worker": 1,
                     "steadfast": 1
                 }
@@ -2815,7 +2789,7 @@
                     "optimist": 1,
                     "Intellectual": 1,
                     "Mining": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2830,7 +2804,7 @@
             {
                 "text": "금으로 내 몸 전체를 도금하고 싶어. 황금 성상이 되겠어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "greedy": 2,
                     "beautiful": 1
                 }
@@ -2854,8 +2828,8 @@
                 "scores": {
                     "Intellectual": 1,
                     "Crafting": 1,
-                    "pragmatist": 1,
-                    "careful": 2
+                    "psychopath": 1,
+                    "careful_shooter": 2
                 }
             },
             {
@@ -2893,9 +2867,8 @@
             {
                 "text": "신에 가까운 힘을 얻을 기회야. 우주의 지식을 갈구한다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
-                    "brave": 1,
                     "psychopath": 1,
                     "Social": 2,
                     "bloodlust": 1
@@ -2904,7 +2877,7 @@
             {
                 "text": "위험 부담이 너무 크다. 기술 문헌부터 신중히 읽겠어.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 2
                 }
             },
@@ -2935,10 +2908,10 @@
             {
                 "text": "기계 팔은 축복이야. 인간 한계를 넘는 힘을 휘두르고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1,
                     "Construction": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "hard_worker": 1
                 }
             },
@@ -2980,8 +2953,8 @@
                     "kind": 2,
                     "Social": 2,
                     "optimist": 1,
-                    "pragmatist": 1,
-                    "careful": 1
+                    "psychopath": 1,
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3022,7 +2995,7 @@
                     "kind": 2,
                     "Medicine": 2,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1
                 }
             },
@@ -3030,7 +3003,7 @@
                 "text": "나까지 걸리면 끝이야. 격리하고 근처에도 안 간다.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3060,19 +3033,17 @@
             {
                 "text": "다 베어버리겠어. 벽 부수고 정면 돌파한다.",
                 "scores": {
-                    "brave": 2,
                     "brawler": 1,
                     "Melee": 1,
                     "Intellectual": 2,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "함정을 깔고 저격하겠어. 위험은 신중하게 다뤄야 해.",
                 "scores": {
-                    "careful": 2,
-                    "Shooting": 2,
-                    "careful_shooter": 1
+                    "careful_shooter": 1,
+                    "Shooting": 2
                 }
             },
             {
@@ -3101,7 +3072,6 @@
             {
                 "text": "벌레들, 내 총 맛 좀 봐라. 동료 지키러 뛰어든다.",
                 "scores": {
-                    "brave": 2,
                     "Melee": 1,
                     "tough": 1,
                     "Shooting": 2,
@@ -3112,7 +3082,7 @@
                 "text": "여긴 끝장났어. 문 잠그고 침실째로 다 태워버린다.",
                 "scores": {
                     "pyromaniac": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Construction": -1,
                     "wimp": 2,
                     "nervous": 1
@@ -3122,7 +3092,7 @@
                 "text": "곤충 젤리는 비싸다. 조심스럽게 유인해서 잡겠어.",
                 "scores": {
                     "Animals": 2,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Cooking": 1
                 }
             },
@@ -3130,7 +3100,7 @@
                 "text": "저 갑각 봐. 나도 저렇게 강화하고 싶어. 사체 분석한다.",
                 "scores": {
                     "Intellectual": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Crafting": 1
                 }
             }
@@ -3187,9 +3157,9 @@
                 "text": "손대면 끝이야. 당장 불태우거나 팔아버리자.",
                 "scores": {
                     "teetotaler": 2,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "iron_willed": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1,
                     "Social": 2,
                     "greedy": 1
@@ -3200,7 +3170,7 @@
                 "scores": {
                     "chemical_interest": 2,
                     "volatile": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -3271,7 +3241,7 @@
             {
                 "text": "가축들을 대피시키고, 중요 기기는 해체하여 지하 창고로 옮기겠다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 1,
                     "hard_worker": 1,
                     "Intellectual": 2,
@@ -3318,7 +3288,7 @@
                     "kind": 2,
                     "Animals": 2,
                     "Medicine": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "steadfast": 1
                 }
             },
@@ -3343,7 +3313,7 @@
             {
                 "text": "기계 다리를 달아주겠다. 전보다 더 효율적으로 일할 수 있을 거다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Animals": 1,
                     "Medicine": 1
                 }
@@ -3360,7 +3330,7 @@
                 "scores": {
                     "Intellectual": 2,
                     "Shooting": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "pessimist": 1
                 }
             },
@@ -3385,7 +3355,7 @@
             {
                 "text": "이 기술을 분석해서 내 신경 계통에 직접 연결하고 싶다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "volatile": 1
                 }
@@ -3429,7 +3399,7 @@
                     "wimp": 2,
                     "nervous": 1,
                     "greedy": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1,
                     "Intellectual": 1
                 }
@@ -3466,7 +3436,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "Cooking": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3511,7 +3481,7 @@
             {
                 "text": "산업의 고동 소리다. 기계의 태동을 느끼며 희열을 맛보겠다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "volatile": 1,
                     "optimist": 1,
@@ -3603,7 +3573,7 @@
                     "volatile": 2,
                     "bloodlust": 1,
                     "pyromaniac": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Construction": 1
                 }
@@ -3647,7 +3617,7 @@
             {
                 "text": "죽일 순 없다. 생포한 뒤 뇌를 개조하여 우리 편으로 만들겠다.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2,
                     "Medicine": 1
                 }
@@ -3676,7 +3646,7 @@
                     "pessimist": 2,
                     "volatile": 1,
                     "Plants": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -3710,8 +3680,7 @@
                     "sanguine": 1,
                     "beautiful": 1,
                     "hard_worker": 2,
-                    "careful": 1,
-                    "neurotic": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3779,7 +3748,7 @@
             {
                 "text": "방에 모니터를 설치해서 최첨단 요새로 바꾸겠다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 1,
                     "Intellectual": 1
                 }
@@ -3820,7 +3789,7 @@
             {
                 "text": "맞은 부위가 의수(기계 팔)라면 다행이군. 수리 키트만 있으면 금방 고칠 거야.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -3904,7 +3873,7 @@
             {
                 "text": "고통 느끼는 것 자체가 생물학적 결함이야. 감정 차단 칩을 뇌에 박고 싶다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Medicine": 1
                 }
@@ -3932,7 +3901,6 @@
                     "kind": 1,
                     "Social": 1,
                     "Construction": 1,
-                    "neurotic": 1,
                     "industrious": 1
                 }
             },
@@ -3947,7 +3915,7 @@
             {
                 "text": "생체 부품은 녹슬지 않게 특수 오일로 닦는다. 유기물 따위 썩어도 상관없어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -3972,7 +3940,6 @@
             {
                 "text": "생존이 먼저야. 미안하지만 이건 그저 단백질 덩어리일 뿐이다. 눈 감고 도축한다.",
                 "scores": {
-                    "pragmatist": 2,
                     "psychopath": 1,
                     "steadfast": 1,
                     "cannibal": 2,
@@ -4005,7 +3972,7 @@
             {
                 "text": "인간의 한계를 초월할 기회야. 내 눈 파내고 기계의 안광을 채운다.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2,
                     "Shooting": 1,
                     "Artistic": 1
@@ -4025,7 +3992,7 @@
                 "text": "사격 명중률이 올라간다면 뭐. 정착지 방어를 위해 수술대에 눕는다.",
                 "scores": {
                     "Shooting": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "tough": 1
                 }
             },
@@ -4046,10 +4013,10 @@
             {
                 "text": "일단 살고 봐야지. 부작용은 나중에 생각한다. 강력한 치유 효과를 즐긴다.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "volatile": 2,
                     "chemical_interest": 3,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -4058,7 +4025,7 @@
                     "iron_willed": 2,
                     "ascetic": 1,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 1
                 }
             },
@@ -4088,7 +4055,7 @@
             {
                 "text": "내 단단한 피부는 낙진 따위 이겨낼 수 있어. 마스크 쓰고 나가서 실내 농장 건설한다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "tough": 1,
                     "hard_worker": 3,
                     "Construction": 1,
@@ -4102,7 +4069,7 @@
                     "pessimist": 1,
                     "wimp": 1,
                     "greedy": 1,
-                    "careful": -1,
+                    "careful_shooter": -1,
                     "Cooking": 1
                 }
             },
@@ -4161,7 +4128,7 @@
             {
                 "text": "인간의 감정은 생존에 방해만 돼. 사랑 같은 화학 반응 따위 느끼기 싫어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "psychopath": 1,
                     "steadfast": 1
                 }
@@ -4229,7 +4196,7 @@
             {
                 "text": "시체에게 보물이 무슨 소용이야? 살아있는 우리가 쓰는 게 합리적이지.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "greedy": 1,
                     "Mining": 1
                 }
@@ -4247,7 +4214,7 @@
             {
                 "text": "고대인 유골 상태가 양호하네. 내 사이버네틱 실험 피실험체로 딱이야.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "psychopath": 1
                 }
@@ -4262,7 +4229,6 @@
             {
                 "text": "위험해도 내버려 둘 순 없어. 당장 바위 들어 올리고 동료 구출한다.",
                 "scores": {
-                    "brave": 2,
                     "tough": 1,
                     "kind": 1,
                     "Mining": 1
@@ -4271,7 +4237,7 @@
             {
                 "text": "일단 진정하자. 지지대 세워 안전 확보한 뒤 구조 장비 가져온다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Construction": 1,
                     "Mining": 1,
                     "wimp": 2,
@@ -4318,7 +4284,7 @@
                 "scores": {
                     "greedy": 2,
                     "Shooting": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "gourmand": 2,
                     "bloodlust": 1
                 }
@@ -4326,14 +4292,14 @@
             {
                 "text": "건드리면 다 죽어. 절대 자극하지 말고 지나갈 때까지 문 잠근다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Social": 1
                 }
             },
             {
                 "text": "저 생물 신체 구조를 분석해서 내 기계 팔 근력 보강에 응용한다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -4358,9 +4324,8 @@
             {
                 "text": "동료 살리는 게 먼저지. 무표정하게 신속히 수술 집도한다. 남는 장기는 판다.",
                 "scores": {
-                    "psychopath": 4,
+                    "psychopath": 1,
                     "Medicine": 2,
-                    "pragmatist": 1,
                     "greedy": 1,
                     "bloodlust": 1
                 }
@@ -4376,7 +4341,7 @@
             {
                 "text": "인간 장기를 꺼내 다른 이에게 이식하는 기술... 생명 연장의 신비에 전율한다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -4400,7 +4365,7 @@
             {
                 "text": "일 잘하게 생긴 놈들이 있네. 정착지 발전 위해 합리적 가격에 몇 명 산다.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": 1,
                     "hard_worker": 1
                 }
@@ -4419,8 +4384,7 @@
                 "text": "짐승 발밑에 슬쩍 불 붙이면 어떻게 될까? 아수라장 된 틈에 자원 챙긴다.",
                 "scores": {
                     "pyromaniac": 2,
-                    "volatile": 1,
-                    "brave": 1
+                    "volatile": 1
                 }
             }
         ]
@@ -4489,7 +4453,7 @@
                     "Shooting": 1,
                     "Melee": 1,
                     "steadfast": 2,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -4505,7 +4469,7 @@
             {
                 "text": "내 몸이 생체 공학으로 강화되어 있었다면 이런 짐승들 따위 가볍게 제압했을 텐데. 약한 내 살덩이가 원망스럽다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "pessimist": 1
                 }
             }
@@ -4574,8 +4538,7 @@
             {
                 "text": "보호막 벨트 전원을 켜고 전광석화처럼 돌진해서 다람쥐를 짓밟는다.",
                 "scores": {
-                    "Melee": 7,
-                    "brave": 1
+                    "Melee": 7
                 }
             }
         ]
@@ -4712,7 +4675,7 @@
                 "text": "내 귀한 손에 흙을 묻히라고? 징그러운 벌레들이 기어 다니는 밭에는 절대 들어가지 않겠다.",
                 "scores": {
                     "Plants": -20,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             }
         ]
@@ -4734,7 +4697,7 @@
                 "text": "늑대의 습성을 이용해 경계심을 풀고 우리 편으로 만든다. 정착지 사냥개로 쓰면 좋겠군.",
                 "scores": {
                     "Animals": 5,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -4761,8 +4724,7 @@
             {
                 "text": "복잡한 내부 회로를 능숙하게 점검하여 완벽하게 수리한다. 기계는 인간보다 정직하지.",
                 "scores": {
-                    "Crafting": 7,
-                    "perfectionist": 1
+                    "Crafting": 7
                 }
             },
             {
@@ -4868,8 +4830,7 @@
             {
                 "text": "상대방의 마음을 꿰뚫는 노련한 화술로, 우리 측에 압도적으로 유리한 계약을 따낸다.",
                 "scores": {
-                    "Social": 7,
-                    "ambitious": 1
+                    "Social": 7
                 }
             },
             {
@@ -4921,7 +4882,7 @@
                 "scores": {
                     "Social": 1,
                     "greedy": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1
                 }
             },
@@ -4945,7 +4906,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "steadfast": 2,
-                    "transhumanist": 3
+                    "body_modder": 3
                 }
             },
             {
@@ -4960,8 +4921,7 @@
                 "text": "총을 들고 다른 생명을 해치는 폭력적인 일은 절대 못 해. 피를 묻히느니 차라리 굶어 죽겠다.",
                 "scores": {
                     "Shooting": -20,
-                    "Melee": -20,
-                    "coward": 1
+                    "Melee": -20
                 }
             },
             {
@@ -5025,8 +4985,7 @@
                 "scores": {
                     "Intellectual": 5,
                     "fast_learner": 1,
-                    "transhumanist": 5,
-                    "ambitious": 3,
+                    "body_modder": 5,
                     "Social": 2
                 }
             },
@@ -5042,7 +5001,7 @@
                 "scores": {
                     "Artistic": 5,
                     "Crafting": 5,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "optimist": 1,
                     "steadfast": 1
                 }
@@ -5074,7 +5033,7 @@
                 "text": "함정일지도 몰라. 훼손되지 않게 보안 금고에 보관하고, 상부의 검토가 끝날 때까지 기다리자.",
                 "scores": {
                     "steadfast": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -5104,7 +5063,7 @@
                 "text": "내 생체 공학 두뇌의 지식과 인내심을 총동원해, 저 생물을 우리 기지의 일원으로 만든다.",
                 "scores": {
                     "Animals": 5,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Crafting": 2,
                     "Intellectual": 1
                 }
@@ -5121,7 +5080,7 @@
                 "scores": {
                     "Artistic": 2,
                     "Intellectual": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -5144,7 +5103,7 @@
                 "text": "나약한 살덩이를 기계로 대체하는 숭고한 진화의 과정이지. 완벽하게 수술을 집도한다.",
                 "scores": {
                     "Medicine": 5,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -5153,7 +5112,7 @@
                 "scores": {
                     "Medicine": 3,
                     "kind": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "hard_worker": 1
                 }
             },
@@ -5270,7 +5229,7 @@
             {
                 "text": "안전이 최우선이야. 동물을 안심시키고 정교한 장비로 신중하게 작업을 수행한다. 사고는 용납 못 해.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 3,
                     "kind": 1
                 }
@@ -5324,7 +5283,6 @@
                 "text": "귀청이 떨어질 것 같아. 바닥이 흔들리는 걸 건딜 수 없어. 난 포격전은 못 하겠어, 숨을래!",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "Shooting": -20
                 }
             }
@@ -5341,7 +5299,7 @@
                     "Animals": 7,
                     "Intellectual": 2,
                     "hard_worker": 1,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -5402,7 +5360,7 @@
             {
                 "text": "너무 귀해 보여서 내가 만지기엔 부담스러워... 괜히 망가뜨리면 어떡해? 일단 창고 구석에 잘 모셔두자.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             }
@@ -5417,7 +5375,6 @@
                 "text": "인류의 마지막 지식을 보존하기 위해 내가 가야만 해. 대신 남겨진 이들을 위해 화려한 우주 작별 쇼를 연출한다.",
                 "scores": {
                     "Intellectual": 3,
-                    "ambitious": 1,
                     "pyromaniac": 2,
                     "Artistic": 2
                 }
@@ -5426,8 +5383,7 @@
                 "text": "난 여기 남겠어. 동료들을 버리고 탈출하는 건 내 신념에 어긋나. 자네가 어서 오르게.",
                 "scores": {
                     "kind": 2,
-                    "steadfast": 1,
-                    "brave": 1
+                    "steadfast": 1
                 }
             },
             {
@@ -5512,7 +5468,7 @@
             {
                 "text": "고대 메카노이드들의 기계음만이 들려오던 금속 유적지나, 우주선 너머의 우주를 한 번도 보지 못한 채 갇혀있던 비좁은 금속벽이었다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Construction": 1,
                     "Crafting": 1,
@@ -5547,7 +5503,7 @@
                 "scores": {
                     "Crafting": 2,
                     "Construction": 1,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2,
                     "Artistic": 1,
                     "Social": -1
@@ -5602,7 +5558,7 @@
                     "kind": 2,
                     "Social": 1,
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -5801,7 +5757,7 @@
                 "scores": {
                     "Intellectual": 2,
                     "Construction": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "greedy": 2,
                     "Social": 1
                 }
@@ -5848,17 +5804,16 @@
                     "Social": 1,
                     "Intellectual": 2,
                     "fast_learner": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "어떠한 총탄도 뚫을 수 없는 불사의 강철 육체와, 이 행성의 모든 인간을 홀려 지배할 수 있는 미모를 원한다.",
                 "scores": {
                     "tough": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Medicine": 1,
                     "beautiful": 2,
-                    "vain": 1,
                     "Social": 1
                 }
             },
@@ -5911,7 +5866,7 @@
             {
                 "text": "감정 소모는 비효율적이야. 나중에 나처럼 뇌를 기계로 바꾸면 이런 이별의 고통 따위 느끼지 않아도 될 텐데.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -5925,19 +5880,18 @@
             {
                 "text": "절대 그럴 수 없어. 내가 미끼가 되어 동료를 살리거나, 끝까지 함께 싸우다 죽겠다.",
                 "scores": {
-                    "brave": 1,
                     "kind": 1,
                     "Intellectual": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "미안하지만 살고 봐야지... 동료가 적들의 시선을 끄는 사이, 나는 혼자 탈출하겠다.",
                 "scores": {
                     "wimp": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -5973,7 +5927,7 @@
             {
                 "text": "생존을 위한 합리적인 선택이야. 이건 그저 단백질 덩어리일 뿐이라고 생각하며 먹는다.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1
                 }
             },
@@ -5988,8 +5942,8 @@
             {
                 "text": "나약한 감정 따윈 버려. 영양분 효율을 극대화하기 위해 기계적인 무표정으로 남김없이 섭취한다.",
                 "scores": {
-                    "transhumanist": 1,
-                    "pragmatist": 1,
+                    "body_modder": 1,
+                    "psychopath": 1,
                     "cannibal": 1
                 }
             }
@@ -6049,9 +6003,8 @@
             {
                 "text": "슬프지만 이미 죽은 건 소용없어. 가죽과 고기로 활용하는 게 마지막까지 녀석이 나를 돕는 길이야.",
                 "scores": {
-                    "pragmatist": 1,
-                    "Crafting": 1,
                     "psychopath": 1,
+                    "Crafting": 1,
                     "Cooking": 1
                 }
             },
@@ -6087,7 +6040,7 @@
             {
                 "text": "우정은 우정, 돈은 돈이야. 확실한 상환 날짜와 이자를 약속한다면 빌려줄 수도 있어.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
                     "greedy": 1,
                     "Intellectual": 1
@@ -6103,7 +6056,7 @@
             {
                 "text": "은 따위 구시대적 유물이 무슨 소용이야? 대신 내가 만든 초전도체 부품을 빌려줄 테니 달래본다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 1
                 }
             }
@@ -6118,7 +6071,6 @@
                 "text": "동료에게 자리를 양보하거나, 공정하게 투표나 제비뽑기로 결정하자고 제안한다.",
                 "scores": {
                     "kind": 1,
-                    "brave": 1,
                     "Intellectual": 1,
                     "Social": 2,
                     "optimist": 1,
@@ -6128,8 +6080,7 @@
             {
                 "text": "내가 타야만 해. 동료를 속여서라도 먼저 탑승실에 들어가 문을 잠가버린다.",
                 "scores": {
-                    "greedy": 1,
-                    "ambitious": 1
+                    "greedy": 1
                 }
             },
             {
@@ -6142,7 +6093,7 @@
             {
                 "text": "상관없어. 우주선 통제 컴퓨터의 인공지능에 내 의식을 업로드해서 영원히 기계로 남으면 될 일이야.",
                 "scores": {
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             }
         ]
@@ -6155,7 +6106,6 @@
             {
                 "text": "이 정도 열기쯤이야. 차오르는 땀방울을 느끼며 전진한다.",
                 "scores": {
-                    "heat_tolerant": 1,
                     "optimist": 1,
                     "iron_willed": 1,
                     "steadfast": 1
@@ -6165,7 +6115,7 @@
                 "text": "살점이 타는 것 같아. 거추장스러운 옷을 다 벗어던지고 밤에 이동한다.",
                 "scores": {
                     "nudist": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1,
                     "lazy": 1
                 }
@@ -6196,7 +6146,7 @@
                 "scores": {
                     "optimist": 1,
                     "kind": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Intellectual": 1
                 }
             },
@@ -6210,7 +6160,7 @@
             {
                 "text": "고작 나무막대기를 내 다리라고? 이런 꼴로 살바엔 그냥 평생 침대에 누워 있겠어.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "jealous": 1,
                     "wimp": 1,
                     "depressive": 2
@@ -6219,7 +6169,7 @@
             {
                 "text": "겨우 다리 하나? 내 뇌를 통째로 슈퍼컴퓨터에 이식할 수만 있다면 전신을 기계로 바꿔도 좋아.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6235,7 +6185,7 @@
                 "scores": {
                     "ascetic": 2,
                     "steadfast": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -6282,7 +6232,7 @@
                 "text": "내 몸과 정신을 오염시키고 싶지 않아. 이런 걸 권하는 동료에게 따끔하게 충고하고 거절한다.",
                 "scores": {
                     "teetotaler": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "kind": 1,
                     "iron_willed": 1,
                     "abrasive": 1
@@ -6398,7 +6348,7 @@
             {
                 "text": "분위기가 이상해진 걸 감지하고 입을 다물겠다. 다음엔 좀 더 세련된 화술을 준비해야지.",
                 "scores": {
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -6413,7 +6363,7 @@
                 "scores": {
                     "abrasive": 1,
                     "volatile": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6427,10 +6377,9 @@
             {
                 "text": "흥미로운 생물학적 표본이네. 호기심을 참을 수 없어. 흔적을 추적해 정체를 밝혀낸다.",
                 "scores": {
-                    "brave": 1,
                     "Intellectual": 1,
                     "Animals": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Plants": 1
                 }
             },
@@ -6438,7 +6387,7 @@
                 "text": "위험 신호야. 즉시 기지로 복귀해서 동료들에게 알리고 방어 태세를 갖추자고 제안한다.",
                 "scores": {
                     "Social": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "pessimist": 1,
                     "nervous": 1
                 }
@@ -6470,7 +6419,7 @@
                     "brawler": 1,
                     "Melee": 2,
                     "tough": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nimble": 1
                 }
             },
@@ -6480,7 +6429,7 @@
                     "Shooting": 1,
                     "careful_shooter": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -6493,8 +6442,7 @@
             {
                 "text": "저 칼끝이 내 생체 조직을 갈기갈기 찢어도 좋아. 어차피 강력한 기계 팔로 교체할 핑계가 될 테니.",
                 "scores": {
-                    "transhumanist": 2,
-                    "brave": 1
+                    "body_modder": 2
                 }
             }
         ]
@@ -6548,10 +6496,9 @@
             {
                 "text": "지체할 시간 없어! EMP 던져서 마비시키고 시간을 벌어준다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "Shooting": 1,
-                    "brave": 2,
                     "kind": 1,
                     "Social": 1
                 }
@@ -6559,7 +6506,6 @@
             {
                 "text": "강철 괴물들이네! 용맹하게 돌진해서 금속 목을 따준다.",
                 "scores": {
-                    "brave": 2,
                     "Melee": 2,
                     "tough": 1,
                     "brawler": 1
@@ -6575,7 +6521,7 @@
             {
                 "text": "메카노이드 구조 좀 봐. 나도 기계 몸을 갖고 싶어.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2,
                     "Crafting": 1,
                     "Social": 1
@@ -6641,7 +6587,7 @@
             {
                 "text": "사치는 금물이야. 자원을 아껴서 방어 시설을 짓거나 모두와 나누자.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "ascetic": 1,
                     "steadfast": 1,
                     "kind": 2,
@@ -6660,7 +6606,7 @@
             {
                 "text": "화려한 가구 따위 필요 없어. 대신 최첨단 기계 장치로 방을 채우겠어.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2
                 }
             }
@@ -6720,7 +6666,7 @@
                     "steadfast": 1,
                     "Social": 1,
                     "Intellectual": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -6744,7 +6690,7 @@
             {
                 "text": "이 신호를 기계 언어로 번역하면 인류가 닿지 못한 진리에 닿을 수 있을 거야.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6774,10 +6720,9 @@
             {
                 "text": "감상에 젖을 시간 없어. 옷이나 장기라도 챙기고 소각해야지.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "hard_worker": 1,
                     "Medicine": 1,
-                    "psychopath": 2,
                     "greedy": 3,
                     "Cooking": 1,
                     "Artistic": 1
@@ -6843,10 +6788,10 @@
             {
                 "text": "위험해! 즉시 알리고 소화기로 불 끈다. 기지가 날아가는 꼴은 못 봐.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "hard_worker": 1,
                     "Construction": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "tough": 1
                 }
             },
@@ -6903,7 +6848,7 @@
             {
                 "text": "드디어 진화할 기회가 왔군! 남은 팔다리도 전부 기계로 바꾸고 싶어.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1,
                     "Melee": 1
                 }
@@ -6946,7 +6891,7 @@
             {
                 "text": "살 타는 건 질색이야. 방호복 챙겨 입거나 대충 천 옷이라도 걸쳐야지.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "nervous": 1,
                     "ascetic": 2,
                     "pessimist": 1,
@@ -6990,7 +6935,7 @@
                 "text": "비난받기 싫으니 몰래 챙겨야지. 아니면 이걸로 동료 은이나 뜯어낼까?",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "psychopath": 2,
                     "Social": 1,
                     "greedy": 1
@@ -7042,7 +6987,7 @@
             {
                 "text": "이 속도는 기계적인 완벽함을 추구하기 때문이야. 너 같은 인간은 이해 못 해.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "abrasive": 2
                 }
             }
@@ -7057,7 +7002,6 @@
                 "text": "바람처럼 달려간다! 누구보다 빠르게 도착해서 적들에게 지옥을 보여주지.",
                 "scores": {
                     "fast_walker": 3,
-                    "brave": 1,
                     "Shooting": 1
                 }
             },
@@ -7065,7 +7009,7 @@
                 "text": "숨이 턱 끝까지 차네. 그래도 페이스를 유지하며 동료들과 대열을 맞춘다.",
                 "scores": {
                     "Social": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "steadfast": 1,
                     "Plants": 1,
                     "Animals": 1,
@@ -7085,7 +7029,7 @@
             {
                 "text": "이 나약한 다리로는 무리야. 당장 생체 공학 다리로 개조해줘!",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "fast_walker": 2
                 }
             }
@@ -7099,8 +7043,7 @@
             {
                 "text": "아군이 맞을 위험이 크다. 침착하게 각도를 조정해 적 지휘관을 쏜다.",
                 "scores": {
-                    "careful_shooter": 3,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
                     "Shooting": 2,
                     "iron_willed": 1,
@@ -7120,7 +7063,6 @@
                 "scores": {
                     "brawler": 2,
                     "Melee": 2,
-                    "brave": 2,
                     "wimp": 2,
                     "nervous": 1,
                     "kind": 1
@@ -7130,7 +7072,7 @@
                 "text": "위험해! 후퇴해서 안전한 위치로 빠진다.",
                 "scores": {
                     "wimp": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "nervous": 1
                 }
             }
@@ -7144,8 +7086,7 @@
             {
                 "text": "슬픔? 그게 뭔데. 입 하나 줄었으니 식량을 아끼고 다행이다.",
                 "scores": {
-                    "psychopath": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": -2
                 }
             },
@@ -7219,7 +7160,7 @@
             {
                 "text": "이 방에 고성능 서버랑 배터리를 깔아서 최첨단 연구실로 개조하고 싶어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -7255,7 +7196,7 @@
             {
                 "text": "당장 생체 공학 시술로 얼굴 복구해줘! 매일 리더를 찾아가 괴롭힌다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "jealous": 1,
                     "greedy": 1
                 }
@@ -7263,7 +7204,7 @@
             {
                 "text": "나약한 얼굴 따위 떼어내지 뭐. 헬멧 쓰고 기계의 냉혹함을 닮아간다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "body_purist": -2
                 }
             }
@@ -7288,7 +7229,7 @@
                     "pessimist": 3,
                     "nervous": 1,
                     "depressive": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "steadfast": 1
                 }
@@ -7323,7 +7264,7 @@
                     "industrious": 3,
                     "hard_worker": 3,
                     "iron_willed": 1,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -7384,7 +7325,7 @@
             {
                 "text": "감정은 인간의 치명적인 오류일 뿐이야. 이 고통을 잊을 수만 있다면 뇌에서 감정 중추를 통째로 지워버리고 싶군.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -7409,8 +7350,8 @@
                     "kind": 3,
                     "Social": 3,
                     "Medicine": 1,
-                    "pragmatist": 2,
-                    "careful": 1
+                    "psychopath": 2,
+                    "careful_shooter": 1
                 }
             },
             {
@@ -7448,18 +7389,17 @@
             {
                 "text": "새로운 동료가 필요해! 즉시 장치를 가동하거나, 우선 해킹을 통해 내용물의 생체 신호를 분석해보겠다.",
                 "scores": {
-                    "brave": 2,
                     "Social": 2,
                     "optimist": 1,
                     "Intellectual": 3,
                     "Crafting": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "너무 위험해. 대전차포를 조준한 상태에서 조심스럽게 열거나, 아예 건드리지 않고 영원히 봉인해버리겠다.",
                 "scores": {
-                    "careful": 4,
+                    "careful_shooter": 4,
                     "Shooting": 1,
                     "Intellectual": 1,
                     "steadfast": 2,
@@ -7477,8 +7417,7 @@
             {
                 "text": "고대의 공포 따위는 정화해야지! 장치 안에 화염병을 던져넣어 무엇이 들었든 불꽃으로 바꿔주겠다.",
                 "scores": {
-                    "pyromaniac": 2,
-                    "brave": 1
+                    "pyromaniac": 2
                 }
             }
         ]
@@ -7493,7 +7432,7 @@
                 "scores": {
                     "kind": 1,
                     "Shooting": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 2,
                     "Construction": 2
                 }
@@ -7520,7 +7459,7 @@
             {
                 "text": "저 강아지들의 뇌를 추출해서 소형 배터리와 결합하면, 자의식 없는 경비 기계 유닛으로 개조할 수 있을 거야.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2
                 }
             }
@@ -7603,14 +7542,13 @@
                 "text": "잡생각을 지울 방법은 노동뿐이야. 죽기 살기로 일에 매달려서 자아를 잃어버리고 싶어.",
                 "scores": {
                     "hard_worker": 3,
-                    "neurotic": 2,
                     "industrious": 1
                 }
             },
             {
                 "text": "나약한 인간의 감정 따위 필요 없어. 뇌를 적출하고 정서 통제 칩을 박아넣어 기계처럼 차가운 이성만을 유지하고 싶군.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             }
@@ -7654,7 +7592,7 @@
             {
                 "text": "내 몸이 전신 강철이었다면 이런 모래 폭풍 따위는 간지러울 뿐이겠지. 인간 신체의 나약함에 다시 한번 환멸을 느낀군.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "iron_willed": 1
                 }
             }
@@ -7691,13 +7629,13 @@
                 "scores": {
                     "Intellectual": 3,
                     "Medicine": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "이 차가운 육신에 생명력을 불어넣어주지. 기계 부품과 전선을 얽어매어 움직이는 금속 사체 예술 작품으로 승화시키겠어.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 2,
                     "psychopath": 1
                 }
@@ -7733,7 +7671,6 @@
                 "scores": {
                     "depressive": 3,
                     "wimp": 2,
-                    "neurotic": 1,
                     "psychopath": 3,
                     "Social": 2,
                     "Melee": 1
@@ -7742,7 +7679,7 @@
             {
                 "text": "사람은 건드리지 않아. 대신 작업대의 기계 장치들을 맹렬하게 두들겨 패면서 이 타오르는 분노를 해소하겠다.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "hard_worker": 1,
                     "volatile": 1
                 }
@@ -7855,10 +7792,9 @@
             {
                 "text": "이름은 무슨... 그냥 '소 04호'라고 불러. 어차피 나중엔 도축해서 우리 뱃속으로 들어올 식량 자산일 뿐이잖아.",
                 "scores": {
-                    "pragmatist": 3,
+                    "psychopath": 2,
                     "Intellectual": 1,
                     "Animals": -1,
-                    "psychopath": 2,
                     "gourmand": 1,
                     "abrasive": 1
                 }
@@ -7874,7 +7810,7 @@
             {
                 "text": "언젠가 이 녀석을 강화 골격과 인공 뇌를 장착한 사이보그 황소로 개조할 거야. 이름은 미리 '메카카우'라고 지어두지.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Animals": 1
                 }
             }
@@ -7902,7 +7838,7 @@
                     "sanguine": 3,
                     "lazy": 1,
                     "greedy": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Shooting": 1,
                     "Social": 1
                 }
@@ -7910,7 +7846,6 @@
             {
                 "text": "아무도 이 소파의 미세한 결함을 보지 못한 거야? 내 눈엔 쓰레기나 다름없어. 당장 부수고 더 작품이 나올 때까지 다시 만들겠다.",
                 "scores": {
-                    "neurotic": 3,
                     "hard_worker": 2,
                     "Artistic": 1
                 }
@@ -7918,7 +7853,7 @@
             {
                 "text": "여기에 신경 인터페이스를 매립하면 앉아있는 것만으로도 정보를 습득하는 스마트 시트가 될 거야. 당장 기계 부품들을 가져와 개량하자.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 2,
                     "Intellectual": 1
                 }
@@ -7943,9 +7878,8 @@
                 "text": "사과만으론 부족해. 박살 난 조각상의 가치만큼 은(Silver)을 청구하거나, 다음 거래에서 우리에게 유리한 조건을 제시하게 압박하겠다.",
                 "scores": {
                     "greedy": 3,
-                    "pragmatist": 2,
-                    "Social": 2,
                     "psychopath": 3,
+                    "Social": 2,
                     "Intellectual": 2
                 }
             },
@@ -7977,8 +7911,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "Construction": 2,
-                    "brave": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 2,
                     "Social": 1
                 }
@@ -8003,7 +7936,7 @@
             {
                 "text": "피부 표면을 일정한 온도를 유지하는 금속 판으로 교체할 수만 있다면 이런 더위 따위는 우스울 텐데...",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "wimp": 1
                 }
             },
@@ -8029,14 +7962,12 @@
                     "Social": 3,
                     "wimp": -1,
                     "hard_worker": 2,
-                    "brave": 2,
                     "tough": 1
                 }
             },
             {
                 "text": "모두가 같이 죽을 필요는 없어. 정착지에 꼭 필요한 핵심 인원들끼리만 담요를 독점하거나, 방해되는 녀석의 담요를 뺏어서라도 난 살아야겠다.",
                 "scores": {
-                    "pragmatist": 2,
                     "psychopath": 2,
                     "abrasive": 1,
                     "greedy": 2,
@@ -8055,7 +7986,7 @@
             {
                 "text": "신체 내부의 열원을 혈류에 직접 공급하는 내장형 히터를 간절히 원해. 왜 나는 아직도 이 차가운 단백질 덩어리 속에 갇혀 있는 거지?",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "wimp": 1
                 }
             }
@@ -8069,10 +8000,10 @@
             {
                 "text": "당장 방화선을 구축해야 해! 불길이 번지지 않게 주변 초목을 배어 넘기고, 불에 타버린 동물 사체들이라도 식량으로 챙기려 노력하겠다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Construction": 1,
                     "Plants": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Cooking": 1,
                     "greedy": 1
                 }
@@ -8099,7 +8030,7 @@
             {
                 "text": "저 화염의 에너지를 회수해서 기계의 동력원으로 변환할 수는 없을까? 그런 장치가 있다면 이 산불도 축제가 될 텐데.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2
                 }
             }
@@ -8117,13 +8048,13 @@
                     "sanguine": 1,
                     "Social": 1,
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "세상에 공짜는 없겠다. 첩자일지 모르니 경계하고 사내를 향해 조소 섞인 웃음을 날리겠다.",
                 "scores": {
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "pessimist": 4,
                     "Shooting": 1,
                     "depressive": 2,
@@ -8167,7 +8098,7 @@
                 "text": "돈이 곧 생명이겠다! 장기를 팔아 약물을 비축하거나 함선의 자원들을 전부 털어오겠다.",
                 "scores": {
                     "greedy": 4,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "chemical_interest": 1,
                     "Intellectual": 3,
                     "Crafting": 2
@@ -8176,7 +8107,7 @@
             {
                 "text": "생존을 위해 어쩔 수 없겠다. 폐를 파는 건 아프지만 이 은으로 며칠은 더 버티도록 하겠다.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "steadfast": 2,
                     "pessimist": 1
                 }
@@ -8184,7 +8115,7 @@
             {
                 "text": "내 장기들을 기계 장기로 교체해줄 수 있는지 묻겠다. 거래 대가로 생체 공학 기술을 원하겠다.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             }
@@ -8199,7 +8130,6 @@
                 "text": "내일이 있는 어린 동료가 타야 하겠다! 자리를 양보하고 최후까지 시설을 가동하겠다.",
                 "scores": {
                     "kind": 5,
-                    "brave": 3,
                     "Social": 2,
                     "hard_worker": 2,
                     "Construction": 2
@@ -8208,9 +8138,8 @@
             {
                 "text": "감상에 젖을 시간 없겠다. 내가 살아야 하니 권한을 가로채서라도 탑승 명단에 이름을 올리겠다.",
                 "scores": {
-                    "pragmatist": 3,
-                    "steadfast": 2,
                     "psychopath": 4,
+                    "steadfast": 2,
                     "greedy": 2,
                     "Intellectual": 1
                 }
@@ -8226,7 +8155,7 @@
             {
                 "text": "육체는 두고 가겠다. 내 의식을 데이터화해서 메인 컴퓨터에 업로드해달라고 제안하겠다.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8252,8 +8181,8 @@
                 "scores": {
                     "Intellectual": 3,
                     "Crafting": 2,
-                    "transhumanist": 1,
-                    "careful": 3,
+                    "body_modder": 1,
+                    "careful_shooter": 3,
                     "pessimist": 1,
                     "steadfast": 1
                 }
@@ -8306,13 +8235,13 @@
                 "scores": {
                     "hard_worker": 3,
                     "steadfast": 2,
-                    "careful": -1
+                    "careful_shooter": -1
                 }
             },
             {
                 "text": "실내에 갇힌 김에 수술대에 눕겠다. 부위들을 기계로 교체하며 초월적 존재로 거듭나겠다.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -8327,8 +8256,7 @@
             {
                 "text": "자원이 부족하겠다. 식량 배급을 통제하고 수경 재배 농장을 세울 대안을 마련하하겠다.",
                 "scores": {
-                    "psychopath": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "abrasive": 1,
                     "Intellectual": 2,
                     "Plants": 1,
@@ -8351,7 +8279,7 @@
                 "scores": {
                     "pyromaniac": 2,
                     "greedy": 1,
-                    "careful": -1
+                    "careful_shooter": -1
                 }
             },
             {
@@ -8371,11 +8299,10 @@
             {
                 "text": "놀랄 필요 없겠다! 산탄총을 꺼내 대가리를 날리거나 곤충 젤리를 훔쳐오겠다.",
                 "scores": {
-                    "brave": 2,
                     "Shooting": 2,
                     "tough": 1,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 1,
                     "psychopath": 1
                 }
@@ -8402,7 +8329,7 @@
             {
                 "text": "치명적인 외골격을 보겠다. 내 팔을 벌레 팔로 교체해서 더 강해지고 싶겠다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Animals": 1
                 }
@@ -8473,7 +8400,7 @@
             {
                 "text": "이건 가짜 평화야. 언제라도 습격이 올지 모르니 기분 좋은 멍청이들에게 일을 더 시키거나, 이 틈을 타서 내 이익을 챙길 방안을 구상하겠다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "pessimist": 2,
                     "steadfast": 1,
                     "Social": 2,
@@ -8485,13 +8412,13 @@
                 "text": "이 정신 파동의 주파수를 분석해서 강력한 정신 무기로 역설계할 방법을 찾아내겠어. 보이지 않는 힘이야말로 진정한 과학이지.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "이 평화를 영원히 간직하고 싶어. 내 두뇌를 직접 기계 신경망에 연결해서, 이 황홀한 기분을 디지털 정보로 박제해버리고 싶군.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8519,7 +8446,7 @@
                     "Intellectual": 2,
                     "Crafting": 1,
                     "night_owl": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "ascetic": 1,
                     "wimp": 1
                 }
@@ -8571,13 +8498,13 @@
                 "scores": {
                     "Artistic": 3,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "이 은 덩어리를 고온으로 녹여서 내 유기체 피부를 은색으로 도금하고 싶어. 영원히 변치 않는 금속의 아름다움... 그게 내 꿈이야.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "beautiful": 2
                 }
             }
@@ -8593,8 +8520,7 @@
                 "scores": {
                     "greedy": 3,
                     "chemical_interest": 1,
-                    "psychopath": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Construction": 1,
                     "Shooting": 1
                 }
@@ -8605,7 +8531,7 @@
                     "Social": 3,
                     "optimist": 2,
                     "sanguine": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "Medicine": 1,
                     "steadfast": 1
                 }
@@ -8646,7 +8572,7 @@
                 "text": "역사가 밥 먹여주나? 돈이 될 만한 값비싼 유물들만 떼어내서 팔아버리거나, 당장 쓸모 있는 기계 부품들로 분해해서 정착지 실속을 채우겠다.",
                 "scores": {
                     "greedy": 4,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": -1,
                     "Crafting": 2,
                     "hard_worker": 1
@@ -8663,7 +8589,7 @@
             {
                 "text": "여기 숨겨진 신체 강화 기술의 흔적을 찾아야 해. 태블릿을 해킹해서 고대 사이보그 기술을 뜯어내고 내 몸에 이식할 새로운 영감을 얻겠다.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -8678,11 +8604,11 @@
             {
                 "text": "동료들의 안전이 최우선이야! 즉시 방아쇠를 당겨 적장을 무력화하겠어. 고도의 정신 공학 기술력에 감탄하며 조심히 작동시키겠다.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 1,
                     "Shooting": 1,
                     "Intellectual": 2,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1
                 }
             },
@@ -8692,7 +8618,7 @@
                     "bloodlust": 3,
                     "psychopath": 2,
                     "abrasive": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -8701,7 +8627,6 @@
                 "text": "이 귀한 창을 저런 놈한테 낭비할 순 없지. 아껴뒀다가 나중에 더 위협적인 적이 오면 쓰거나 암시장에 비싼 값에 팔아넘기겠다.",
                 "scores": {
                     "greedy": 2,
-                    "brave": 2,
                     "Melee": 2
                 }
             },
@@ -8726,7 +8651,6 @@
                     "psychopath": 3,
                     "abrasive": 2,
                     "sanguine": 1,
-                    "pragmatist": 3,
                     "steadfast": 2,
                     "Intellectual": 1
                 }
@@ -8747,7 +8671,7 @@
                 "scores": {
                     "chemical_interest": 2,
                     "volatile": 2,
-                    "transhumanist": -1
+                    "body_modder": -1
                 }
             },
             {
@@ -8767,7 +8691,6 @@
             {
                 "text": "이제 나는 불사신이다! 칼을 뽑아 비웃음과 함께 적진 한가운데로 돌진하겠어. 이 초월적인 에너지 보호막이야말로 내가 우월한 존재라는 증거지.",
                 "scores": {
-                    "brave": 3,
                     "tough": 2,
                     "Melee": 1,
                     "jealous": 2,
@@ -8778,7 +8701,7 @@
             {
                 "text": "보호막이 있다고 방심해선 안 돼. 여전히 엄폐물 뒤에서 신중하게 움직이고, 혹시라도 보호막이 과부하로 깨질까 봐 매 순간 가슴이 조마조마해.",
                 "scores": {
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "Intellectual": 1,
                     "steadfast": 1,
                     "wimp": 2,
@@ -8826,13 +8749,13 @@
                     "ascetic": 1,
                     "wimp": 2,
                     "greedy": 3,
-                    "careful": 2
+                    "careful_shooter": 2
                 }
             },
             {
                 "text": "내 신경계가 갑옷의 센서와 동기화되는 이 감각... 차가운 금속과 뜨거운 피가 하나가 되는 황홀경이야. 기계 복합체와 완전히 결합된 이 상태를 사랑해.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -8840,7 +8763,7 @@
                 "text": "열 배출 시스템의 한계를 시험해보고 싶군. 주변 공기가 일렁일 정도로 뜨거운 열기를 뿜어내어, 적들에게 지옥의 화염 기운을 선사하고 싶어.",
                 "scores": {
                     "pyromaniac": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             }
         ]
@@ -8868,8 +8791,7 @@
                     "wimp": 2,
                     "depressive": 1,
                     "beautiful": 1,
-                    "abrasive": 1,
-                    "neurotic": 1
+                    "abrasive": 1
                 }
             },
             {
@@ -8897,7 +8819,7 @@
             {
                 "text": "우주의 힘을 내 손으로 휘두르다니... 너무나도 영광스러워! 하늘에서 내려오는 이 파괴의 빛줄기는 그 어떤 그림보다도 아름다운 예술 작품이야.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "optimist": 1,
                     "Artistic": 3,
@@ -8911,15 +8833,14 @@
                     "wimp": 2,
                     "kind": 2,
                     "depressive": 2,
-                    "abrasive": 2,
-                    "neurotic": 2
+                    "abrasive": 2
                 }
             },
             {
                 "text": "감상에 젖을 때가 아니야. 폭격이 끝난 뒤 남겨질 적들의 장비와 자원 중에서 쓸만한 것들이 얼마나 타지 않고 남을지 계산해서 입맛을 다셔보겠다.",
                 "scores": {
                     "greedy": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Crafting": 1
                 }
             },
@@ -8950,7 +8871,7 @@
             {
                 "text": "부활한 사람이 예전과 같을 거란 보장이 없어. 부작용이나 광기에 빠질지도 몰라. 차라리 이런 위험한 물건은 태워버리는 게 예의 아닐까?",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "steadfast": 2,
                     "Medicine": 1,
                     "jealous": 3,
@@ -8962,14 +8883,14 @@
                 "text": "이 경이로운 나노 입자들의 배열을 분석해보고 싶군. 혈청을 분해해서 부활의 원리를 파악한다면, 인류를 뛰어넘는 영생의 비밀을 풀 수 있을지도 몰라.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1
                 }
             },
             {
                 "text": "부활보다는 기계와 유기체가 융합된 영구적인 '사이보그 관리자'로 변환시키는 촉매제로 쓰고 싶어. 그게 진정한 진화의 형태니까.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8986,7 +8907,7 @@
                     "kind": 3,
                     "Social": 2,
                     "Medicine": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Intellectual": 1,
                     "hard_worker": 1
                 }
@@ -8997,7 +8918,7 @@
                     "jealous": 2,
                     "greedy": 3,
                     "beautiful": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "steadfast": 2,
                     "pessimist": 1
                 }
@@ -9030,7 +8951,6 @@
                 "scores": {
                     "chemical_interest": 3,
                     "volatile": 2,
-                    "brave": 1,
                     "psychopath": 3,
                     "abrasive": 2,
                     "bloodlust": 1
@@ -9043,7 +8963,7 @@
                     "steadfast": 3,
                     "ascetic": 1,
                     "greedy": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": 1
                 }
             },
@@ -9085,7 +9005,7 @@
                 "text": "끝없는 탐구심으로 우주의 진리에 다가선 고독한 선구자. 혹은 하루하루 주어진 노동에 충실하며 소박한 삶의 가치를 지켜낸 정직한 정착민의 얼굴이야.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "fast_learner": 1,
                     "hard_worker": 3,
                     "steadfast": 3,
@@ -9138,7 +9058,7 @@
             {
                 "text": "기이한 초월공학 실험실의 배양 탱크에서 태어난 유전자 조작 실험체였다.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Social": -2,
                     "Intellectual": 1
                 }
@@ -9245,7 +9165,6 @@
                 "scores": {
                     "Intellectual": 1,
                     "lazy": 1,
-                    "neurotic": 1,
                     "abrasive": 1,
                     "volatile": 1,
                     "iron_willed": 1
@@ -9314,7 +9233,7 @@
                 "text": "일과 유흥에만 몰두하다가 내 몸이 망가지는 줄도 모르고 혹사시켰던 어리석은 날들다.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -9329,7 +9248,7 @@
                 "text": "너무 신중하고 소심해서 많은 기회를 놓쳤던 것이 후회된다.",
                 "scores": {
                     "nervous": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "wimp": 1
                 }
             },
@@ -9365,7 +9284,7 @@
                     "psychopath": 1,
                     "Intellectual": 2,
                     "fast_learner": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {

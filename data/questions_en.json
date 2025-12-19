@@ -94,7 +94,6 @@
                 "text": "Too scared, so step back or run away in the opposite direction.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
@@ -351,7 +350,7 @@
             {
                 "text": "Becoming a transcendent being by merging with machines.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -365,8 +364,7 @@
             {
                 "text": "Finally, my season! Enjoy the heat and throw off your clothes.",
                 "scores": {
-                    "nudist": 1,
-                    "heat_tolerant": 1
+                    "nudist": 1
                 }
             },
             {
@@ -400,13 +398,13 @@
             {
                 "text": "Perfect evolution! I want to replace it with a mechanical arm right now.",
                 "scores": {
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
                 "text": "As long as I can work, I don't care if it's mechanical or bionic.",
                 "scores": {
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -434,7 +432,7 @@
                 "scores": {
                     "ascetic": 1,
                     "iron_willed": 1,
-                    "smart": 1
+                    "too_smart": 1
                 }
             },
             {
@@ -475,14 +473,14 @@
             {
                 "text": "Only consider it as a last resort in emergencies.",
                 "scores": {
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "Drugs are the devil's temptation! Firmly refuse and dispose of them.",
                 "scores": {
                     "teetotaler": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "iron_willed": 1
                 }
             },
@@ -517,8 +515,7 @@
             {
                 "text": "This is a prison! I want to go out right now and enjoy freedom.",
                 "scores": {
-                    "Social": 1,
-                    "impatient": 1
+                    "Social": 1
                 }
             },
             {
@@ -538,14 +535,13 @@
                 "text": "It's a chance! I'll show it the taste of my club. Charge.",
                 "scores": {
                     "brawler": 1,
-                    "brave": 1,
                     "Melee": 1
                 }
             },
             {
                 "text": "Observe its behavior and secretly avoid the place.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nimble": 1
                 }
             },
@@ -553,7 +549,6 @@
                 "text": "Too scared that my legs give out or I just run away.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
@@ -579,7 +574,6 @@
             {
                 "text": "Dangerous! Jump in with a water bucket or give instructions to colleagues.",
                 "scores": {
-                    "brave": 1,
                     "iron_willed": 1,
                     "Social": 1
                 }
@@ -660,7 +654,7 @@
             {
                 "text": "Must treat it first. Step back for now and look at the wound and disinfect it.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -682,7 +676,6 @@
             {
                 "text": "The opportunity finally came. I'll take the info and leave by any means necessary.",
                 "scores": {
-                    "ambitious": 1,
                     "psychopath": 1
                 }
             },
@@ -696,7 +689,7 @@
             {
                 "text": "High possibility of a trap. Thoroughly investigate the source and truth.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 1
                 }
             },
@@ -739,7 +732,7 @@
             {
                 "text": "I'll cook it perfectly to see how much others hate the taste.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -878,7 +871,6 @@
                 "text": "Waste of time and resources. We should be growing more food.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "inc_violence": 1
                 }
             },
@@ -959,7 +951,7 @@
             {
                 "text": "The darkness is perfect for some secret activities.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1033,7 +1025,7 @@
             {
                 "text": "I'll set a fire trap to roast them all at once.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1092,13 +1084,13 @@
                 "scores": {
                     "pyromaniac": 1,
                     "optimist": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "Ignore them. Everyone goes through that on this planet.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Artistic": 1
                 }
             },
@@ -1142,7 +1134,7 @@
             {
                 "text": "The voices are still there... I'm just hiding them.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1
                 }
             }
@@ -1214,7 +1206,7 @@
             {
                 "text": "I'll start a huge fire to bring some light back to this base.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1237,7 +1229,6 @@
                 "text": "Useful material. I'll make some high-quality hats and sell them.",
                 "scores": {
                     "Artistic": 1,
-                    "perfectionist": 1,
                     "sanguine": 1
                 }
             },
@@ -1286,7 +1277,7 @@
             {
                 "text": "Charge with my club! I'll show these bugs who's the boss here.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1309,7 +1300,7 @@
             {
                 "text": "Give a simple greeting and go back to work. Productivity first.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -1435,7 +1426,7 @@
             {
                 "text": "Panic and steal the last piece of food for myself.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1465,7 +1456,7 @@
                 "text": "Terrified! I'll hide in the deepest cave and cover my ears.",
                 "scores": {
                     "lazy": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -1526,7 +1517,6 @@
             {
                 "text": "Rush into the fire to save whatever medicine is left!",
                 "scores": {
-                    "ambitious": 1,
                     "greedy": 1,
                     "Social": 1
                 }
@@ -1543,7 +1533,7 @@
                 "text": "It's okay, we can always grow more. Safety first.",
                 "scores": {
                     "body_purist": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "lazy": 1
                 }
             },
@@ -1566,7 +1556,7 @@
                 "scores": {
                     "sanguine": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -1574,7 +1564,7 @@
                 "scores": {
                     "kind": 1,
                     "Social": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1
                 }
             },
@@ -1588,7 +1578,7 @@
             {
                 "text": "I'll start a huge bonfire in the middle of the base to keep everyone warm.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1602,7 +1592,6 @@
             {
                 "text": "A gift from the gods! Let's have a grand feast tonight.",
                 "scores": {
-                    "careful": 1,
                     "careful_shooter": 1,
                     "wimp": 1,
                     "pessimist": 1
@@ -1620,14 +1609,14 @@
                 "text": "I'll hide one for myself to enjoy quietly in my room.",
                 "scores": {
                     "Intellectual": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "lazy": 1
                 }
             },
             {
                 "text": "Analyze the ingredients to see how they're made so professionally.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1659,7 +1648,7 @@
                 "text": "Afraid of the mechanoids guarding it. I'm staying far away.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "sickly": 1
                 }
             },
@@ -1697,7 +1686,6 @@
                 "scores": {
                     "ascetic": 1,
                     "steadfast": 1,
-                    "ambitious": 1,
                     "hard_worker": 1
                 }
             },
@@ -1728,14 +1716,14 @@
             {
                 "text": "Even small animals are dangerous in a pack. Lock all doors immediately.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "careful_shooter": 1
                 }
             },
             {
                 "text": "Hilarious but terrifying. I'll watch from the window and laugh.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1
                 }
             },
@@ -1765,7 +1753,7 @@
             {
                 "text": "I'll save it for my own death, just in case.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 1,
                     "wimp": 1,
                     "nervous": 1
@@ -1775,15 +1763,14 @@
                 "text": "Sell it for a fortune. Silver is more useful for the living.",
                 "scores": {
                     "greedy": 1,
-                    "pragmatist": 1,
-                    "bloodlust": 1,
-                    "psychopath": 1
+                    "psychopath": 1,
+                    "bloodlust": 1
                 }
             },
             {
                 "text": "Study its nano-technology to see how it repairs cells.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2
                 }
             }
@@ -1805,7 +1792,7 @@
             {
                 "text": "What if it fails and we die in space? I'm hesitant.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -1847,7 +1834,6 @@
             {
                 "text": "Ominous and creepy. I don't want to touch it.",
                 "scores": {
-                    "outdoors": 1,
                     "volatile": 1,
                     "bloodlust": 1,
                     "tough": 1
@@ -1863,7 +1849,7 @@
             {
                 "text": "I want to test it on a small animal just to see the effect.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -1880,7 +1866,7 @@
                     "kind": 1,
                     "Medicine": 1,
                     "Social": 2,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -1921,7 +1907,7 @@
                     "chemical_interest": 1,
                     "sanguine": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -1937,7 +1923,7 @@
             {
                 "text": "If I have a bionic leg, I can outrun any predator! Accept it.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1,
                     "Social": 1
                 }
@@ -1968,10 +1954,9 @@
             {
                 "text": "I'll build more coolers and ensure the power supply is stable.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "greedy": 1,
-                    "Medicine": 1,
-                    "psychopath": 1
+                    "Medicine": 1
                 }
             },
             {
@@ -2010,9 +1995,8 @@
             {
                 "text": "Death is common on this planet. Tell them to grow up and get back to work.",
                 "scores": {
-                    "pragmatist": 1,
-                    "hard_worker": 1,
-                    "psychopath": 1
+                    "psychopath": 1,
+                    "hard_worker": 1
                 }
             },
             {
@@ -2027,7 +2011,7 @@
             {
                 "text": "I'll use the pet's hide to make a commemorative item for them.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -2043,7 +2027,6 @@
                 "text": "We must destroy it immediately! It's a psychic threat.",
                 "scores": {
                     "gourmand": 1,
-                    "brave": 1,
                     "undergrounder": 1
                 }
             },
@@ -2058,7 +2041,7 @@
             {
                 "text": "Hide in the base and wait for the fighters to deal with it.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1,
                     "nervous": 1,
                     "pessimist": 2
@@ -2067,7 +2050,7 @@
             {
                 "text": "I'll try to shield its signal with stone walls.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -2123,7 +2106,7 @@
                 "scores": {
                     "hard_worker": 1,
                     "industrious": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "steadfast": 1
                 }
             },
@@ -2164,7 +2147,7 @@
                     "psychopath": 1,
                     "Artistic": 1,
                     "Intellectual": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -2177,7 +2160,7 @@
             {
                 "text": "Terrifying! What if one hits our base? I'll hide.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "pessimist": 1,
                     "nervous": 1,
                     "wimp": 1
@@ -2200,16 +2183,15 @@
             {
                 "text": "Contribute by cooking the best meals and hosting the event.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
-                    "ambitious": 1,
                     "Shooting": 1
                 }
             },
             {
                 "text": "Eat as much as possible and then go to sleep. Joyful time.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1
                 }
             },
@@ -2240,8 +2222,7 @@
                 "text": "Amazing! A legendary beast as our companion. This is a blessing.",
                 "scores": {
                     "Construction": 1,
-                    "hard_worker": 1,
-                    "perfectionist": 1
+                    "hard_worker": 1
                 }
             },
             {
@@ -2250,7 +2231,7 @@
                     "Construction": 1,
                     "lazy": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2280,15 +2261,14 @@
                 "text": "Forgive them and offer a chance to join as a new colleague.",
                 "scores": {
                     "Mining": 1,
-                    "greedy": 1,
-                    "brave": 1
+                    "greedy": 1
                 }
             },
             {
                 "text": "Execute them as a warning to other raiders. Justice must be served.",
                 "scores": {
                     "Mining": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "hard_worker": 1,
                     "steadfast": 1
                 }
@@ -2322,7 +2302,7 @@
                     "Cooking": 1,
                     "kind": 1,
                     "hard_worker": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2402,10 +2382,9 @@
                 "text": "Useful material for durable clothes! I'll start tailoring right now.",
                 "scores": {
                     "Crafting": 2,
-                    "perfectionist": 1,
                     "Artistic": 1,
                     "hard_worker": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2415,7 +2394,7 @@
                     "wimp": 1,
                     "Crafting": 1,
                     "Social": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2429,7 +2408,7 @@
             {
                 "text": "Analyze its synthetic fibers to see if we can produce it here.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -2447,14 +2426,14 @@
                     "Medicine": 1,
                     "iron_willed": 1,
                     "fast_learner": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "Immature and counterproductive. I'll refuse and tell them to work.",
                 "scores": {
                     "hard_worker": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Medicine": 1
                 }
             },
@@ -2471,7 +2450,7 @@
                 "scores": {
                     "psychopath": 1,
                     "greedy": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1,
                     "Intellectual": 1
                 }
@@ -2487,7 +2466,6 @@
                 "text": "Use this peaceful time to build stronger bonds with colleagues.",
                 "scores": {
                     "Plants": 1,
-                    "outdoors": 1,
                     "optimist": 1,
                     "hard_worker": 1,
                     "steadfast": 1
@@ -2504,7 +2482,7 @@
             {
                 "text": "I'll write a poem or paint a picture while in this good mood.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "abrasive": 1,
                     "Plants": -1,
                     "wimp": 1
@@ -2532,14 +2510,14 @@
                     "kind": 1,
                     "optimist": 1,
                     "Social": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "hard_worker": 1
                 }
             },
             {
                 "text": "Extremely dangerous! Store it far away from the main base.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Animals": 1,
                     "wimp": 1,
                     "abrasive": 1,
@@ -2557,7 +2535,7 @@
             {
                 "text": "Watching the chemfuel burn with its blue flame is so mesmerising.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Animals": 1,
                     "Intellectual": 1
                 }
@@ -2576,8 +2554,7 @@
                     "fast_learner": 1,
                     "night_owl": 1,
                     "industrious": 1,
-                    "steadfast": 1,
-                    "perfectionist": 1
+                    "steadfast": 1
                 }
             },
             {
@@ -2591,7 +2568,7 @@
             {
                 "text": "I'll sell it to a trader for a massive amount of silver.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nervous": 1,
                     "pessimist": 1,
                     "abrasive": 1,
@@ -2601,7 +2578,7 @@
             {
                 "text": "I'll use it to carve stone more efficiently, maybe?",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2
                 }
             }
@@ -2616,7 +2593,6 @@
                 "text": "Yes! A place of worship will keep our spirits high and united.",
                 "scores": {
                     "Artistic": 1,
-                    "perfectionist": 1,
                     "hard_worker": 1,
                     "tortured_artist": 1,
                     "volatile": 1
@@ -2627,7 +2603,7 @@
                 "scores": {
                     "Artistic": 1,
                     "greedy": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2670,7 +2646,7 @@
                 "scores": {
                     "ascetic": 1,
                     "Intellectual": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -2703,13 +2679,13 @@
                     "kind": 2,
                     "Medicine": 1,
                     "Social": 2,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "Too risky. Let them keep the gold, we value our lives more.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1,
                     "psychopath": 1,
                     "lazy": 1
@@ -2726,7 +2702,7 @@
             {
                 "text": "If they have gold, we can expect them to have better gear too. Be on guard.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -2742,7 +2718,6 @@
                 "text": "Help them through the withdrawal with care and medical support.",
                 "scores": {
                     "industrious": 1,
-                    "neurotic": 1,
                     "hard_worker": 1,
                     "steadfast": 1
                 }
@@ -2785,7 +2760,7 @@
                     "optimist": 1,
                     "Intellectual": 1,
                     "Mining": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2800,7 +2775,7 @@
             {
                 "text": "If it improves my stamina and health, I'm in.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "greedy": 2,
                     "beautiful": 1
                 }
@@ -2824,8 +2799,8 @@
                 "scores": {
                     "Intellectual": 1,
                     "Crafting": 1,
-                    "pragmatist": 1,
-                    "careful": 2
+                    "psychopath": 1,
+                    "careful_shooter": 2
                 }
             },
             {
@@ -2863,9 +2838,8 @@
             {
                 "text": "Trudge through the swamp and get those components! We need tech.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
-                    "brave": 1,
                     "psychopath": 1,
                     "Social": 2,
                     "bloodlust": 1
@@ -2874,7 +2848,7 @@
             {
                 "text": "The swamp is dangerous and slow. We'll wait until we have better gear.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Intellectual": 2
                 }
             },
@@ -2905,10 +2879,10 @@
             {
                 "text": "Yes! Our leader deserves a place of absolute power and luxury.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1,
                     "Construction": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "hard_worker": 1
                 }
             },
@@ -2950,8 +2924,8 @@
                     "kind": 2,
                     "Social": 2,
                     "optimist": 1,
-                    "pragmatist": 1,
-                    "careful": 1
+                    "psychopath": 1,
+                    "careful_shooter": 1
                 }
             },
             {
@@ -2992,7 +2966,7 @@
                     "kind": 2,
                     "Medicine": 2,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1
                 }
             },
@@ -3000,7 +2974,7 @@
                 "text": "Dangerous and radioactive. I don't want to go anywhere near it.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3030,17 +3004,16 @@
             {
                 "text": "Improving our genes is the natural next step in our evolution.",
                 "scores": {
-                    "brave": 2,
                     "brawler": 1,
                     "Melee": 1,
                     "Intellectual": 2,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
                 "text": "It's playing god! We should remain as nature intended.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "nervous": 1,
                     "jealous": 1,
                     "wimp": 1,
@@ -3053,7 +3026,7 @@
                     "slothful": 1,
                     "volatile": 1,
                     "Mining": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -3075,7 +3048,6 @@
             {
                 "text": "Absolute disaster! Clear the wreckage and salvage what we can.",
                 "scores": {
-                    "brave": 2,
                     "Melee": 1,
                     "tough": 1,
                     "Shooting": 2,
@@ -3086,7 +3058,7 @@
                 "text": "The green toxic glow is oddly beautiful amidst the ruins.",
                 "scores": {
                     "pyromaniac": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Construction": -1,
                     "wimp": 2,
                     "nervous": 1
@@ -3096,7 +3068,7 @@
                 "text": "The mechanoids inside are right in our face! Fight for our lives.",
                 "scores": {
                     "Animals": 2,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Cooking": 1
                 }
             },
@@ -3104,7 +3076,7 @@
                 "text": "I'll use the ship's toxic output to create a defensive barrier.",
                 "scores": {
                     "Intellectual": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Crafting": 1
                 }
             }
@@ -3161,9 +3133,9 @@
                 "text": "Great way to settle disputes and improve combat skills!",
                 "scores": {
                     "teetotaler": 2,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "iron_willed": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1,
                     "Social": 2,
                     "greedy": 1
@@ -3174,7 +3146,7 @@
                 "scores": {
                     "chemical_interest": 2,
                     "volatile": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -3245,7 +3217,7 @@
             {
                 "text": "Retrieve it immediately! This could save many lives in the next raid.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 1,
                     "hard_worker": 1,
                     "Intellectual": 2,
@@ -3292,7 +3264,7 @@
                     "kind": 2,
                     "Animals": 2,
                     "Medicine": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "steadfast": 1
                 }
             },
@@ -3317,7 +3289,7 @@
             {
                 "text": "I'll design the memorial to have an eternal flame for each person.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Animals": 1,
                     "Medicine": 1
                 }
@@ -3334,7 +3306,7 @@
                 "scores": {
                     "Intellectual": 2,
                     "Shooting": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "pessimist": 1
                 }
             },
@@ -3359,7 +3331,7 @@
             {
                 "text": "The yellow, dried-up field is a perfect place for a huge fire.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "volatile": 1
                 }
@@ -3403,7 +3375,7 @@
                     "wimp": 2,
                     "nervous": 1,
                     "greedy": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Medicine": 1,
                     "Intellectual": 1
                 }
@@ -3440,7 +3412,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "Cooking": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3485,7 +3457,7 @@
             {
                 "text": "The crater left by the meteor is a perfect shape for an arena.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "volatile": 1,
                     "optimist": 1,
@@ -3577,7 +3549,7 @@
                     "volatile": 2,
                     "bloodlust": 1,
                     "pyromaniac": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Construction": 1
                 }
@@ -3621,7 +3593,7 @@
             {
                 "text": "Study its chemical properties to see if we can synthesize it ourselves.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2,
                     "Medicine": 1
                 }
@@ -3650,7 +3622,7 @@
                     "pessimist": 2,
                     "volatile": 1,
                     "Plants": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -3684,8 +3656,7 @@
                     "sanguine": 1,
                     "beautiful": 1,
                     "hard_worker": 2,
-                    "careful": 1,
-                    "neurotic": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -3753,7 +3724,7 @@
             {
                 "text": "Watching the components melt in the fire is incredibly fascinating.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 1,
                     "Intellectual": 1
                 }
@@ -3794,7 +3765,7 @@
             {
                 "text": "I'll design the hospital to be sterile and filled with machine assistants.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -3878,7 +3849,7 @@
             {
                 "text": "I'll start a small, controlled fire to bring some excitement to the base.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Medicine": 1
                 }
@@ -3906,7 +3877,6 @@
                     "kind": 1,
                     "Social": 1,
                     "Construction": 1,
-                    "neurotic": 1,
                     "industrious": 1
                 }
             },
@@ -3921,7 +3891,7 @@
             {
                 "text": "I'll use it to create 'super-fighters' out of our prisoners.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -3946,7 +3916,6 @@
             {
                 "text": "Survival is victory. It's just protein. I'll eat or already expected it.",
                 "scores": {
-                    "pragmatist": 2,
                     "psychopath": 1,
                     "steadfast": 1,
                     "cannibal": 2,
@@ -3979,7 +3948,7 @@
             {
                 "text": "Perfect opportunity to transcend humanity! Expect the aesthetics of red glow.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2,
                     "Shooting": 1,
                     "Artistic": 1
@@ -3999,7 +3968,7 @@
                 "text": "If my shooting skill improves, I can give up one eye.",
                 "scores": {
                     "Shooting": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "tough": 1
                 }
             },
@@ -4020,10 +3989,10 @@
             {
                 "text": "Live for tomorrow. Take it and enjoy the cellular reconstruction.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "volatile": 2,
                     "chemical_interest": 3,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -4032,7 +4001,7 @@
                     "iron_willed": 2,
                     "ascetic": 1,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 1
                 }
             },
@@ -4062,7 +4031,7 @@
             {
                 "text": "Maintain base order indoors. Focus on internal work or research.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "tough": 1,
                     "hard_worker": 3,
                     "Construction": 1,
@@ -4076,7 +4045,7 @@
                     "pessimist": 1,
                     "wimp": 1,
                     "greedy": 1,
-                    "careful": -1,
+                    "careful_shooter": -1,
                     "Cooking": 1
                 }
             },
@@ -4135,7 +4104,7 @@
             {
                 "text": "My heart is already bionic. Wish to be a being that doesn't feel love.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "psychopath": 1,
                     "steadfast": 1
                 }
@@ -4203,7 +4172,7 @@
             {
                 "text": "The dead don't speak. Improve our lives with the resources.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "greedy": 1,
                     "Mining": 1
                 }
@@ -4221,7 +4190,7 @@
             {
                 "text": "Use the ancient bones as a framework for my bionic experiments.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "psychopath": 1
                 }
@@ -4236,7 +4205,6 @@
             {
                 "text": "Doesn't matter if I get hurt! Charge into the rubble and pull them out.",
                 "scores": {
-                    "brave": 2,
                     "tough": 1,
                     "kind": 1,
                     "Mining": 1
@@ -4245,7 +4213,7 @@
             {
                 "text": "Risk of collapse. Secure safety with pillars or call the rescue team.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Construction": 1,
                     "Mining": 1,
                     "wimp": 2,
@@ -4292,7 +4260,7 @@
                 "scores": {
                     "greedy": 2,
                     "Shooting": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "gourmand": 2,
                     "bloodlust": 1
                 }
@@ -4300,14 +4268,14 @@
             {
                 "text": "Monster for one-on-hundred. Forbid provocation and ensure safety.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Social": 1
                 }
             },
             {
                 "text": "Maybe use its horn as lubricant for my machinery reinforcement.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Crafting": 1
                 }
@@ -4332,9 +4300,8 @@
             {
                 "text": "Saving the colleague is priority. Operate quickly or sell everything.",
                 "scores": {
-                    "psychopath": 4,
+                    "psychopath": 1,
                     "Medicine": 2,
-                    "pragmatist": 1,
                     "greedy": 1,
                     "bloodlust": 1
                 }
@@ -4350,7 +4317,7 @@
             {
                 "text": "Fascinated by the act of organ replacement as a step to mechanization.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -4374,7 +4341,7 @@
             {
                 "text": "Carefully pick a capable worker and lead the deal.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": 1,
                     "hard_worker": 1
                 }
@@ -4393,8 +4360,7 @@
                 "text": "Set fire to the trader's goods to cause chaos and run away.",
                 "scores": {
                     "pyromaniac": 2,
-                    "volatile": 1,
-                    "brave": 1
+                    "volatile": 1
                 }
             }
         ]
@@ -4463,7 +4429,7 @@
                     "Shooting": 1,
                     "Melee": 1,
                     "steadfast": 2,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -4479,7 +4445,7 @@
             {
                 "text": "If I had bionic legs, I would have easily suppressed them... Blame my weak flesh.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "pessimist": 1
                 }
             }
@@ -4548,8 +4514,7 @@
             {
                 "text": "I want to research how to become a machine myself.",
                 "scores": {
-                    "Melee": 7,
-                    "brave": 1
+                    "Melee": 7
                 }
             }
         ]
@@ -4686,7 +4651,7 @@
                 "text": "I hate getting dirt on me, so I won't even enter the field without boots.",
                 "scores": {
                     "Plants": -20,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             }
         ]
@@ -4708,7 +4673,7 @@
                 "text": "Understand the wolf's habits to break its guard and make it a friend or a servant.",
                 "scores": {
                     "Animals": 5,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -4735,8 +4700,7 @@
             {
                 "text": "Skillfully check the internal circuits to repair them perfectly or craft the best equipment.",
                 "scores": {
-                    "Crafting": 7,
-                    "perfectionist": 1
+                    "Crafting": 7
                 }
             },
             {
@@ -4842,8 +4806,7 @@
             {
                 "text": "Make the highest-priced trade or make them donate with speech that pierces through their heart.",
                 "scores": {
-                    "Social": 7,
-                    "ambitious": 1
+                    "Social": 7
                 }
             },
             {
@@ -4895,7 +4858,7 @@
                 "scores": {
                     "Social": 1,
                     "greedy": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1
                 }
             },
@@ -4919,7 +4882,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "steadfast": 2,
-                    "transhumanist": 3
+                    "body_modder": 3
                 }
             },
             {
@@ -4934,8 +4897,7 @@
                 "text": "The act of taking a life with a gun in front of me (Violence).",
                 "scores": {
                     "Shooting": -20,
-                    "Melee": -20,
-                    "coward": 1
+                    "Melee": -20
                 }
             },
             {
@@ -4999,8 +4961,7 @@
                 "scores": {
                     "Intellectual": 5,
                     "fast_learner": 1,
-                    "transhumanist": 5,
-                    "ambitious": 3,
+                    "body_modder": 5,
                     "Social": 2
                 }
             },
@@ -5016,7 +4977,7 @@
                 "scores": {
                     "Artistic": 5,
                     "Crafting": 5,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "optimist": 1,
                     "steadfast": 1
                 }
@@ -5048,7 +5009,7 @@
                 "text": "It looks important. Keep it carefully so it's not damaged and wait for instructions from above.",
                 "scores": {
                     "steadfast": 1,
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -5078,7 +5039,7 @@
                 "text": "Want to take the Thrumbo as an ally or create a cyber Thrumbo through mechanical modification.",
                 "scores": {
                     "Animals": 5,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Crafting": 2,
                     "Intellectual": 1
                 }
@@ -5095,7 +5056,7 @@
                 "scores": {
                     "Artistic": 2,
                     "Intellectual": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             },
@@ -5118,7 +5079,7 @@
                 "text": "Pay homage to the evolution into a mechanical being and perfectly transplant the artificial heart.",
                 "scores": {
                     "Medicine": 5,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -5127,7 +5088,7 @@
                 "scores": {
                     "Medicine": 3,
                     "kind": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "hard_worker": 1
                 }
             },
@@ -5244,7 +5205,7 @@
             {
                 "text": "Inspect gear or build bond with them to perform safely.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 3,
                     "kind": 1
                 }
@@ -5298,7 +5259,6 @@
                 "text": "Too loud and scary. Hide in the corner covering ears.",
                 "scores": {
                     "wimp": 1,
-                    "coward": 1,
                     "Shooting": -20
                 }
             }
@@ -5315,7 +5275,7 @@
                     "Animals": 7,
                     "Intellectual": 2,
                     "hard_worker": 1,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -5376,7 +5336,7 @@
             {
                 "text": "Too expensive to use. Hide deep in the storage.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1
                 }
             }
@@ -5391,7 +5351,6 @@
                 "text": "I should go for human knowledge or design aesthetics of destruction with fireworks.",
                 "scores": {
                     "Intellectual": 3,
-                    "ambitious": 1,
                     "pyromaniac": 2,
                     "Artistic": 2
                 }
@@ -5400,8 +5359,7 @@
                 "text": "I'll stay here to protect the rest. You go.",
                 "scores": {
                     "kind": 2,
-                    "steadfast": 1,
-                    "brave": 1
+                    "steadfast": 1
                 }
             },
             {
@@ -5486,7 +5444,7 @@
             {
                 "text": "Be stronger or more beautiful in appearance.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Construction": 1,
                     "Crafting": 1,
@@ -5521,7 +5479,7 @@
                 "scores": {
                     "Crafting": 2,
                     "Construction": 1,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Intellectual": 2,
                     "Artistic": 1,
                     "Social": -1
@@ -5576,7 +5534,7 @@
                     "kind": 2,
                     "Social": 1,
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -5775,7 +5733,7 @@
                 "scores": {
                     "Intellectual": 2,
                     "Construction": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "greedy": 2,
                     "Social": 1
                 }
@@ -5822,17 +5780,16 @@
                     "Social": 1,
                     "Intellectual": 2,
                     "fast_learner": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "Immortal body or perfect beautiful appearance.",
                 "scores": {
                     "tough": 2,
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "Medicine": 1,
                     "beautiful": 2,
-                    "vain": 1,
                     "Social": 1
                 }
             },
@@ -5885,7 +5842,7 @@
             {
                 "text": "Advise them to comfort their heart by cleaning machine parts.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -5899,19 +5856,18 @@
             {
                 "text": "Never! I'll be the bait to save the colleague or find a way together.",
                 "scores": {
-                    "brave": 1,
                     "kind": 1,
                     "Intellectual": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "Sorry but I must live. Secretly escape alone.",
                 "scores": {
                     "wimp": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -5947,7 +5903,7 @@
             {
                 "text": "It's just for survival. Eat it with an expressionless face.",
                 "scores": {
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "steadfast": 1
                 }
             },
@@ -5962,8 +5918,8 @@
             {
                 "text": "Cannot waste nutrients. Consume everything with mechanical precision.",
                 "scores": {
-                    "transhumanist": 1,
-                    "pragmatist": 1,
+                    "body_modder": 1,
+                    "psychopath": 1,
                     "cannibal": 1
                 }
             }
@@ -6023,9 +5979,8 @@
             {
                 "text": "Use them as leather or meat to get help until the end.",
                 "scores": {
-                    "pragmatist": 1,
-                    "Crafting": 1,
                     "psychopath": 1,
+                    "Crafting": 1,
                     "Cooking": 1
                 }
             },
@@ -6061,7 +6016,7 @@
             {
                 "text": "Refuse for friendship, or demand clear proof and interest.",
                 "scores": {
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
                     "greedy": 1,
                     "Intellectual": 1
@@ -6077,7 +6032,7 @@
             {
                 "text": "Soothe them by lending a superconductor battery instead of money.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 1
                 }
             }
@@ -6092,7 +6047,6 @@
                 "text": "Concede or decide fairly (vote, draw lots).",
                 "scores": {
                     "kind": 1,
-                    "brave": 1,
                     "Intellectual": 1,
                     "Social": 2,
                     "optimist": 1,
@@ -6102,8 +6056,7 @@
             {
                 "text": "I must be the one. Board first even by deceiving.",
                 "scores": {
-                    "greedy": 1,
-                    "ambitious": 1
+                    "greedy": 1
                 }
             },
             {
@@ -6116,7 +6069,7 @@
             {
                 "text": "Wish to become one with the machine, even as a part of the ship.",
                 "scores": {
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             }
         ]
@@ -6129,7 +6082,6 @@
             {
                 "text": "Enjoy the heat or advance silently.",
                 "scores": {
-                    "heat_tolerant": 1,
                     "optimist": 1,
                     "iron_willed": 1,
                     "steadfast": 1
@@ -6139,7 +6091,7 @@
                 "text": "Throw off all clothes and move secretly or whine like collapsing.",
                 "scores": {
                     "nudist": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "wimp": 1,
                     "lazy": 1
                 }
@@ -6170,7 +6122,7 @@
                 "scores": {
                     "optimist": 1,
                     "kind": 1,
-                    "pragmatist": 1,
+                    "psychopath": 1,
                     "Intellectual": 1
                 }
             },
@@ -6184,7 +6136,7 @@
             {
                 "text": "Terrible if not a high-performance leg. Want to stay in bed in despair.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "jealous": 1,
                     "wimp": 1,
                     "depressive": 2
@@ -6193,7 +6145,7 @@
             {
                 "text": "I'd give any leg if I could transplant my brain into a computer.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6209,7 +6161,7 @@
                 "scores": {
                     "ascetic": 2,
                     "steadfast": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -6256,7 +6208,7 @@
                 "text": "Harmful to health. Stop the friend or take the tobacco away.",
                 "scores": {
                     "teetotaler": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "kind": 1,
                     "iron_willed": 1,
                     "abrasive": 1
@@ -6372,7 +6324,7 @@
             {
                 "text": "Isolation is key. Lock the sick ones and stay away.",
                 "scores": {
-                    "careful": 1
+                    "careful_shooter": 1
                 }
             },
             {
@@ -6387,7 +6339,7 @@
                 "scores": {
                     "abrasive": 1,
                     "volatile": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6401,10 +6353,9 @@
             {
                 "text": "Face them with technology! Hack their systems or use EMP.",
                 "scores": {
-                    "brave": 1,
                     "Intellectual": 1,
                     "Animals": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Plants": 1
                 }
             },
@@ -6412,7 +6363,7 @@
                 "text": "Pure machines... they are gods. I want to surrender and join them.",
                 "scores": {
                     "Social": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "pessimist": 1,
                     "nervous": 1
                 }
@@ -6444,7 +6395,7 @@
                     "brawler": 1,
                     "Melee": 2,
                     "tough": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "nimble": 1
                 }
             },
@@ -6454,7 +6405,7 @@
                     "Shooting": 1,
                     "careful_shooter": 1,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
@@ -6467,8 +6418,7 @@
             {
                 "text": "The glow is like a cold fire. I'll make a sculpture of it.",
                 "scores": {
-                    "transhumanist": 2,
-                    "brave": 1
+                    "body_modder": 2
                 }
             }
         ]
@@ -6522,10 +6472,9 @@
             {
                 "text": "Brave the danger to collect rare ores from the impact sites.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "Shooting": 1,
-                    "brave": 2,
                     "kind": 1,
                     "Social": 1
                 }
@@ -6533,7 +6482,6 @@
             {
                 "text": "Beautiful destruction! Capture the moment in my art.",
                 "scores": {
-                    "brave": 2,
                     "Melee": 2,
                     "tough": 1,
                     "brawler": 1
@@ -6549,7 +6497,7 @@
             {
                 "text": "The impact's heat is amazing. I want to see the fires it starts.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2,
                     "Crafting": 1,
                     "Social": 1
@@ -6615,7 +6563,7 @@
             {
                 "text": "The peace is artistic. I'll create a masterpiece in this mood.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "ascetic": 1,
                     "steadfast": 1,
                     "kind": 2,
@@ -6634,7 +6582,7 @@
             {
                 "text": "Even in this peace, I miss the excitement of a bright flame.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2
                 }
             }
@@ -6694,7 +6642,7 @@
                     "steadfast": 1,
                     "Social": 1,
                     "Intellectual": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
@@ -6718,7 +6666,7 @@
             {
                 "text": "This drone is a signal from the machine god. I'll study it.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -6748,10 +6696,9 @@
             {
                 "text": "Quickly handle them to prevent disease, or loot valuable resources.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "hard_worker": 1,
                     "Medicine": 1,
-                    "psychopath": 2,
                     "greedy": 3,
                     "Cooking": 1,
                     "Artistic": 1
@@ -6817,10 +6764,10 @@
             {
                 "text": "Dangerous! Sound the alarm and extinguish the fire or move fuel.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "hard_worker": 1,
                     "Construction": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "tough": 1
                 }
             },
@@ -6877,7 +6824,7 @@
             {
                 "text": "Gained more power! Want to replace the rest of my body too.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1,
                     "Melee": 1
                 }
@@ -6920,7 +6867,7 @@
             {
                 "text": "Wear a hazmat suit to avoid sunburn, or just wear anything.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "nervous": 1,
                     "ascetic": 2,
                     "pessimist": 1,
@@ -6964,7 +6911,7 @@
                 "text": "Hide it for fear of criticism or use it as a bait for a deal.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "psychopath": 2,
                     "Social": 1,
                     "greedy": 1
@@ -7016,7 +6963,7 @@
             {
                 "text": "The light of their lamp is like a small fire. I'll watch it.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "abrasive": 2
                 }
             }
@@ -7031,7 +6978,6 @@
                 "text": "Buying a dream! It might contain high-tech parts.",
                 "scores": {
                     "fast_walker": 3,
-                    "brave": 1,
                     "Shooting": 1
                 }
             },
@@ -7039,7 +6985,7 @@
                 "text": "A waste of money. Spend silver on food and medicine instead.",
                 "scores": {
                     "Social": 2,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "steadfast": 1,
                     "Plants": 1,
                     "Animals": 1,
@@ -7059,7 +7005,7 @@
             {
                 "text": "I hope there's something flammable inside. Exciting.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "fast_walker": 2
                 }
             }
@@ -7073,8 +7019,7 @@
             {
                 "text": "A powerful tool for defense. I'll use it wisely.",
                 "scores": {
-                    "careful_shooter": 3,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Social": 1,
                     "Shooting": 2,
                     "iron_willed": 1,
@@ -7094,7 +7039,6 @@
                 "scores": {
                     "brawler": 2,
                     "Melee": 2,
-                    "brave": 2,
                     "wimp": 2,
                     "nervous": 1,
                     "kind": 1
@@ -7117,8 +7061,7 @@
             {
                 "text": "Analyze the engine and learn the secrets of space flight.",
                 "scores": {
-                    "psychopath": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": -2
                 }
             },
@@ -7192,7 +7135,7 @@
             {
                 "text": "I'll make a better joke by using a torch.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1
                 }
             }
@@ -7228,7 +7171,7 @@
             {
                 "text": "I told you it was a lie! Feel justified in my suspicion.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "jealous": 1,
                     "greedy": 1
                 }
@@ -7236,7 +7179,7 @@
             {
                 "text": "I'll start a real fire to bring back the excitement.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "body_purist": -2
                 }
             }
@@ -7261,7 +7204,7 @@
                     "pessimist": 3,
                     "nervous": 1,
                     "depressive": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 1,
                     "steadfast": 1
                 }
@@ -7296,7 +7239,7 @@
                     "industrious": 3,
                     "hard_worker": 3,
                     "iron_willed": 1,
-                    "transhumanist": 2
+                    "body_modder": 2
                 }
             },
             {
@@ -7357,7 +7300,7 @@
             {
                 "text": "Why do they always want what I have? Annoying.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -7382,8 +7325,8 @@
                     "kind": 3,
                     "Social": 3,
                     "Medicine": 1,
-                    "pragmatist": 2,
-                    "careful": 1
+                    "psychopath": 2,
+                    "careful_shooter": 1
                 }
             },
             {
@@ -7421,18 +7364,17 @@
             {
                 "text": "Need new colleagues! Open immediately or try to hack the tech.",
                 "scores": {
-                    "brave": 2,
                     "Social": 2,
                     "optimist": 1,
                     "Intellectual": 3,
                     "Crafting": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "Dangerous. Prepare a heavy weapon before opening or seal it.",
                 "scores": {
-                    "careful": 4,
+                    "careful_shooter": 4,
                     "Shooting": 1,
                     "Intellectual": 1,
                     "steadfast": 2,
@@ -7450,8 +7392,7 @@
             {
                 "text": "Purify the ancient fear by throwing a molotov inside first.",
                 "scores": {
-                    "pyromaniac": 2,
-                    "brave": 1
+                    "pyromaniac": 2
                 }
             }
         ]
@@ -7466,7 +7407,7 @@
                 "scores": {
                     "kind": 1,
                     "Shooting": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Intellectual": 2,
                     "Construction": 2
                 }
@@ -7493,7 +7434,7 @@
             {
                 "text": "Extract puppy brains to combine with machines for security units.",
                 "scores": {
-                    "transhumanist": 4,
+                    "body_modder": 4,
                     "Intellectual": 2
                 }
             }
@@ -7572,14 +7513,13 @@
                 "text": "Work like crazy to forget the thoughts.",
                 "scores": {
                     "hard_worker": 3,
-                    "neurotic": 2,
                     "industrious": 1
                 }
             },
             {
                 "text": "Want to extract my brain and insert a chip to control emotions perfectly.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             }
@@ -7623,7 +7563,7 @@
             {
                 "text": "Imagine trial would be joy if I had a steel body.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "iron_willed": 1
                 }
             }
@@ -7660,13 +7600,13 @@
                 "scores": {
                     "Intellectual": 3,
                     "Medicine": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "Convert the corpse into an art piece by inserting machine parts.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Artistic": 2,
                     "psychopath": 1
                 }
@@ -7702,7 +7642,6 @@
                 "scores": {
                     "depressive": 3,
                     "wimp": 2,
-                    "neurotic": 1,
                     "psychopath": 3,
                     "Social": 2,
                     "Melee": 1
@@ -7711,7 +7650,7 @@
             {
                 "text": "Punch the machine devices on the workbench instead of people.",
                 "scores": {
-                    "transhumanist": 1,
+                    "body_modder": 1,
                     "hard_worker": 1,
                     "volatile": 1
                 }
@@ -7824,10 +7763,9 @@
             {
                 "text": "Treat it as an asset with a number or think of it as food after butchering.",
                 "scores": {
-                    "pragmatist": 3,
+                    "psychopath": 2,
                     "Intellectual": 1,
                     "Animals": -1,
-                    "psychopath": 2,
                     "gourmand": 1,
                     "abrasive": 1
                 }
@@ -7843,7 +7781,7 @@
             {
                 "text": "Name it 'Mecha' hoping it becomes a high-performance cyborg cow later.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Animals": 1
                 }
             }
@@ -7871,7 +7809,7 @@
                     "sanguine": 3,
                     "lazy": 1,
                     "greedy": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Shooting": 1,
                     "Social": 1
                 }
@@ -7879,7 +7817,6 @@
             {
                 "text": "Smash and rebuild for a more perfect fantasy.",
                 "scores": {
-                    "neurotic": 3,
                     "hard_worker": 2,
                     "Artistic": 1
                 }
@@ -7887,7 +7824,7 @@
             {
                 "text": "Upgrade to a 'Smart Sofa' by embedding precise machine parts.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 2,
                     "Intellectual": 1
                 }
@@ -7912,9 +7849,8 @@
                 "text": "Charge Silver equal to value or force a disadvantageous treaty.",
                 "scores": {
                     "greedy": 3,
-                    "pragmatist": 2,
-                    "Social": 2,
                     "psychopath": 3,
+                    "Social": 2,
                     "Intellectual": 2
                 }
             },
@@ -7946,8 +7882,7 @@
                 "scores": {
                     "hard_worker": 2,
                     "Construction": 2,
-                    "brave": 2,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 2,
                     "Social": 1
                 }
@@ -7972,7 +7907,7 @@
             {
                 "text": "Wish to replace skin with cool metal plates.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "wimp": 1
                 }
             }
@@ -7990,14 +7925,12 @@
                     "Social": 3,
                     "wimp": -1,
                     "hard_worker": 2,
-                    "brave": 2,
                     "tough": 1
                 }
             },
             {
                 "text": "This is the end! Panic and despair in the dark.",
                 "scores": {
-                    "pragmatist": 2,
                     "psychopath": 2,
                     "abrasive": 1,
                     "greedy": 2,
@@ -8016,7 +7949,7 @@
             {
                 "text": "The dark sky is a perfect canvas for my fire art.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "wimp": 1
                 }
             }
@@ -8030,10 +7963,10 @@
             {
                 "text": "Trade everything for that one legendary item! I must have it.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Construction": 1,
                     "Plants": 1,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Cooking": 1,
                     "greedy": 1
                 }
@@ -8060,7 +7993,7 @@
             {
                 "text": "The technology they use... I'll take it by force if needed.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2
                 }
             }
@@ -8078,13 +8011,13 @@
                     "sanguine": 1,
                     "Social": 1,
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "The hum is a beautiful melody. I want to listen to it.",
                 "scores": {
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "pessimist": 4,
                     "Shooting": 1,
                     "depressive": 2,
@@ -8128,7 +8061,7 @@
                 "text": "Not my problem. They should have been more careful.",
                 "scores": {
                     "greedy": 4,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "chemical_interest": 1,
                     "Intellectual": 3,
                     "Crafting": 2
@@ -8137,7 +8070,7 @@
             {
                 "text": "I'll help but demand a portion of their assets later.",
                 "scores": {
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "steadfast": 2,
                     "pessimist": 1
                 }
@@ -8145,7 +8078,7 @@
             {
                 "text": "I'll fix them with a bionic heart so they can work more.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             }
@@ -8160,7 +8093,6 @@
                 "text": "Wealth! I'll be the richest person on this planet.",
                 "scores": {
                     "kind": 5,
-                    "brave": 3,
                     "Social": 2,
                     "hard_worker": 2,
                     "Construction": 2
@@ -8169,9 +8101,8 @@
             {
                 "text": "Grateful for the resource. I'll use it for the colony.",
                 "scores": {
-                    "pragmatist": 3,
-                    "steadfast": 2,
                     "psychopath": 4,
+                    "steadfast": 2,
                     "greedy": 2,
                     "Intellectual": 1
                 }
@@ -8187,7 +8118,7 @@
             {
                 "text": "The golden glow... I'll make a statue of a machine god.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8213,8 +8144,8 @@
                 "scores": {
                     "Intellectual": 3,
                     "Crafting": 2,
-                    "transhumanist": 1,
-                    "careful": 3,
+                    "body_modder": 1,
+                    "careful_shooter": 3,
                     "pessimist": 1,
                     "steadfast": 1
                 }
@@ -8267,13 +8198,13 @@
                 "scores": {
                     "hard_worker": 3,
                     "steadfast": 2,
-                    "careful": -1
+                    "careful_shooter": -1
                 }
             },
             {
                 "text": "The withering trees look like skeletons. Artistic.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1,
                     "Medicine": 1
                 }
@@ -8288,8 +8219,7 @@
             {
                 "text": "Divine power! I'll save it for the final enemy.",
                 "scores": {
-                    "psychopath": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "abrasive": 1,
                     "Intellectual": 2,
                     "Plants": 1,
@@ -8312,7 +8242,7 @@
                 "scores": {
                     "pyromaniac": 2,
                     "greedy": 1,
-                    "careful": -1
+                    "careful_shooter": -1
                 }
             },
             {
@@ -8332,11 +8262,10 @@
             {
                 "text": "My mind is on fire! Pain and revelation.",
                 "scores": {
-                    "brave": 2,
                     "Shooting": 2,
                     "tough": 1,
                     "steadfast": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "Animals": 1,
                     "psychopath": 1
                 }
@@ -8363,7 +8292,7 @@
             {
                 "text": "This experience... it made me feel closer to the machine god.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 1,
                     "Animals": 1
                 }
@@ -8434,7 +8363,7 @@
             {
                 "text": "Lucky... but next time I'll be more careful.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "pessimist": 2,
                     "steadfast": 1,
                     "Social": 2,
@@ -8446,13 +8375,13 @@
                 "text": "The blue glow of the shield is my favorite color.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {
                 "text": "I'll make a fire that can penetrate even this shield.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8480,7 +8409,7 @@
                     "Intellectual": 2,
                     "Crafting": 1,
                     "night_owl": 1,
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "ascetic": 1,
                     "wimp": 1
                 }
@@ -8532,13 +8461,13 @@
                 "scores": {
                     "Artistic": 3,
                     "Social": 1,
-                    "pragmatist": 1
+                    "psychopath": 1
                 }
             },
             {
                 "text": "Want to plate my body in silver to look beautiful.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "beautiful": 2
                 }
             }
@@ -8554,8 +8483,7 @@
                 "scores": {
                     "greedy": 3,
                     "chemical_interest": 1,
-                    "psychopath": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Construction": 1,
                     "Shooting": 1
                 }
@@ -8566,7 +8494,7 @@
                     "Social": 3,
                     "optimist": 2,
                     "sanguine": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "Medicine": 1,
                     "steadfast": 1
                 }
@@ -8607,7 +8535,7 @@
                 "text": "Take only valuable ones or disassemble useful gear.",
                 "scores": {
                     "greedy": 4,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": -1,
                     "Crafting": 2,
                     "hard_worker": 1
@@ -8624,7 +8552,7 @@
             {
                 "text": "Tear out machine devices for body reinforcement tech.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -8639,11 +8567,11 @@
             {
                 "text": "Pull trigger for comrades or operate carefully in awe of tech.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "kind": 1,
                     "Shooting": 1,
                     "Intellectual": 2,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1
                 }
             },
@@ -8653,7 +8581,7 @@
                     "bloodlust": 3,
                     "psychopath": 2,
                     "abrasive": 1,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "Crafting": 1
                 }
@@ -8662,7 +8590,6 @@
                 "text": "Rush with a knife since expensive weapon is a waste.",
                 "scores": {
                     "greedy": 2,
-                    "brave": 2,
                     "Melee": 2
                 }
             },
@@ -8687,7 +8614,6 @@
                     "psychopath": 3,
                     "abrasive": 2,
                     "sanguine": 1,
-                    "pragmatist": 3,
                     "steadfast": 2,
                     "Intellectual": 1
                 }
@@ -8708,7 +8634,7 @@
                 "scores": {
                     "chemical_interest": 2,
                     "volatile": 2,
-                    "transhumanist": -1
+                    "body_modder": -1
                 }
             },
             {
@@ -8728,7 +8654,6 @@
             {
                 "text": "Advance confidently or feel like a superior being.",
                 "scores": {
-                    "brave": 3,
                     "tough": 2,
                     "Melee": 1,
                     "jealous": 2,
@@ -8739,7 +8664,7 @@
             {
                 "text": "Be cautious behind cover or fear the shield breaking.",
                 "scores": {
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "Intellectual": 1,
                     "steadfast": 1,
                     "wimp": 2,
@@ -8787,13 +8712,13 @@
                     "ascetic": 1,
                     "wimp": 2,
                     "greedy": 3,
-                    "careful": 2
+                    "careful_shooter": 2
                 }
             },
             {
                 "text": "Hate the confinement and want to take it off, or fear scratches.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 1
                 }
             },
@@ -8801,7 +8726,7 @@
                 "text": "Ecstatic feeling the connection with the mechanical complex.",
                 "scores": {
                     "pyromaniac": 2,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             }
         ]
@@ -8829,8 +8754,7 @@
                     "wimp": 2,
                     "depressive": 1,
                     "beautiful": 1,
-                    "abrasive": 1,
-                    "neurotic": 1
+                    "abrasive": 1
                 }
             },
             {
@@ -8858,7 +8782,7 @@
             {
                 "text": "Enjoy the cosmic power and get artistic inspiration.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Intellectual": 2,
                     "optimist": 1,
                     "Artistic": 3,
@@ -8872,15 +8796,14 @@
                     "wimp": 2,
                     "kind": 2,
                     "depressive": 2,
-                    "abrasive": 2,
-                    "neurotic": 2
+                    "abrasive": 2
                 }
             },
             {
                 "text": "Lick lips calculating the value of resources remaining.",
                 "scores": {
                     "greedy": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Crafting": 1
                 }
             },
@@ -8911,7 +8834,7 @@
             {
                 "text": "Worry about side effects or throw it away fearing their popularity.",
                 "scores": {
-                    "careful": 2,
+                    "careful_shooter": 2,
                     "steadfast": 2,
                     "Medicine": 1,
                     "jealous": 3,
@@ -8923,14 +8846,14 @@
                 "text": "Disassemble to analyze the nano-technology.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Crafting": 1
                 }
             },
             {
                 "text": "Try to convert them into a permanent machine administrator.",
                 "scores": {
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "Intellectual": 2
                 }
             }
@@ -8947,7 +8870,7 @@
                     "kind": 3,
                     "Social": 2,
                     "Medicine": 1,
-                    "pragmatist": 3,
+                    "psychopath": 3,
                     "Intellectual": 1,
                     "hard_worker": 1
                 }
@@ -8958,7 +8881,7 @@
                     "jealous": 2,
                     "greedy": 3,
                     "beautiful": 1,
-                    "careful": 3,
+                    "careful_shooter": 3,
                     "steadfast": 2,
                     "pessimist": 1
                 }
@@ -8991,7 +8914,6 @@
                 "scores": {
                     "chemical_interest": 3,
                     "volatile": 2,
-                    "brave": 1,
                     "psychopath": 3,
                     "abrasive": 2,
                     "bloodlust": 1
@@ -9004,7 +8926,7 @@
                     "steadfast": 3,
                     "ascetic": 1,
                     "greedy": 3,
-                    "pragmatist": 2,
+                    "psychopath": 2,
                     "Social": 1
                 }
             },
@@ -9046,7 +8968,7 @@
                 "text": "Pioneer near the truth or a laborer who survived a day.",
                 "scores": {
                     "Intellectual": 3,
-                    "transhumanist": 3,
+                    "body_modder": 3,
                     "fast_learner": 1,
                     "hard_worker": 3,
                     "steadfast": 3,
@@ -9099,7 +9021,7 @@
             {
                 "text": "Gene-mod experimental subject born in a lab.",
                 "scores": {
-                    "transhumanist": 2,
+                    "body_modder": 2,
                     "Social": -2,
                     "Intellectual": 1
                 }
@@ -9173,7 +9095,6 @@
                 "scores": {
                     "Intellectual": 1,
                     "lazy": 1,
-                    "neurotic": 1,
                     "abrasive": 1,
                     "volatile": 1,
                     "iron_willed": 1
@@ -9225,7 +9146,7 @@
                 "text": "Neglecting health and overworking my body.",
                 "scores": {
                     "wimp": 1,
-                    "careful": 1,
+                    "careful_shooter": 1,
                     "Medicine": 1
                 }
             },
@@ -9259,7 +9180,7 @@
                     "psychopath": 1,
                     "Intellectual": 2,
                     "fast_learner": 1,
-                    "transhumanist": 1
+                    "body_modder": 1
                 }
             },
             {

@@ -1,10 +1,34 @@
 [
   {
-    "id": "optimist",
-    "name": "긍정적",
+    "id": "depressive",
+    "name": "우울증 (Depressive)",
     "group": "기분",
-    "description": "이 사람은 늘 상황을 긍정적으로 바라봅니다.",
-    "effect": "기분 +6",
+    "description": "항시 무드 -12",
+    "effect": "항시 무드 -12",
+    "conflicts": [
+      "optimist",
+      "pessimist",
+      "sanguine"
+    ]
+  },
+  {
+    "id": "pessimist",
+    "name": "부정적 (Pessimist)",
+    "group": "기분",
+    "description": "항시 무드 -6",
+    "effect": "항시 무드 -6",
+    "conflicts": [
+      "depressive",
+      "optimist",
+      "sanguine"
+    ]
+  },
+  {
+    "id": "optimist",
+    "name": "긍정적 (Optimist)",
+    "group": "기분",
+    "description": "항시 무드 +6",
+    "effect": "항시 무드 +6",
     "conflicts": [
       "depressive",
       "pessimist",
@@ -13,81 +37,103 @@
   },
   {
     "id": "sanguine",
-    "name": "낙천적",
+    "name": "낙천적 (Sanguine)",
     "group": "기분",
-    "description": "어떤 상황에서도 희망을 잃지 않는 타고난 낙천가입니다.",
-    "effect": "기분 +12",
+    "description": "항시 무드 +12",
+    "effect": "항시 무드 +12",
     "conflicts": [
       "depressive",
-      "pessimist",
-      "optimist"
-    ]
-  },
-  {
-    "id": "pessimist",
-    "name": "부정적",
-    "group": "기분",
-    "description": "매사를 부정적으로 보는 경향이 있습니다.",
-    "effect": "기분 -6",
-    "conflicts": [
       "optimist",
-      "sanguine",
-      "depressive"
-    ]
-  },
-  {
-    "id": "depressive",
-    "name": "우울증",
-    "group": "기분",
-    "description": "만성적인 우울감에 시달리며 작은 일에도 크게 상심합니다.",
-    "effect": "기분 -12",
-    "conflicts": [
-      "optimist",
-      "sanguine",
       "pessimist"
     ]
   },
   {
-    "id": "hard_worker",
-    "name": "근면성실",
-    "group": "노동",
-    "description": "일을 찾아서 하는 성격입니다.",
-    "effect": "작업 속도 +20%",
+    "id": "volatile",
+    "name": "유리정신 (Volatile)",
+    "group": "신경/정신붕괴",
+    "description": "정신붕괴 한계점 +15% (매우 쉽게 미침)",
+    "effect": "정신붕괴 한계점 +15% (매우 쉽게 미침)",
     "conflicts": [
-      "lazy",
-      "slothful",
-      "industrious"
+      "iron_willed",
+      "nervous",
+      "steadfast"
     ]
   },
   {
-    "id": "industrious",
-    "name": "일벌레",
-    "group": "노동",
-    "description": "일하는 것을 진심으로 즐기며 쉴 새 없이 움직입니다.",
-    "effect": "작업 속도 +35%",
+    "id": "nervous",
+    "name": "신경과민 (Nervous)",
+    "group": "신경/정신붕괴",
+    "description": "정신붕괴 한계점 +8%",
+    "effect": "정신붕괴 한계점 +8%",
     "conflicts": [
-      "lazy",
-      "slothful",
-      "hard_worker"
+      "iron_willed",
+      "steadfast",
+      "volatile"
     ]
   },
   {
-    "id": "lazy",
-    "name": "게으름",
-    "group": "노동",
-    "description": "가능하면 일을 미루려고 합니다.",
-    "effect": "작업 속도 -20%",
+    "id": "steadfast",
+    "name": "확고한 의지 (Steadfast)",
+    "group": "신경/정신붕괴",
+    "description": "정신붕괴 한계점 -9%",
+    "effect": "정신붕괴 한계점 -9%",
     "conflicts": [
-      "hard_worker",
-      "industrious",
-      "slothful"
+      "iron_willed",
+      "nervous",
+      "volatile"
+    ]
+  },
+  {
+    "id": "iron_willed",
+    "name": "철의 의지 (Iron-willed)",
+    "group": "신경/정신붕괴",
+    "description": "정신붕괴 한계점 -18% (잘 미치지 않음), [Conflict: 괴짜 천재]",
+    "effect": "정신붕괴 한계점 -18% (잘 미치지 않음)",
+    "conflicts": [
+      "nervous",
+      "steadfast",
+      "too_smart",
+      "volatile"
+    ]
+  },
+  {
+    "id": "slowpoke",
+    "name": "느림보 (Slowpoke)",
+    "group": "이동 속도",
+    "description": "이동속도 -0.2 c/s",
+    "effect": "이동속도 -0.2 c/s",
+    "conflicts": [
+      "fast_walker",
+      "jogger"
+    ]
+  },
+  {
+    "id": "fast_walker",
+    "name": "가벼운 발 (Fast walker)",
+    "group": "이동 속도",
+    "description": "이동속도 +0.2 c/s",
+    "effect": "이동속도 +0.2 c/s",
+    "conflicts": [
+      "jogger",
+      "slowpoke"
+    ]
+  },
+  {
+    "id": "jogger",
+    "name": "신속 (Jogger)",
+    "group": "이동 속도",
+    "description": "이동속도 +0.4 c/s",
+    "effect": "이동속도 +0.4 c/s",
+    "conflicts": [
+      "fast_walker",
+      "slowpoke"
     ]
   },
   {
     "id": "slothful",
-    "name": "나태",
-    "group": "노동",
-    "description": "움직이는 것조차 귀찮아합니다.",
+    "name": "나태 (Slothful)",
+    "group": "작업 속도",
+    "description": "작업 속도 -35%",
     "effect": "작업 속도 -35%",
     "conflicts": [
       "hard_worker",
@@ -96,148 +142,47 @@
     ]
   },
   {
-    "id": "jogger",
-    "name": "신속",
-    "group": "이동",
-    "description": "발이 매우 빠릅니다.",
-    "effect": "이동 속도 +0.4",
+    "id": "lazy",
+    "name": "게으름 (Lazy)",
+    "group": "작업 속도",
+    "description": "작업 속도 -20%",
+    "effect": "작업 속도 -20%",
     "conflicts": [
-      "slowpoke",
-      "fast_walker"
+      "hard_worker",
+      "industrious",
+      "slothful"
     ]
   },
   {
-    "id": "fast_walker",
-    "name": "가벼운 발",
-    "group": "이동",
-    "description": "걷는 속도가 남들보다 빠릅니다.",
-    "effect": "이동 속도 +0.2",
+    "id": "hard_worker",
+    "name": "근면성실 (Hard Worker)",
+    "group": "작업 속도",
+    "description": "작업 속도 +20%",
+    "effect": "작업 속도 +20%",
     "conflicts": [
-      "slowpoke",
-      "jogger"
+      "industrious",
+      "lazy",
+      "slothful"
     ]
   },
   {
-    "id": "slowpoke",
-    "name": "느림보",
-    "group": "이동",
-    "description": "항상 뒤처지며 걷는 것을 힘들어합니다.",
-    "effect": "이동 속도 -0.2",
+    "id": "industrious",
+    "name": "일벌레 (Industrious)",
+    "group": "작업 속도",
+    "description": "작업 속도 +35%",
+    "effect": "작업 속도 +35%",
     "conflicts": [
-      "jogger",
-      "fast_walker"
-    ]
-  },
-  {
-    "id": "abrasive",
-    "name": "직설적",
-    "group": "사교",
-    "description": "필터 없이 말하는 버릇 때문에 주변 사람들을 화나게 합니다.",
-    "effect": "모욕 확률 높음(사교 페널티)",
-    "conflicts": [
-      "kind"
-    ]
-  },
-  {
-    "id": "kind",
-    "name": "다정다감",
-    "group": "사교",
-    "description": "천성이 착하며 남을 비난하지 않습니다.",
-    "effect": "절대 모욕하지 않음, 타인 위로",
-    "conflicts": [
-      "abrasive",
-      "psychopath"
-    ]
-  },
-  {
-    "id": "iron_willed",
-    "name": "철의 의지",
-    "group": "정신",
-    "description": "강철 같은 의지로 어떤 정신적 충격도 견뎌냅니다.",
-    "effect": "정신 붕괴 한계점 -18%",
-    "conflicts": [
-      "volatile",
-      "nervous",
-      "too_smart"
-    ]
-  },
-  {
-    "id": "steadfast",
-    "name": "확고한 의지",
-    "group": "정신",
-    "description": "정신적으로 안정되어 있습니다.",
-    "effect": "정신 붕괴 한계점 -9%",
-    "conflicts": [
-      "volatile",
-      "nervous"
-    ]
-  },
-  {
-    "id": "nervous",
-    "name": "신경과민",
-    "group": "정신",
-    "description": "작은 일에도 쉽게 무너질 듯 위태롭습니다.",
-    "effect": "정신 붕괴 한계점 +8%",
-    "conflicts": [
-      "iron_willed",
-      "steadfast",
-      "volatile"
-    ]
-  },
-  {
-    "id": "volatile",
-    "name": "유리정신",
-    "group": "정신",
-    "description": "언제 터질지 모르는 시한폭탄 같은 정신 상태입니다.",
-    "effect": "정신 붕괴 한계점 +15%",
-    "conflicts": [
-      "iron_willed",
-      "steadfast",
-      "nervous"
-    ]
-  },
-  {
-    "id": "beautiful",
-    "name": "아름다움",
-    "group": "외모",
-    "description": "누구나 쳐다볼 만큼 매력적인 외모를 가졌습니다.",
-    "effect": "관계도 +40 (모두가 좋아함)",
-    "conflicts": [
-      "pretty",
-      "ugly",
-      "staggeringly_ugly"
-    ]
-  },
-  {
-    "id": "pretty",
-    "name": "잘생김",
-    "group": "외모",
-    "description": "준수한 외모로 호감을 삽니다.",
-    "effect": "관계도 +20",
-    "conflicts": [
-      "beautiful",
-      "ugly",
-      "staggeringly_ugly"
-    ]
-  },
-  {
-    "id": "ugly",
-    "name": "못생김",
-    "group": "외모",
-    "description": "비호감형 외모입니다.",
-    "effect": "관계도 -20",
-    "conflicts": [
-      "beautiful",
-      "pretty",
-      "staggeringly_ugly"
+      "hard_worker",
+      "lazy",
+      "slothful"
     ]
   },
   {
     "id": "staggeringly_ugly",
-    "name": "충격적인 외모",
-    "group": "외모",
-    "description": "차마 눈 뜨고 볼 수 없을 정도로 끔찍한 외모입니다.",
-    "effect": "관계도 -80",
+    "name": "충격적인 외모 (Staggeringly Ugly)",
+    "group": "외모/매력",
+    "description": "매력 -2 (관계도 최악)",
+    "effect": "매력 -2 (관계도 최악)",
     "conflicts": [
       "beautiful",
       "pretty",
@@ -245,483 +190,479 @@
     ]
   },
   {
-    "id": "psychopath",
-    "name": "사이코패스",
-    "group": "특수",
-    "description": "타인의 고통이나 죽음에 아무런 감정도 느끼지 못합니다.",
-    "effect": "공감 능력 없음, 시체 봐도 무덤덤",
+    "id": "ugly",
+    "name": "못생김 (Ugly)",
+    "group": "외모/매력",
+    "description": "매력 -1",
+    "effect": "매력 -1",
     "conflicts": [
-      "kind"
+      "beautiful",
+      "pretty",
+      "staggeringly_ugly"
     ]
   },
   {
-    "id": "bloodlust",
-    "name": "피의 갈망",
-    "group": "특수",
-    "description": "남을 해치거나 죽이는 것을 즐깁니다.",
-    "effect": "살해 시 무드 상승, 인피 의류 선호",
+    "id": "pretty",
+    "name": "잘생김 (Pretty)",
+    "group": "외모/매력",
+    "description": "매력 +1",
+    "effect": "매력 +1",
     "conflicts": [
-      "wimp",
-      "kind"
+      "beautiful",
+      "staggeringly_ugly",
+      "ugly"
     ]
   },
   {
-    "id": "cannibal",
-    "name": "식인종",
-    "group": "특수",
-    "description": "인육을 먹는 것을 즐기며, 이를 혐오하지 않습니다.",
-    "effect": "인육 섭취 시 무드 대폭 상승",
-    "conflicts": []
+    "id": "beautiful",
+    "name": "아름다움 (Beautiful)",
+    "group": "외모/매력",
+    "description": "매력 +2",
+    "effect": "매력 +2",
+    "conflicts": [
+      "pretty",
+      "staggeringly_ugly",
+      "ugly"
+    ]
+  },
+  {
+    "id": "psychically_deaf",
+    "name": "정신적 무감각 (Psychically Deaf)",
+    "group": "정신 감응력",
+    "description": "감응력 -100% (면역)",
+    "effect": "감응력 -100% (면역)",
+    "conflicts": [
+      "psychically_dull",
+      "psychically_hypersensitive",
+      "psychically_sensitive"
+    ]
+  },
+  {
+    "id": "psychically_dull",
+    "name": "둔감한 정신 (Psychically dull)",
+    "group": "정신 감응력",
+    "description": "감응력 -50%",
+    "effect": "감응력 -50%",
+    "conflicts": [
+      "psychically_deaf",
+      "psychically_hypersensitive",
+      "psychically_sensitive"
+    ]
+  },
+  {
+    "id": "psychically_sensitive",
+    "name": "민감한 정신 (Psychically sensitive)",
+    "group": "정신 감응력",
+    "description": "감응력 +40%",
+    "effect": "감응력 +40%",
+    "conflicts": [
+      "psychically_deaf",
+      "psychically_dull",
+      "psychically_hypersensitive"
+    ]
+  },
+  {
+    "id": "psychically_hypersensitive",
+    "name": "정신적 초감각 (Psychically Hypersensitive)",
+    "group": "정신 감응력",
+    "description": "감응력 +80%",
+    "effect": "감응력 +80%",
+    "conflicts": [
+      "psychically_deaf",
+      "psychically_dull",
+      "psychically_sensitive"
+    ]
+  },
+  {
+    "id": "slow_learner",
+    "name": "느린 학습가 (Slow Learner)",
+    "group": "학습 속도",
+    "description": "경험치 습득 -75%",
+    "effect": "경험치 습득 -75%",
+    "conflicts": [
+      "fast_learner"
+    ]
+  },
+  {
+    "id": "fast_learner",
+    "name": "빠른 학습가 (Fast Learner)",
+    "group": "학습 속도",
+    "description": "경험치 습득 +75%",
+    "effect": "경험치 습득 +75%",
+    "conflicts": [
+      "slow_learner"
+    ]
+  },
+  {
+    "id": "teetotaler",
+    "name": "금주 (Teetotaler)",
+    "group": "약물 선호도",
+    "description": "약물 혐오. 복용 시 무드 하락.",
+    "effect": "약물 혐오. 복용 시 무드 하락.",
+    "conflicts": [
+      "chemical_fascination",
+      "chemical_interest"
+    ]
+  },
+  {
+    "id": "chemical_interest",
+    "name": "약물 선호 (Chemical Interest)",
+    "group": "약물 선호도",
+    "description": "약물 갈망 발생, 무드 보너스/페널티 존재.",
+    "effect": "약물 갈망 발생, 무드 보너스/페널티 존재.",
+    "conflicts": [
+      "chemical_fascination",
+      "teetotaler"
+    ]
+  },
+  {
+    "id": "chemical_fascination",
+    "name": "약물광 (Chemical Fascination)",
+    "group": "약물 선호도",
+    "description": "약물 갈망 빈도 높음 (통제 어려움).",
+    "effect": "약물 갈망 빈도 높음 (통제 어려움).",
+    "conflicts": [
+      "chemical_interest",
+      "teetotaler"
+    ]
   },
   {
     "id": "tough",
-    "name": "강인함",
-    "group": "전투",
-    "description": "맷집이 엄청나게 좋습니다.",
-    "effect": "받는 피해량 -50%",
+    "name": "강인함 (Tough)",
+    "group": "특성",
+    "description": "받는 피해량 -50% (매우 강력). [Conflict: 연약함]",
+    "effect": "받는 피해량 -50% (매우 강력)",
     "conflicts": [
-      "delicate",
-      "wimp"
+      "delicate"
     ]
   },
   {
     "id": "delicate",
-    "name": "연약함",
-    "group": "전투",
-    "description": "몸이 약해 쉽게 다칩니다.",
+    "name": "연약함 (Delicate)",
+    "group": "특성",
+    "description": "받는 피해량 +15%. [Conflict: 강인함]",
     "effect": "받는 피해량 +15%",
     "conflicts": [
       "tough"
     ]
   },
   {
-    "id": "wimp",
-    "name": "엄살쟁이",
-    "group": "전투",
-    "description": "작은 고통에도 비명을 지르며 쓰러집니다.",
-    "effect": "고통 한계점 매우 낮음",
-    "conflicts": [
-      "brawler",
-      "tough",
-      "masochist",
-      "bloodlust"
-    ]
-  },
-  {
     "id": "brawler",
-    "name": "싸움꾼",
-    "group": "전투",
-    "description": "총보다는 주먹이 가깝다고 믿습니다.",
-    "effect": "격투 +4, 원거리 무기 혐오",
+    "name": "싸움꾼 (Brawler)",
+    "group": "특성",
+    "description": "격투 +4, 사격 -4, 원거리 무기 착용 시 무드 하락. [Conflict: 신중한 사수, 난사광, 엄살쟁이]",
+    "effect": "격투 +4, 사격 -4, 원거리 무기 착용 시 무드 하락",
     "conflicts": [
-      "wimp",
       "careful_shooter",
-      "trigger_happy"
+      "trigger_happy",
+      "wimp"
     ]
   },
   {
     "id": "careful_shooter",
-    "name": "신중한 사수",
-    "group": "전투",
-    "description": "쏘기 전에 두 번 확인합니다.",
-    "effect": "조준 시간 +25%, 명중률 +5",
+    "name": "신중한 사수 (Careful shooter)",
+    "group": "특성",
+    "description": "명중률 +5, 조준 시간 길어짐. [Conflict: 난사광, 싸움꾼]",
+    "effect": "명중률 +5, 조준 시간 길어짐",
     "conflicts": [
-      "trigger_happy",
-      "brawler"
+      "brawler",
+      "trigger_happy"
     ]
   },
   {
     "id": "trigger_happy",
-    "name": "난사광",
-    "group": "전투",
-    "description": "일단 당기고 봅니다.",
+    "name": "난사광 (Trigger-happy)",
+    "group": "특성",
+    "description": "조준 시간 -50%, 명중률 -5. [Conflict: 신중한 사수, 싸움꾼]",
     "effect": "조준 시간 -50%, 명중률 -5",
     "conflicts": [
-      "careful_shooter",
-      "brawler"
+      "brawler",
+      "careful_shooter"
+    ]
+  },
+  {
+    "id": "nimble",
+    "name": "재빠름 (Nimble)",
+    "group": "특성",
+    "description": "근접 회피율 +15.",
+    "effect": "근접 회피율 +15.",
+    "conflicts": []
+  },
+  {
+    "id": "wimp",
+    "name": "엄살쟁이 (Wimp)",
+    "group": "특성",
+    "description": "고통 한계 -50% (쉽게 기절). [Conflict: 강인함, 싸움꾼, 피학적]",
+    "effect": "고통 한계 -50% (쉽게 기절)",
+    "conflicts": [
+      "brawler",
+      "masochist",
+      "tough"
+    ]
+  },
+  {
+    "id": "masochist",
+    "name": "피학적 (Masochist)",
+    "group": "특성",
+    "description": "고통을 느낄 때 무드 상승. [Conflict: 엄살쟁이]",
+    "effect": "고통을 느낄 때 무드 상승",
+    "conflicts": [
+      "wimp"
+    ]
+  },
+  {
+    "id": "pyromaniac",
+    "name": "방화광 (Pyromaniac)",
+    "group": "특성",
+    "description": "스트레스 시 방화 충동. 소방 작업 불가.",
+    "effect": "스트레스 시 방화 충동. 소방 작업 불가.",
+    "conflicts": []
+  },
+  {
+    "id": "gourmand",
+    "name": "식탐 (Gourmand)",
+    "group": "특성",
+    "description": "요리 +4, 굶주림 빨리 짐. 스트레스 시 폭식. [Conflict: 검소]",
+    "effect": "요리 +4, 굶주림 빨리 짐. 스트레스 시 폭식",
+    "conflicts": [
+      "ascetic"
     ]
   },
   {
     "id": "ascetic",
-    "name": "검소",
-    "group": "생활",
-    "description": "호화로운 것을 싫어하며 소박한 삶을 추구합니다.",
-    "effect": "생식 선호, 나쁜 침실 선호",
+    "name": "검소 (Ascetic)",
+    "group": "특성",
+    "description": "좁고 나쁜 침실 선호, 생식 페널티 없음. [Conflict: 탐욕, 시샘, 식탐]",
+    "effect": "좁고 나쁜 침실 선호, 생식 페널티 없음",
     "conflicts": [
+      "gourmand",
       "greedy",
-      "jealous",
-      "gourmand"
+      "jealous"
     ]
   },
   {
     "id": "greedy",
-    "name": "탐욕",
-    "group": "생활",
-    "description": "남들보다 더 좋은, 최고의 침실을 원합니다.",
-    "effect": "좋은 침실 없으면 무드 하락",
+    "name": "탐욕 (Greedy)",
+    "group": "특성",
+    "description": "좋은 침실 원함 (없으면 무드 하락). [Conflict: 검소]",
+    "effect": "좋은 침실 원함 (없으면 무드 하락)",
     "conflicts": [
       "ascetic"
     ]
   },
   {
     "id": "jealous",
-    "name": "시샘",
-    "group": "생활",
-    "description": "누군가 나보다 좋은 방을 쓰는 꼴을 못 봅니다.",
-    "effect": "남보다 나쁜 방이면 무드 하락",
+    "name": "시샘 (Jealous)",
+    "group": "특성",
+    "description": "남보다 좋은 침실 원함 (없으면 무드 하락). [Conflict: 검소]",
+    "effect": "남보다 좋은 침실 원함 (없으면 무드 하락)",
     "conflicts": [
       "ascetic"
     ]
   },
   {
     "id": "night_owl",
-    "name": "야행성",
-    "group": "생활",
-    "description": "밤에 활동하는 것을 좋아하고, 낮에는 자고 싶어 합니다.",
-    "effect": "야간 활동 시 무드 보너스",
+    "name": "야행성 (Night Owl)",
+    "group": "특성",
+    "description": "밤(23~6시) 활동 선호, 낮 활동 시 무드 하락.",
+    "effect": "밤(23~6시) 활동 선호, 낮 활동 시 무드 하락.",
     "conflicts": []
   },
   {
     "id": "undergrounder",
-    "name": "실내 선호",
-    "group": "생활",
-    "description": "실내와 어둠을 좋아하며 밖으로 나가는 것을 꺼립니다.",
-    "effect": "실내 욕구 충족, 갇혀 있어도 무드 하락 없음",
-    "conflicts": []
-  },
-  {
-    "id": "tortured_artist",
-    "name": "괴로운 예술가",
-    "group": "예술",
-    "description": "영원히 고통받는 예술혼을 가졌습니다.",
-    "effect": "항시 무드 -8, 정신 붕괴 후 예술 영감 확률",
-    "conflicts": []
-  },
-  {
-    "id": "too_smart",
-    "name": "괴짜 천재",
-    "group": "지능",
-    "description": "머리가 비상하지만 그만큼 예민합니다.",
-    "effect": "학습 속도 +75%, 정신 붕괴 한계점 +12%",
-    "conflicts": [
-      "iron_willed",
-      "slow_learner"
-    ]
-  },
-  {
-    "id": "fast_learner",
-    "name": "빠른 학습가",
-    "group": "지능",
-    "description": "하나를 가르치면 열을 압니다.",
-    "effect": "학습 속도 +75%",
-    "conflicts": [
-      "slow_learner"
-    ]
-  },
-  {
-    "id": "slow_learner",
-    "name": "느린 학습가",
-    "group": "지능",
-    "description": "배우는 속도가 남들보다 늦습니다.",
-    "effect": "학습 속도 -75%",
-    "conflicts": [
-      "fast_learner",
-      "too_smart"
-    ]
-  },
-  {
-    "id": "great_memory",
-    "name": "대단한 기억력",
-    "group": "지능",
-    "description": "배운 것을 절대 잊지 않습니다.",
-    "effect": "기술 경험치 감소율 절반",
-    "conflicts": []
-  },
-  {
-    "id": "teetotaler",
-    "name": "금주",
-    "group": "약물",
-    "description": "술과 약물을 혐오합니다.",
-    "effect": "약물 복용 시 무드 극도로 하락",
-    "conflicts": [
-      "chemical_interest",
-      "chemical_fascination"
-    ]
-  },
-  {
-    "id": "chemical_interest",
-    "name": "약물 선호",
-    "group": "약물",
-    "description": "종종 약물이나 술을 찾습니다.",
-    "effect": "약물 갈망 발생",
-    "conflicts": [
-      "teetotaler",
-      "chemical_fascination"
-    ]
-  },
-  {
-    "id": "chemical_fascination",
-    "name": "약물광",
-    "group": "약물",
-    "description": "약물 없이는 살 수 없습니다.",
-    "effect": "빈번한 약물 갈망, 통제 불가",
-    "conflicts": [
-      "teetotaler",
-      "chemical_interest"
-    ]
-  },
-  {
-    "id": "pyromaniac",
-    "name": "방화광",
-    "group": "특수",
-    "description": "스트레스를 받으면 불을 지르고 싶어 합니다.",
-    "effect": "소방 작업 결격, 방화 정신 붕괴",
-    "conflicts": []
-  },
-  {
-    "id": "gourmand",
-    "name": "식탐",
-    "group": "생활",
-    "description": "먹는 것이 인생의 낙입니다.",
-    "effect": "요리 +4, 배고픔 빨리 짐",
-    "conflicts": [
-      "ascetic"
-    ]
-  },
-  {
-    "id": "quick_sleeper",
-    "name": "숙면가",
-    "group": "생활",
-    "description": "짧게 자고도 개운하게 일어납니다.",
-    "effect": "수면 효율 +50%",
+    "name": "실내 선호 (Undergrounder)",
+    "group": "특성",
+    "description": "실내 욕구 있음, 갇혀 있어도 답답해하지 않음.",
+    "effect": "실내 욕구 있음, 갇혀 있어도 답답해하지 않음.",
     "conflicts": []
   },
   {
     "id": "nudist",
-    "name": "나체주의자",
-    "group": "생활",
-    "description": "자연 그대로의 상태를 선호합니다.",
-    "effect": "알몸일 때 무드 +20",
+    "name": "나체주의자 (Nudist)",
+    "group": "특성",
+    "description": "알몸일 때 무드 상승, 옷 입으면 하락.",
+    "effect": "알몸일 때 무드 상승, 옷 입으면 하락.",
     "conflicts": []
   },
   {
-    "id": "gay",
-    "name": "동성애",
-    "group": "성향",
-    "description": "동성에게 매력을 느낍니다.",
-    "effect": "동성에게 구애 시도",
-    "conflicts": [
-      "bisexual",
-      "asexual"
-    ]
-  },
-  {
-    "id": "bisexual",
-    "name": "양성애",
-    "group": "성향",
-    "description": "성별을 가리지 않고 매력을 느낍니다.",
-    "effect": "모두에게 구애 시도 가능",
-    "conflicts": [
-      "gay",
-      "asexual"
-    ]
-  },
-  {
-    "id": "asexual",
-    "name": "무성애",
-    "group": "성향",
-    "description": "타인에게 성적 매력을 잘 느끼지 못합니다.",
-    "effect": "구애하지 않음",
-    "conflicts": [
-      "gay",
-      "bisexual"
-    ]
-  },
-  {
-    "id": "misogynist",
-    "name": "여성 혐오",
-    "group": "사교",
-    "description": "여자를 싫어합니다.",
-    "effect": "여성 대상 관계도 -25",
-    "conflicts": []
-  },
-  {
-    "id": "misandrist",
-    "name": "남성 혐오",
-    "group": "사교",
-    "description": "남자를 싫어합니다.",
-    "effect": "남성 대상 관계도 -25",
-    "conflicts": []
-  },
-  {
-    "id": "annoying_voice",
-    "name": "거슬리는 목소리",
-    "group": "사교",
-    "description": "목소리 톤이 묘하게 기분 나쁩니다.",
-    "effect": "관계도 -25 (모두가 싫어함)",
-    "conflicts": []
-  },
-  {
-    "id": "creepy_breathing",
-    "name": "거친 숨소리",
-    "group": "사교",
-    "description": "숨소리가 크고 불쾌합니다.",
-    "effect": "관계도 -25 (모두가 싫어함)",
-    "conflicts": []
-  },
-  {
-    "id": "super_immune",
-    "name": "면역체질",
-    "group": "건강",
-    "description": "병에 걸려도 금방 털고 일어납니다.",
-    "effect": "항체 생성 속도 +30%",
-    "conflicts": [
-      "sickly"
-    ]
-  },
-  {
-    "id": "sickly",
-    "name": "병약체질",
-    "group": "건강",
-    "description": "걸어 다니는 종합 병원입니다.",
-    "effect": "질병 발생 확률 높음",
-    "conflicts": [
-      "super_immune"
-    ]
-  },
-  {
-    "id": "transhumanist",
-    "name": "신체 개조주의자",
-    "group": "특수",
-    "description": "인간의 육체는 한계가 있다고 믿으며, 기계로 대체하는 것을 갈망합니다.",
-    "effect": "신체 강화물 장착 시 무드 보너스",
+    "id": "body_modder",
+    "name": "신체 개조주의자 (Body Modder)",
+    "group": "특성",
+    "description": "인공 신체 이식 원함. [Conflict: 신체 순수주의자]",
+    "effect": "인공 신체 이식 원함",
     "conflicts": [
       "body_purist"
     ]
   },
   {
     "id": "body_purist",
-    "name": "신체 순수주의자",
-    "group": "특수",
-    "description": "인간의 육체는 그대로가 가장 아름답다고 믿으며, 인공적인 신체 부위를 혐오합니다.",
-    "effect": "신체 강화물 장착 시 무드 페널티",
+    "name": "신체 순수주의자 (Body Purist)",
+    "group": "특성",
+    "description": "인공 신체 이식 혐오. [Conflict: 신체 개조주의자]",
+    "effect": "인공 신체 이식 혐오",
     "conflicts": [
-      "transhumanist"
+      "body_modder"
     ]
   },
   {
-    "id": "pragmatist",
-    "name": "실용주의자",
-    "group": "사교",
-    "description": "감정보다는 이익과 효율을 중시합니다.",
-    "effect": "사교적 능력치 소폭 상승, 도덕적 결단에 둔감함",
+    "id": "quick_sleeper",
+    "name": "숙면가 (Quick Sleeper)",
+    "group": "특성",
+    "description": "수면 효율 +50% (잠을 적게 잠).",
+    "effect": "수면 효율 +50% (잠을 적게 잠).",
     "conflicts": []
   },
   {
-    "id": "brave",
-    "name": "용감함",
-    "group": "전투",
-    "description": "위험한 상황에서도 침착함을 유지하며 정면으로 맞섭니다.",
-    "effect": "공포에 잘 질리지 않음",
+    "id": "too_smart",
+    "name": "괴짜 천재 (Too smart)",
+    "group": "특성",
+    "description": "학습 속도 +75%, 정신붕괴 한계점 +14% (잘 배우지만 예민함). [Conflict: 철의 의지]",
+    "effect": "학습 속도 +75%, 정신붕괴 한계점 +14% (잘 배우지만 예민함)",
     "conflicts": [
-      "coward"
+      "iron_willed"
     ]
   },
   {
-    "id": "coward",
-    "name": "겁쟁이",
-    "group": "전투",
-    "description": "위험이 닥치면 누구보다 먼저 도망칩니다.",
-    "effect": "피해를 입으면 쉽게 후퇴함",
-    "conflicts": [
-      "brave",
-      "tough"
-    ]
-  },
-  {
-    "id": "nimble",
-    "name": "재빠름",
-    "group": "전투",
-    "description": "몸놀림이 매우 가볍고 빠릅니다.",
-    "effect": "근접 회피율 +15",
+    "id": "great_memory",
+    "name": "대단한 기억력 (Great Memory)",
+    "group": "특성",
+    "description": "기술 레벨 하락 속도 절반.",
+    "effect": "기술 레벨 하락 속도 절반.",
     "conflicts": []
   },
   {
-    "id": "masochist",
-    "name": "마조히스트",
-    "group": "특수",
-    "description": "고통을 느낄 때 묘한 쾌감을 느낍니다.",
-    "effect": "고통 시 무드 상승",
+    "id": "tortured_artist",
+    "name": "괴로운 예술가 (Tortured Artist)",
+    "group": "특성",
+    "description": "항시 무드 -8, 정신붕괴 후 예술 영감 획득.",
+    "effect": "항시 무드 -8, 정신붕괴 후 예술 영감 획득.",
+    "conflicts": []
+  },
+  {
+    "id": "abrasive",
+    "name": "직설적 (Abrasive)",
+    "group": "특성",
+    "description": "모욕 확률 높음. [Conflict: 다정다감]",
+    "effect": "모욕 확률 높음",
     "conflicts": [
-      "wimp"
+      "kind"
     ]
   },
   {
-    "id": "ambitious",
-    "name": "야심가",
-    "group": "성격",
-    "description": "더 높은 지위와 성공을 갈망합니다.",
-    "effect": "작업 속도 보너스",
+    "id": "kind",
+    "name": "다정다감 (Kind)",
+    "group": "특성",
+    "description": "절대 모욕하지 않음, 타인 위로. [Conflict: 직설적, 사이코패스]",
+    "effect": "절대 모욕하지 않음, 타인 위로",
+    "conflicts": [
+      "abrasive",
+      "psychopath"
+    ]
+  },
+  {
+    "id": "annoying_voice",
+    "name": "거슬리는 목소리 (Annoying Voice)",
+    "group": "특성",
+    "description": "타인으로부터 관계도 하락 -25.",
+    "effect": "타인으로부터 관계도 하락 -25.",
+    "conflicts": []
+  },
+  {
+    "id": "creepy_breathing",
+    "name": "거친 숨소리 (Creepy Breathing)",
+    "group": "특성",
+    "description": "타인으로부터 관계도 하락 -25.",
+    "effect": "타인으로부터 관계도 하락 -25.",
+    "conflicts": []
+  },
+  {
+    "id": "misandrist",
+    "name": "남성 혐오 (Misandrist)",
+    "group": "특성",
+    "description": "남성 대상 관계도 -25.",
+    "effect": "남성 대상 관계도 -25.",
+    "conflicts": []
+  },
+  {
+    "id": "misogynist",
+    "name": "여성 혐오 (Misogynist)",
+    "group": "특성",
+    "description": "여성 대상 관계도 -25.",
+    "effect": "여성 대상 관계도 -25.",
     "conflicts": []
   },
   {
     "id": "recluse",
-    "name": "은둔자",
-    "group": "생활",
-    "description": "혼자 있는 시간을 진심으로 즐기며 타인과의 접촉을 꺼립니다.",
-    "effect": "고립 시 무드 보너스, 사교 활동 시 무드 하락",
+    "name": "은둔자 (Recluse)",
+    "group": "특성",
+    "description": "사람이 적으면 무드 상승, 많으면 하락.",
+    "effect": "사람이 적으면 무드 상승, 많으면 하락.",
     "conflicts": []
   },
   {
-    "id": "perfectionist",
-    "name": "완벽주의자",
-    "group": "작업",
-    "description": "모든 일을 아주 꼼꼼하고 완벽하게 처리하려 합니다.",
-    "effect": "작업 품질 향상, 작업 속도 감소",
+    "id": "cannibal",
+    "name": "식인종 (Cannibal)",
+    "group": "특성",
+    "description": "인육 섭취/도축 시 무드 상승.",
+    "effect": "인육 섭취/도축 시 무드 상승.",
     "conflicts": []
   },
   {
-    "id": "vain",
-    "name": "허영심",
-    "group": "사교",
-    "description": "자신의 외모와 평판을 매우 중요하게 생각합니다.",
-    "effect": "사회적 영향력 증가",
+    "id": "bloodlust",
+    "name": "피의 갈망 (Bloodlust)",
+    "group": "특성",
+    "description": "살해/시체 관찰 시 무드 상승, 인피 의류 선호. 싸움 잦음.",
+    "effect": "살해/시체 관찰 시 무드 상승, 인피 의류 선호. 싸움 잦음.",
     "conflicts": []
   },
   {
-    "id": "heat_tolerant",
-    "name": "내열성",
-    "group": "환경",
-    "description": "뜨거운 열기 속에서도 평소처럼 활동할 수 있습니다.",
-    "effect": "적응 온도 상한 상승",
-    "conflicts": []
-  },
-  {
-    "id": "outdoors",
-    "name": "야외 선호",
-    "group": "환경",
-    "description": "탁 트인 밖에서 지내는 것을 좋아합니다.",
-    "effect": "야외 활동 시 무드 보너스",
+    "id": "psychopath",
+    "name": "사이코패스 (Psychopath)",
+    "group": "특성",
+    "description": "타인의 고통/도축/사망에 무드 변화 없음. 사교 활동 효과 없음. [Conflict: 다정다감]",
+    "effect": "타인의 고통/도축/사망에 무드 변화 없음. 사교 활동 효과 없음",
     "conflicts": [
-      "undergrounder"
+      "kind"
     ]
   },
   {
-    "id": "impatient",
-    "name": "조급함",
-    "group": "성격",
-    "description": "기다리는 것을 매우 힘들어하며 서두르는 경향이 있습니다.",
-    "effect": "이동 속도 증가, 비활동 시 무드 하락",
+    "id": "sickly",
+    "name": "병약체질 (Sickly)",
+    "group": "특성",
+    "description": "주기적으로 질병 발생, 의학 +4.",
+    "effect": "주기적으로 질병 발생, 의학 +4.",
     "conflicts": []
   },
   {
-    "id": "smart",
-    "name": "영리함",
-    "group": "지능",
-    "description": "상황 판단이 빠르고 이해력이 좋습니다.",
-    "effect": "학습 속도 +20%",
-    "conflicts": [
-      "slow_learner"
-    ]
+    "id": "super_immune",
+    "name": "면역체질 (Super Immune)",
+    "group": "특성",
+    "description": "항체 생성 속도 +30%.",
+    "effect": "항체 생성 속도 +30%.",
+    "conflicts": []
+  },
+  {
+    "id": "gay",
+    "name": "동성애 (Gay)",
+    "group": "특성",
+    "description": "동성에게 끌림.",
+    "effect": "동성에게 끌림.",
+    "conflicts": []
+  },
+  {
+    "id": "bisexual",
+    "name": "양성애 (Bisexual)",
+    "group": "특성",
+    "description": "남녀 모두에게 끌림.",
+    "effect": "남녀 모두에게 끌림.",
+    "conflicts": []
+  },
+  {
+    "id": "asexual",
+    "name": "무성애 (Asexual)",
+    "group": "특성",
+    "description": "누구에게도 끌리지 않음.",
+    "effect": "누구에게도 끌리지 않음.",
+    "conflicts": []
   }
 ]
