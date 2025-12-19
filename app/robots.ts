@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
             userAgent: '*',
             allow: '/',
         },
-        sitemap: 'https://ratkin.org/sitemap.xml',
+        sitemap: 'https://test.ratkin.org/sitemap.xml',
     }
 }

@@ -12,23 +12,23 @@ const baseUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "변방계 정착민 테스트 (Rimworld Traits Test)",
-    template: "%s | 변방계 정착민 테스트",
+    default: "림월드 테스트 - 변방계 정착민 테스트 (Rimworld Traits Test)",
+    template: "%s | 림월드 테스트",
   },
-  description: "당신이 림월드에 떨어진다면 어떤 특성을 가질까요? 변방계 생존 적합성 테스트로 당신의 정착민 유형을 확인하세요.",
-  keywords: ["림월드", "Rimworld", "성격 테스트", "MBTI", "변방계", "적성 검사", "심리 테스트", "게임", "생존", "특성"],
+  description: "림월드 테스트 사이트에서 당신의 정착민 특성을 확인하세요. 당신이 림월드에 떨어진다면 어떤 특성과 기술을 가질까요? 변방계 생존 적합성 테스트입니다.",
+  keywords: ["림월드 테스트", "림월드 테스트 사이트", "림월드", "Rimworld", "성격 테스트", "MBTI", "변방계", "적성 검사", "심리 테스트", "게임", "생존", "특성"],
   authors: [{ name: "Nerdeyprite" }],
   openGraph: {
-    title: "변방계 정착민 테스트",
-    description: "당신은 낙천적인가요, 아니면 유리정신인가요? 림월드 세계관으로 보는 나의 성격 유형.",
+    title: "림월드 테스트 - 변방계 정착민 테스트",
+    description: "림월드 테스트 사이트에서 당신의 생존 등급과 특성을 확인하세요. 당신은 낙천적인가요, 아니면 유리정신인가요?",
     url: "https://test.ratkin.org",
     siteName: "변방계 정착민 테스트",
     images: [
       {
-        url: "/og-image.png", // public 폴더에 해당 이미지 필요
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "변방계 정착민 테스트 미리보기",
+        alt: "림월드 테스트 - 변방계 정착민 테스트",
       },
     ],
     locale: "ko_KR",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "변방계 정착민 테스트",
-    description: "당신의 림월드 특성을 확인해보세요!",
+    title: "림월드 테스트 - 변방계 정착민 테스트",
+    description: "당신의 림월드 특성과 기술을 확인해보세요!",
     images: ["/og-image.png"],
   },
   robots: {
@@ -56,6 +56,26 @@ export default function RootLayout({
       <head>
         {/* SEO & Monetization Prep */}
         {/* google-site-verification could go here */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "림월드 테스트 - 변방계 정착민 테스트",
+              "url": "https://test.ratkin.org",
+              "description": "림월드 세계관을 기반으로 한 성격 유형 및 정착민 특성 테스트 사이트입니다.",
+              "applicationCategory": "GameApplication",
+              "genre": "Simulation",
+              "operatingSystem": "Web",
+              "author": {
+                "@type": "Person",
+                "name": "Nerdeyprite"
+              },
+              "keywords": "림월드, Rimworld, 테스트, 성격테스트, 림월드 테스트 사이트"
+            })
+          }}
+        />
       </head>
       <body>
         <Providers>
