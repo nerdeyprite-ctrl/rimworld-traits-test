@@ -67,10 +67,10 @@ export default function IntroPage() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Age Input */}
                         <div className="space-y-2">
-                            <label className="block text-[#bdc3c7] font-bold text-sm uppercase tracking-wider">
+                            <label className="block text-[#bdc3c7] font-bold text-sm uppercase tracking-wider text-xs md:text-sm">
                                 생체 연령 (Bio Age)
                             </label>
                             <div className="relative">
@@ -88,29 +88,29 @@ export default function IntroPage() {
 
                         {/* Gender Selection */}
                         <div className="space-y-2">
-                            <label className="block text-[#bdc3c7] font-bold text-sm uppercase tracking-wider">
+                            <label className="block text-[#bdc3c7] font-bold text-sm uppercase tracking-wider text-xs md:text-sm">
                                 성별 (Gender)
                             </label>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setGender('Male')}
-                                    className={`p-6 border-2 transition-all duration-300 ${gender === 'Male'
+                                    className={`py-3 md:py-6 border-2 transition-all duration-300 flex flex-col items-center justify-center ${gender === 'Male'
                                         ? 'bg-[#1a3b50] border-[#4a89dc] text-[#4a89dc] shadow-[0_0_15px_rgba(74,137,220,0.5)]'
                                         : 'bg-black/40 border-gray-700 text-gray-500 hover:border-gray-500'}`}
                                 >
-                                    <span className="block text-3xl mb-2">♂</span>
-                                    <span className="font-bold text-lg">Male</span>
+                                    <span className="block text-2xl md:text-3xl mb-1">♂</span>
+                                    <span className="font-bold text-sm md:text-lg">Male</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setGender('Female')}
-                                    className={`p-6 border-2 transition-all duration-300 ${gender === 'Female'
+                                    className={`py-3 md:py-6 border-2 transition-all duration-300 flex flex-col items-center justify-center ${gender === 'Female'
                                         ? 'bg-[#3d1a2b] border-[#d44a89] text-[#d44a89] shadow-[0_0_15px_rgba(212,74,137,0.5)]'
                                         : 'bg-black/40 border-gray-700 text-gray-500 hover:border-gray-500'}`}
                                 >
-                                    <span className="block text-3xl mb-2">♀</span>
-                                    <span className="font-bold text-lg">Female</span>
+                                    <span className="block text-2xl md:text-3xl mb-1">♀</span>
+                                    <span className="font-bold text-sm md:text-lg">Female</span>
                                 </button>
                             </div>
                         </div>
