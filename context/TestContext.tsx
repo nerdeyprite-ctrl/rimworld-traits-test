@@ -540,10 +540,10 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             }
 
             // Adjusted level logic: 
-            // Divide rawScore by 5 to bring it down to 1-4 range (assuming rawScore max is ~20)
-            // Divide historyBonus by 3 for less impact
-            const baseLevel = Math.random() < 0.3 ? 1 : 0; // 30% chance of starting at 1
-            let calculatedLevel = baseLevel + (rawScore / 5) + (historyBonus / 3) - penalty;
+            // - historyBonus: exact value (Rimworld style)
+            // - rawScore: divide by 3 for balanced impact from survey
+            const baseLevel = Math.floor(Math.random() * 3); // 0, 1, or 2 base
+            let calculatedLevel = baseLevel + (rawScore / 3) + historyBonus - penalty;
 
             // Age Factor Logic
             let ageFactor = 1.0;
