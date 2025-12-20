@@ -48,25 +48,3 @@ body {
 * {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
-
-/* Common UI Enhancements for Light Mode */
-.light-mode .bg-\[#111\],
-.light-mode .bg-\[#1b1b1b\],
-.light-mode .bg-\[#1e1e1e\] {
-  background-color: var(--rimworld-panel) !important;
-}
-
-.light-mode .border-\[#333\],
-.light-mode .border-gray-600,
-.light-mode .border-gray-700 {
-  border-color: var(--rimworld-border) !important;
-}
-
-.light-mode .text-white {
-  color: var(--rimworld-text) !important;
-}
-
-.light-mode .text-gray-400,
-.light-mode .text-gray-500 {
-  color: #666 !important;
-}

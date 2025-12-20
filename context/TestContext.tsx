@@ -299,91 +299,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         const traitsData = language === 'ko' ? traitsKo : traitsEn;
         const traitDefinitions = traitsData as Trait[];
 
-        // Separate scores for easier access
-        const traitScores: Record<string, number> = {};
-        const skillScores: Record<string, number> = {};
-
-        Object.keys(scores).forEach(key => {
-            if (R_SKILLS.includes(key)) {
-                skillScores[key] = scores[key];
-            } else {
-                traitScores[key] = scores[key];
-            }
-        });
-
-        // --- TRAIT LOGIC ---
-        const candidates: { trait: Trait, score: number }[] = [];
-        const getTraitDef = (id: string) => traitDefinitions.find(t => t.id === id);
-        const processedTraitIds = new Set<string>(); // IDs handled by spectrum
-
-        // 1. Spectrum Analysis
-        Object.entries(SPECTRUM_CONFIG).forEach(([spectrumId, config]) => {
-            const score = scores[spectrumId] || 0;
-
-            // Find the BEST matching trait in this spectrum based on threshold
-            let selectedTraitId: string | null = null;
-
-            // Check from highest positive threshold down for positives
-            // And lowest negative threshold up for negatives
-            // Actually, we can just sort config by threshold descending?
-            // +6, +3, -3, -6
-
-            // Simplified Check:
-            if (score >= 6) selectedTraitId = config.find(c => c.threshold === 6)?.id || null;
-            else if (score >= 3) selectedTraitId = config.find(c => c.threshold === 3)?.id || null;
-            else if (score <= -6) selectedTraitId = config.find(c => c.threshold === -6)?.id || null;
-            else if (score <= -3) selectedTraitId = config.find(c => c.threshold === -3)?.id || null;
-
-            if (selectedTraitId) {
-                const def = getTraitDef(selectedTraitId);
-                if (def) {
-                    candidates.push({ trait: def, score: 100 }); // High priority
-                }
-            }
-
-            // Mark all traits in this spectrum as processed so standalone logic doesn't pick them again
-            config.forEach(c => processedTraitIds.add(c.id));
-        });
-
-
-        // 2. Standard/Group Logic (for non-spectrum traits)
-        const groupScores: Record<string, { trait: Trait, score: number }[]> = {};
-        const standalones: { trait: Trait, score: number }[] = [];
-
-        Object.keys(traitScores).forEach(id => {
-            if (processedTraitIds.has(id)) return; // Skip spectrum traits
-            if (traitScores[id] <= 0) return;
-            if (id.includes('_spectrum')) return; // Skip spectrum score keys
-
-            const def = getTraitDef(id);
-            if (!def) return;
-
-            const item = { trait: def, score: traitScores[id] };
-            if (def.group) {
-                if (!groupScores[def.group]) groupScores[def.group] = [];
-                groupScores[def.group].push(item);
-            } else {
-                standalones.push(item);
-            }
-        });
-
-        // Pick Best from Groups
-        Object.values(groupScores).forEach(groupItems => {
-            groupItems.sort((a, b) => b.score - a.score);
-            if (groupItems[0].score >= 3) {
-                candidates.push(groupItems[0]);
-            }
-        });
-
-        // Pick Standalones
-        standalones.forEach(item => {
-            if (item.score >= 3) {
-                candidates.push(item);
-            }
-        });
-
-
-        // Separate answers by part
+        // Separate answers by part - only use P1+P2 for traits and backstory
         const traitAnswers = Object.values(answers).filter(a => a.part === 1 || a.part === 2);
 
         // --- 1. TRAIT & BACKSTORY SCORES (P1 + P2 ONLY) ---
@@ -405,6 +321,83 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 });
             }
         });
+
+        // --- TRAIT SELECTION LOGIC ---
+        const selectTraits = (scores: Record<string, number>): Trait[] => {
+            const candidates: { trait: Trait, score: number }[] = [];
+            const getTraitDef = (id: string) => traitDefinitions.find(t => t.id === id);
+            const processedTraitIds = new Set<string>();
+
+            // 1. Spectrum Analysis
+            Object.entries(SPECTRUM_CONFIG).forEach(([spectrumId, config]) => {
+                const score = scores[spectrumId] || 0;
+                let selectedTraitId: string | null = null;
+
+                if (score >= 6) selectedTraitId = config.find(c => c.threshold === 6)?.id || null;
+                else if (score >= 3) selectedTraitId = config.find(c => c.threshold === 3)?.id || null;
+                else if (score <= -6) selectedTraitId = config.find(c => c.threshold === -6)?.id || null;
+                else if (score <= -3) selectedTraitId = config.find(c => c.threshold === -3)?.id || null;
+
+                if (selectedTraitId) {
+                    const def = getTraitDef(selectedTraitId);
+                    if (def) {
+                        candidates.push({ trait: def, score: 100 });
+                    }
+                }
+
+                config.forEach(c => processedTraitIds.add(c.id));
+            });
+
+            // 2. Standard/Group Logic
+            const groupScores: Record<string, { trait: Trait, score: number }[]> = {};
+            const standalones: { trait: Trait, score: number }[] = [];
+
+            Object.keys(scores).forEach(id => {
+                if (processedTraitIds.has(id)) return;
+                if (scores[id] <= 0) return;
+                if (id.includes('_spectrum')) return;
+
+                const def = getTraitDef(id);
+                if (!def) return;
+
+                const item = { trait: def, score: scores[id] };
+                if (def.group) {
+                    if (!groupScores[def.group]) groupScores[def.group] = [];
+                    groupScores[def.group].push(item);
+                } else {
+                    standalones.push(item);
+                }
+            });
+
+            Object.values(groupScores).forEach(groupItems => {
+                groupItems.sort((a, b) => b.score - a.score);
+                if (groupItems[0].score >= 3) {
+                    candidates.push(groupItems[0]);
+                }
+            });
+
+            standalones.forEach(item => {
+                if (item.score >= 3) {
+                    candidates.push(item);
+                }
+            });
+
+            // 3. Global Sort & Conflict Resolution
+            candidates.sort((a, b) => b.score - a.score);
+
+            const finalTraits: Trait[] = [];
+            const selectedIds = new Set<string>();
+
+            for (const cand of candidates) {
+                const conflicts = cand.trait.conflicts || [];
+                if (!conflicts.some(c => selectedIds.has(c))) {
+                    finalTraits.push(cand.trait);
+                    selectedIds.add(cand.trait.id);
+                }
+            }
+
+            return finalTraits;
+        };
 
         // Calculate Traits Based on P1+P2 scores
         const finalTraits = selectTraits(traitScores);
@@ -472,6 +465,14 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
         const selectedChildhood = scoredChildhoods[0]?.story || childhoods[0];
         const selectedAdulthood = scoredAdulthoods[0]?.story || adulthoods[0];
+
+        // --- EXTRACT SKILL SCORES (from all parts P1+P2+P3) ---
+        const skillScores: Record<string, number> = {};
+        Object.keys(scores).forEach(key => {
+            if (R_SKILLS.includes(key)) {
+                skillScores[key] = scores[key];
+            }
+        });
 
         // --- MBTI LOGIC ---
         // E vs I: Social + Animals
