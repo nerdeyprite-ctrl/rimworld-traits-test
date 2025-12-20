@@ -383,41 +383,44 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         });
 
 
-        // 3. Global Sort & Conflict Resolution (Unlimited Traits)
-        candidates.sort((a, b) => b.score - a.score);
+        // Separate answers by part
+        const traitAnswers = Object.values(answers).filter(a => a.part === 1 || a.part === 2);
 
-        const finalTraits: Trait[] = [];
-        const selectedIds = new Set<string>();
-
-        for (const cand of candidates) {
-            const conflicts = cand.trait.conflicts || [];
-            if (!conflicts.some(c => selectedIds.has(c))) {
-                finalTraits.push(cand.trait);
-                selectedIds.add(cand.trait.id);
-            }
-        }
-
-        // --- BACKSTORY LOGIC ---
-        // Load backstory data based on language
-        const backstoriesData = language === 'ko' ? backstoriesKo : backstoriesEn;
-
-        // Extract backstory preferences from Part 2 answers
+        // --- 1. TRAIT & BACKSTORY SCORES (P1 + P2 ONLY) ---
+        const traitScores: Record<string, number> = {};
         const backstoryPreferences: Record<string, number> = {};
-        Object.values(answers).forEach(answer => {
-            if (answer.scores && answer.scores['backstory_preference']) {
-                const pref = answer.scores['backstory_preference'] as string;
-                backstoryPreferences[pref] = (backstoryPreferences[pref] || 0) + 1;
+        const p1p2SkillScores: Record<string, number> = {};
+
+        traitAnswers.forEach(answer => {
+            if (answer.scores) {
+                Object.entries(answer.scores).forEach(([id, score]) => {
+                    if (id === 'backstory_preference') {
+                        const pref = score as string;
+                        backstoryPreferences[pref] = (backstoryPreferences[pref] || 0) + 1;
+                    } else if (R_SKILLS.includes(id)) {
+                        p1p2SkillScores[id] = (p1p2SkillScores[id] || 0) + (score as number);
+                    } else {
+                        traitScores[id] = (traitScores[id] || 0) + (score as number);
+                    }
+                });
             }
         });
 
-        // Calculate backstory score with multiple factors
+        // Calculate Traits Based on P1+P2 scores
+        const finalTraits = selectTraits(traitScores);
+        const selectedIds = new Set(finalTraits.map(t => t.id));
+
+        // --- 2. BACKSTORY LOGIC (P1 + P2 ONLY) ---
+        const backstoriesData = language === 'ko' ? backstoriesKo : backstoriesEn;
+
+        // Calculate backstory score with multiple factors (Only using P1+P2 data)
         const calculateBackstoryScore = (story: any) => {
             let score = 0;
 
-            // 1. Skill bonuses alignment (30% weight)
+            // 1. Skill bonuses alignment (P1+P2 ONLY)
             if (story.skillBonuses) {
                 Object.entries(story.skillBonuses).forEach(([skill, bonus]) => {
-                    const skillScore = skillScores[skill] || 0;
+                    const skillScore = p1p2SkillScores[skill] || 0;
                     score += skillScore * (bonus as number) * 0.3;
                 });
             }
@@ -426,31 +429,29 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             if (story.spawnCategories && story.spawnCategories.length > 0) {
                 story.spawnCategories.forEach((category: string) => {
                     const categoryLower = category.toLowerCase();
-                    // Check if user has preference for this category
                     Object.keys(backstoryPreferences).forEach(pref => {
                         if (categoryLower.includes(pref.toLowerCase()) || pref.toLowerCase().includes(categoryLower)) {
-                            score += backstoryPreferences[pref] * 10; // 40% weight (10 points per preference)
+                            score += backstoryPreferences[pref] * 10;
                         }
                     });
                 });
             }
 
-            // 3. Trait compatibility (20% weight)
+            // 3. Trait compatibility
             if (story.traits && story.traits.length > 0) {
                 story.traits.forEach((traitId: string) => {
                     if (selectedIds.has(traitId)) {
-                        score += 20; // Bonus if backstory trait matches selected trait
+                        score += 20;
                     }
                 });
             }
 
-            // 4. Work disable penalty (10% weight)
+            // 4. Penalty for work disables
             if (story.workDisables && story.workDisables.length > 0) {
-                // Slight penalty for work disables
                 score -= story.workDisables.length * 2;
             }
 
-            // 5. Small randomness for variety
+            // 5. Variety
             score += Math.random() * 5;
 
             return score;
@@ -459,7 +460,6 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         const childhoods = backstoriesData.childhood || [];
         const adulthoods = backstoriesData.adulthood || [];
 
-        // Sort by calculated score
         const scoredChildhoods = childhoods.map(story => ({
             story,
             score: calculateBackstoryScore(story)
@@ -470,7 +470,6 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             score: calculateBackstoryScore(story)
         })).sort((a, b) => b.score - a.score);
 
-        // Select best matching backstories
         const selectedChildhood = scoredChildhoods[0]?.story || childhoods[0];
         const selectedAdulthood = scoredAdulthoods[0]?.story || adulthoods[0];
 
