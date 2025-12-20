@@ -18,6 +18,7 @@ export interface Skill {
 export interface Answer {
   text: string;
   scores: Record<string, number | string>; // traitId -> score impact, or backstory_preference -> string
+  part?: number; // Which part of the test this answer belongs to (1, 2, or 3)
 }
 
 export interface Question {
