@@ -23,7 +23,11 @@ create table test_results (
   traits jsonb,
   backstory_childhood jsonb,
   backstory_adulthood jsonb,
-  skills jsonb
+  skills jsonb,
+  incapabilities jsonb,
+  name text,
+  age integer,
+  gender text
 );
 
 -- RLS(Row Level Security) 활성화

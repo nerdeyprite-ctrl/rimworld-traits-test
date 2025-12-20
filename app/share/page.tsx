@@ -122,12 +122,22 @@ export default async function SharePage({ searchParams }: Props) {
                     지금 바로 당신의 적성도 테스트해보세요.
                 </div>
 
-                <Link
-                    href="/"
-                    className="inline-block px-10 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:translate-y-1 active:shadow-none transition-all border border-[#5a3a1a]"
-                >
-                    나도 테스트하기
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    {params.s && (
+                        <Link
+                            href={`/result?s=${params.s}`}
+                            className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] text-white font-bold text-lg shadow-[0_4px_0_#102a43] active:translate-y-1 active:shadow-none transition-all border border-[#102a43]"
+                        >
+                            상세 결과 확인하기
+                        </Link>
+                    )}
+                    <Link
+                        href="/"
+                        className="inline-block px-10 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:translate-y-1 active:shadow-none transition-all border border-[#5a3a1a]"
+                    >
+                        나도 테스트하기
+                    </Link>
+                </div>
             </div>
 
         </div>

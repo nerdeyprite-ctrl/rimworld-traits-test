@@ -4,41 +4,112 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useTest } from '../../context/TestContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { TestResult, Trait } from '../../types/rimworld';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AdPlaceholder from '../../components/AdPlaceholder';
 import ShareButtons from '../../components/ShareButtons';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { Suspense } from 'react';
 
-export default function ResultPage() {
-    const { calculateFinalTraits, scores, userInfo, testPhase, startSkillTest } = useTest();
+function ResultContent() {
+    const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase, startSkillTest } = useTest();
     const { t, language } = useLanguage();
+    const searchParams = useSearchParams();
+    const s = searchParams.get('s');
+
     const [result, setResult] = useState<TestResult | null>(null);
     const [selectedTrait, setSelectedTrait] = useState<Trait | null>(null);
+    const [localUserInfo, setLocalUserInfo] = useState<any>(null);
+    const [isFullResult, setIsFullResult] = useState(false);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    const userInfo = localUserInfo || contextUserInfo;
+    const testPhase = localUserInfo ? (isFullResult ? 'skill' : 'trait') : contextTestPhase;
 
     // Scroll Hint Logic
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showScrollHint, setShowScrollHint] = useState(false);
-    const [shareId, setShareId] = useState<string | null>(null);
+    const [shareId, setShareId] = useState<string | null>(s);
     const isSavedRef = useRef(false);
 
+    // Fetch result if ID provided
     useEffect(() => {
-        if (result && userInfo && !isSavedRef.current && isSupabaseConfigured() && testPhase === 'trait') {
-            const saveStats = async () => {
+        if (s && !isSavedRef.current) {
+            const fetchSharedResult = async () => {
+                setLoading(true);
                 try {
                     const { data, error } = await supabase
                         .from('test_results')
-                        .insert({
-                            mbti: result.mbti,
-                            traits: result.traits,
-                            backstory_childhood: result.backstory.childhood,
-                            backstory_adulthood: result.backstory.adulthood,
-                            name: userInfo.name,
-                            age: userInfo.age,
-                            gender: userInfo.gender
-                        })
-                        .select('id')
+                        .select('*')
+                        .eq('id', s)
                         .single();
+
+                    if (data && !error) {
+                        const fetchedResult: TestResult = {
+                            mbti: data.mbti,
+                            traits: data.traits,
+                            backstory: {
+                                childhood: data.backstory_childhood,
+                                adulthood: data.backstory_adulthood
+                            },
+                            skills: data.skills || [],
+                            incapabilities: data.incapabilities || [],
+                            scoreLog: {} // Not strictly needed for display
+                        };
+                        setResult(fetchedResult);
+                        setLocalUserInfo({
+                            name: data.name || '정착민',
+                            age: data.age || 20,
+                            gender: data.gender || 'Male'
+                        });
+                        setIsFullResult(!!data.skills && data.skills.length > 0);
+                        isSavedRef.current = true; // Mark as "handled" so we don't re-save or re-calc
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch shared result:", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchSharedResult();
+        } else if (!s) {
+            // Normal flow: calculate from context
+            const res = calculateFinalTraits();
+            setResult(res);
+            setIsFullResult(contextTestPhase === 'skill');
+        }
+    }, [s, language, contextTestPhase]);
+
+    // Save logic
+    useEffect(() => {
+        if (!s && result && userInfo && isSupabaseConfigured()) {
+            const saveKey = `${testPhase}_${userInfo.name}`;
+            if (isSavedRef.current === (saveKey as any)) return;
+
+            const saveStats = async () => {
+                try {
+                    const savePayload: any = {
+                        mbti: result.mbti,
+                        traits: result.traits,
+                        backstory_childhood: result.backstory.childhood,
+                        backstory_adulthood: result.backstory.adulthood,
+                        skills: result.skills,
+                        incapabilities: result.incapabilities,
+                        name: userInfo.name,
+                        age: userInfo.age,
+                        gender: userInfo.gender
+                    };
+
+                    let data, error;
+                    if (shareId) {
+                        const res = await supabase.from('test_results').update(savePayload).eq('id', shareId).select('id').single();
+                        data = res.data;
+                        error = res.error;
+                    } else {
+                        const res = await supabase.from('test_results').insert(savePayload).select('id').single();
+                        data = res.data;
+                        error = res.error;
+                    }
 
                     if (data && !error) {
                         setShareId(data.id.toString());
@@ -46,47 +117,40 @@ export default function ResultPage() {
                 } catch (err) {
                     console.error("Failed to save result:", err);
                 }
-                isSavedRef.current = true;
+                isSavedRef.current = saveKey as any;
             };
             saveStats();
         }
-    }, [result, userInfo]);
-
-    useEffect(() => {
-        const res = calculateFinalTraits();
-        setResult(res);
-    }, [language]); // Re-calculate when language changes (to get localized trait names)
+    }, [result, userInfo, testPhase, s, shareId]);
 
     const checkScroll = () => {
         if (scrollRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-            // Show hint if there is more content below (allow 5px buffer)
             setShowScrollHint(scrollHeight > clientHeight && scrollTop + clientHeight < scrollHeight - 5);
         }
     };
 
     useEffect(() => {
         checkScroll();
-        // Add resize listener just in case
         window.addEventListener('resize', checkScroll);
         return () => window.removeEventListener('resize', checkScroll);
-    }, [result]); // Re-check when result (traits) changes
+    }, [result]);
 
     const handleUnlockSkills = () => {
-        // Start Phase 2: Skill Assessment
         startSkillTest();
         router.push('/test');
     };
+
+    if (loading) {
+        return <div className="p-20 text-center text-gray-400 animate-pulse">{t('loading_gene')}...</div>;
+    }
 
     if (!result) {
         return <div className="p-8 text-center text-gray-400">{t('loading_gene')}</div>;
     }
 
     const { traits, skills, mbti, backstory } = result;
-    const isFullResult = testPhase === 'skill'; // Phase 2 complete means we have full results
 
-    // Skill Name Mapping using t()
-    // t('Shooting') -> '사격' (ko) / 'Shooting' (en)
     const getSkillName = (key: string) => t(key.toLowerCase());
 
     return (
@@ -419,5 +483,13 @@ export default function ResultPage() {
             </div>
 
         </div>
+    );
+}
+
+export default function ResultPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-gray-400 animate-pulse">결과를 불러오는 중...</div>}>
+            <ResultContent />
+        </Suspense>
     );
 }
