@@ -89,7 +89,7 @@ export default function Home() {
       </section>
 
       {/* Info Section (Bottom) */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-6 text-xs md:text-sm text-[#9f752a] font-medium mt-16 bg-[var(--rimworld-panel)] p-3 border border-[var(--rimworld-border)] inline-block mx-auto rounded opacity-80 hover:opacity-100 transition-opacity">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-6 text-xs md:text-sm text-[#9f752a] font-medium mt-16 bg-[#111] p-3 border border-[#333] inline-block mx-auto rounded opacity-80 hover:opacity-100 transition-opacity">
         <span>⏱ {t('estimated_time')}</span>
         <span className="hidden md:inline text-gray-600"> | </span>
         <span>📝 {t('questions_count')}</span>

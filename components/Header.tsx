@@ -16,7 +16,7 @@ const Header = () => {
             </Link>
             <nav className="flex items-center gap-4">
                 {/* Creator Links */}
-                <div className="flex items-center gap-4 mr-2 border-r border-gray-600/30 pr-4">
+                <div className="hidden sm:flex items-center gap-4 mr-2 border-r border-gray-600/30 pr-4">
                     <a href="https://ratkin.org/" target="_blank" rel="noopener noreferrer"
                         className="text-gray-400 hover:text-[var(--rimworld-highlight)] transition-colors" title="Official Website">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,13 +40,12 @@ const Header = () => {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-full hover:bg-[var(--rimworld-border)] transition-colors text-[var(--rimworld-text)] mr-2"
-                    title={theme === 'dark' ? t('theme_light') : t('theme_dark')}
+                    className="p-2 rounded-full hover:bg-gray-700/30 transition-colors text-[var(--rimworld-highlight)]"
+                    title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 >
                     {theme === 'dark' ? (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707m12.728 12.728L12 12m0 0l-4-4m4 4l4-4m-4 4l-4 4m4-4l4 4" />
-                            <circle cx="12" cy="12" r="5" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z" />
                         </svg>
                     ) : (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,21 +54,24 @@ const Header = () => {
                     )}
                 </button>
 
-                <button
-                    onClick={() => setLanguage('ko')}
-                    className={`nav-btn p-1 rounded transition-all duration-300 ${language === 'ko' ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-100 grayscale'}`}
-                    title="한국어"
-                >
-                    <span className="text-3xl filter drop-shadow-md">🇰🇷</span>
-                </button>
                 <div className="w-px h-5 bg-gray-600/50"></div>
-                <button
-                    onClick={() => setLanguage('en')}
-                    className={`nav-btn p-1 rounded transition-all duration-300 ${language === 'en' ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-100 grayscale'}`}
-                    title="English"
-                >
-                    <span className="text-3xl filter drop-shadow-md">🇺🇸</span>
-                </button>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setLanguage('ko')}
+                        className={`nav-btn p-1 rounded transition-all duration-300 ${language === 'ko' ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-100 grayscale'}`}
+                        title="한국어"
+                    >
+                        <span className="text-2xl filter drop-shadow-md">🇰🇷</span>
+                    </button>
+                    <button
+                        onClick={() => setLanguage('en')}
+                        className={`nav-btn p-1 rounded transition-all duration-300 ${language === 'en' ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-100 grayscale'}`}
+                        title="English"
+                    >
+                        <span className="text-2xl filter drop-shadow-md">🇺🇸</span>
+                    </button>
+                </div>
             </nav>
         </header>
     );

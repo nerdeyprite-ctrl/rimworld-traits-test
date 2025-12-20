@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -11,34 +11,24 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     const [theme, setTheme] = useState<Theme>('dark');
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Load theme from localStorage
+        // Hydrate theme from localStorage
         const savedTheme = localStorage.getItem('theme') as Theme;
         if (savedTheme) {
             setTheme(savedTheme);
-            document.documentElement.classList.toggle('light', savedTheme === 'light');
-        } else {
-            // Default to dark
-            document.documentElement.classList.remove('light');
+            document.documentElement.classList.toggle('light-mode', savedTheme === 'light');
         }
-        setMounted(true);
     }, []);
 
     const toggleTheme = () => {
         const newTheme = theme === 'dark' ? 'light' : 'dark';
         setTheme(newTheme);
         localStorage.setItem('theme', newTheme);
-        document.documentElement.classList.toggle('light', newTheme === 'light');
+        document.documentElement.classList.toggle('light-mode', newTheme === 'light');
     };
-
-    // Avoid hydration mismatch
-    if (!mounted) {
-        return <div style={{ visibility: 'hidden' }}>{children}</div>;
-    }
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>

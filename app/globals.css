@@ -4,32 +4,26 @@
   --background: #111111;
   --foreground: #dddddd;
 
-  /* Rimworld Palette (Dark) */
+  /* Rimworld Palette (Dark - Default) */
   --rimworld-bg: #111111;
   --rimworld-panel: #1e1e1e;
-  --rimworld-panel-light: #2b2b2b;
-  --rimworld-panel-dark: #111111;
   --rimworld-text: #dddddd;
-  --rimworld-text-dim: #a2a2a2;
   --rimworld-highlight: #9f752a;
   --rimworld-border: #6b6b6b;
-  --rimworld-border-dim: #333333;
+  --rimworld-card: #1b1b1b;
 }
 
-.light {
+.light-mode {
   --background: #fdfdfd;
-  --foreground: #222222;
+  --foreground: #1a1a1a;
 
-  /* Rimworld Palette (Light) */
-  --rimworld-bg: #fdfdfd;
-  --rimworld-panel: #f0f0f0;
-  --rimworld-panel-light: #ffffff;
-  --rimworld-panel-dark: #e0e0e0;
-  --rimworld-text: #222222;
-  --rimworld-text-dim: #666666;
-  --rimworld-highlight: #9f752a;
-  --rimworld-border: #bbbbbb;
-  --rimworld-border-dim: #dddddd;
+  /* Rimworld Light Palette */
+  --rimworld-bg: #f5f5f5;
+  --rimworld-panel: #ffffff;
+  --rimworld-text: #1a1a1a;
+  --rimworld-highlight: #8b5a2b;
+  --rimworld-border: #cccccc;
+  --rimworld-card: #f9f9f9;
 }
 
 @theme {
@@ -38,17 +32,41 @@
 
   --color-rimworld-bg: var(--rimworld-bg);
   --color-rimworld-panel: var(--rimworld-panel);
-  --color-rimworld-panel-light: var(--rimworld-panel-light);
-  --color-rimworld-panel-dark: var(--rimworld-panel-dark);
   --color-rimworld-text: var(--rimworld-text);
-  --color-rimworld-text-dim: var(--rimworld-text-dim);
   --color-rimworld-highlight: var(--rimworld-highlight);
   --color-rimworld-border: var(--rimworld-border);
-  --color-rimworld-border-dim: var(--rimworld-border-dim);
+  --color-rimworld-card: var(--rimworld-card);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Common UI Enhancements for Light Mode */
+.light-mode .bg-\[#111\],
+.light-mode .bg-\[#1b1b1b\],
+.light-mode .bg-\[#1e1e1e\] {
+  background-color: var(--rimworld-panel) !important;
+}
+
+.light-mode .border-\[#333\],
+.light-mode .border-gray-600,
+.light-mode .border-gray-700 {
+  border-color: var(--rimworld-border) !important;
+}
+
+.light-mode .text-white {
+  color: var(--rimworld-text) !important;
+}
+
+.light-mode .text-gray-400,
+.light-mode .text-gray-500 {
+  color: #666 !important;
 }

@@ -72,9 +72,7 @@ export default function StatsPage() {
                 setIsDbConnected(true);
             }
 
-            // 2. MBTI Distribution (Requires RPC or client-side processing)
-            // For simplicity, we fetch all (limit 1000) and process, or use a customized view if available.
-            // Using a simple approximation here: fetch last 1000 records
+            // 2. MBTI Distribution
             const { data: results, error: dataError } = await supabase
                 .from('test_results')
                 .select('mbti, traits')
@@ -89,7 +87,7 @@ export default function StatsPage() {
                 const mbtiChartData = Object.entries(mbtiCounts)
                     .map(([name, value]) => ({ name, value }))
                     .sort((a, b) => b.value - a.value)
-                    .slice(0, 10); // Top 10
+                    .slice(0, 10);
                 setMbtiData(mbtiChartData);
 
                 // Process Traits
@@ -97,7 +95,6 @@ export default function StatsPage() {
                 results.forEach(r => {
                     if (Array.isArray(r.traits)) {
                         r.traits.forEach((t: any) => {
-                            // Assuming trait is object { id, name } or just string ID
                             const tName = typeof t === 'string' ? t : (t.name || t.id);
                             traitCounts[tName] = (traitCounts[tName] || 0) + 1;
                         });
@@ -106,7 +103,7 @@ export default function StatsPage() {
                 const traitChartData = Object.entries(traitCounts)
                     .map(([name, value]) => ({ name, value }))
                     .sort((a, b) => b.value - a.value)
-                    .slice(0, 10); // Top 10
+                    .slice(0, 10);
                 setTraitData(traitChartData);
             }
 
@@ -118,37 +115,37 @@ export default function StatsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--rimworld-bg)] text-[var(--rimworld-text)] p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-[var(--rimworld-bg)] text-[var(--rimworld-text)] p-4 md:p-8 font-sans transition-colors duration-300">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-8 border-b border-[var(--rimworld-border-dim)] pb-4">
+                <div className="flex justify-between items-center mb-8 border-b border-[var(--rimworld-border)] pb-4">
                     <h1 className="text-3xl font-bold text-[var(--rimworld-highlight)]">
                         📊 {t('app_title')} {t('statistics') || '통계'}
                     </h1>
-                    <Link href="/" className="px-4 py-2 bg-[var(--rimworld-panel-light)] hover:bg-[var(--rimworld-panel)] border border-[var(--rimworld-border-dim)] rounded text-sm text-[var(--rimworld-text)] transition-colors">
+                    <Link href="/" className="px-4 py-2 bg-[var(--rimworld-panel)] border border-[var(--rimworld-border)] hover:bg-gray-700/20 rounded text-sm text-[var(--rimworld-text)] transition-colors">
                         {t('back_home')}
                     </Link>
                 </div>
 
                 {/* Connection Status Warning */}
                 {!isDbConnected && !isLoading && (
-                    <div className="bg-yellow-900/30 border border-yellow-700 p-4 rounded mb-8 text-yellow-200 text-sm animate-pulse">
+                    <div className="bg-yellow-900/10 border border-yellow-700/50 p-4 rounded mb-8 text-yellow-600 dark:text-yellow-200 text-sm animate-pulse">
                         🚧 <strong>Database Not Connected:</strong> Currently showing demo data. Please configure Supabase keys in .env.local.
                     </div>
                 )}
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
-                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Total Participants</h3>
-                        <p className="text-4xl font-bold text-[var(--rimworld-text)]">{totalCount.toLocaleString()}</p>
+                    <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
+                        <h3 className="opacity-60 text-sm uppercase tracking-wider mb-2">Total Participants</h3>
+                        <p className="text-4xl font-bold">{totalCount.toLocaleString()}</p>
                     </div>
-                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
-                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Most Common Type</h3>
+                    <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
+                        <h3 className="opacity-60 text-sm uppercase tracking-wider mb-2">Most Common Type</h3>
                         <p className="text-4xl font-bold text-[#00C49F]">{mbtiData[0]?.name || '-'}</p>
                     </div>
-                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
-                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Top Trait</h3>
+                    <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
+                        <h3 className="opacity-60 text-sm uppercase tracking-wider mb-2">Top Trait</h3>
                         <p className="text-4xl font-bold text-[#FFBB28]">{traitData[0]?.name || '-'}</p>
                     </div>
                 </div>
@@ -156,16 +153,16 @@ export default function StatsPage() {
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                     {/* MBTI Chart */}
-                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
-                        <h3 className="text-xl font-bold text-[var(--rimworld-text)] mb-6 border-l-4 border-[#00C49F] pl-3">MBTI Distribution</h3>
+                    <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
+                        <h3 className="text-xl font-bold mb-6 border-l-4 border-[#00C49F] pl-3">MBTI Distribution</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={mbtiData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--rimworld-border-dim)" />
-                                    <XAxis type="number" stroke="var(--rimworld-text-dim)" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.2)" />
+                                    <XAxis type="number" stroke="var(--rimworld-text)" opacity={0.5} />
                                     <YAxis dataKey="name" type="category" stroke="var(--rimworld-text)" width={60} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: 'var(--rimworld-panel-dark)', borderColor: 'var(--rimworld-border)', color: 'var(--rimworld-text)' }}
+                                        contentStyle={{ backgroundColor: 'var(--rimworld-panel)', borderColor: 'var(--rimworld-border)', color: 'var(--rimworld-text)' }}
                                         itemStyle={{ color: '#00C49F' }}
                                     />
                                     <Bar dataKey="value" fill="#00C49F" radius={[0, 4, 4, 0]}>
@@ -179,8 +176,8 @@ export default function StatsPage() {
                     </div>
 
                     {/* Traits Pie Chart */}
-                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
-                        <h3 className="text-xl font-bold text-[var(--rimworld-text)] mb-6 border-l-4 border-[#FFBB28] pl-3">Top 10 Traits</h3>
+                    <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
+                        <h3 className="text-xl font-bold mb-6 border-l-4 border-[#FFBB28] pl-3">Top 10 Traits</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -198,14 +195,14 @@ export default function StatsPage() {
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#222', borderColor: '#555', color: '#fff' }} />
+                                    <Tooltip contentStyle={{ backgroundColor: 'var(--rimworld-panel)', borderColor: 'var(--rimworld-border)', color: 'var(--rimworld-text)' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
 
-                <div className="text-center text-gray-500 text-xs mt-12 pb-8">
+                <div className="text-center opacity-40 text-xs mt-12 pb-8">
                     Data is collected anonymously for statistical purposes only.<br />
                     Powered by Rimworld Traits Test
                 </div>

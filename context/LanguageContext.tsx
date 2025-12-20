@@ -71,9 +71,7 @@ const translations: Record<Language, Record<string, string>> = {
         'part2_title': 'PART 2: 배경 탐색',
         'part3_title': 'PART 3: 기술 정밀 검사',
         'estimated_time': '예상 소요 시간: 10분',
-        'questions_count': '기본 설문 45문항 + 추가 설문 15문항',
-        'theme_dark': '다크 모드',
-        'theme_light': '라이트 모드'
+        'questions_count': '기본 설문 45문항 + 추가 설문 15문항'
     },
     en: {
         'app_title': 'Rimworld Colonist Test',
@@ -131,9 +129,7 @@ const translations: Record<Language, Record<string, string>> = {
         'medicine': 'Medicine',
         'social': 'Social',
         'intellectual': 'Intellectual',
-        'progress': 'Progress',
-        'theme_dark': 'Dark Mode',
-        'theme_light': 'Light Mode'
+        'progress': 'Progress'
     }
 };
 

@@ -53,7 +53,7 @@ export default function TestPage() {
             </h3>
 
             {/* Progress Bar */}
-            <div className="w-full bg-[var(--rimworld-border)] opacity-30 h-2 mb-8 relative border border-[var(--rimworld-border)]">
+            <div className="w-full bg-gray-800 h-2 mb-8 relative border border-gray-700">
                 <div
                     className="bg-[var(--rimworld-highlight)] h-full transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
@@ -77,13 +77,13 @@ export default function TestPage() {
                         <button
                             key={idx}
                             onClick={() => onAnswerClick(answer)}
-                            className="w-full text-left p-4 bg-[var(--rimworld-text)]/5 hover:bg-[#9f752a]/20 border border-transparent hover:border-[#9f752a] transition-all duration-200 group"
+                            className="w-full text-left p-4 bg-black/20 hover:bg-[#9f752a]/20 border border-transparent hover:border-[#9f752a] transition-all duration-200 group"
                         >
                             <div className="flex items-center">
-                                <span className="w-6 h-6 flex items-center justify-center border border-[var(--rimworld-border)] rounded-sm mr-4 text-xs bg-[var(--rimworld-bg)] text-[var(--rimworld-text)] group-hover:bg-[#9f752a] group-hover:text-white group-hover:border-[#9f752a] transition-colors">
+                                <span className="w-6 h-6 flex items-center justify-center border border-gray-600 rounded-sm mr-4 text-xs bg-black group-hover:bg-[#9f752a] group-hover:text-white group-hover:border-[#9f752a] transition-colors">
                                     {String.fromCharCode(65 + idx)}
                                 </span>
-                                <span className="text-[var(--rimworld-text)] opacity-80 group-hover:opacity-100 group-hover:text-[var(--rimworld-text)]">{answer.text}</span>
+                                <span className="text-gray-300 group-hover:text-white">{answer.text}</span>
                             </div>
                         </button>
                     ))}

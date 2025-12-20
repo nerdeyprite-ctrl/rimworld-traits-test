@@ -196,54 +196,54 @@ function ResultContent() {
             </h1>
 
             {/* Main Stats Panel - Mimicking Rimworld UI */}
-            <div className="w-full bg-[var(--rimworld-panel)] border border-[var(--rimworld-border)] p-1 shadow-2xl flex flex-col md:flex-row min-h-[600px]">
+            <div className="w-full bg-[#1b1b1b] border border-[#6b6b6b] p-1 shadow-2xl flex flex-col md:flex-row min-h-[600px]">
 
                 {/* LEFT COLUMN: Basic Info & Backstory */}
-                <div className="w-full md:w-1/3 bg-[var(--rimworld-panel-light)] p-6 flex flex-col border-r border-[var(--rimworld-border)] relative">
+                <div className="w-full md:w-1/3 bg-[#2b2b2b] p-6 flex flex-col border-r border-[#6b6b6b] relative">
 
                     {/* Name Box with MBTI integrated */}
-                    <div className="bg-[var(--rimworld-panel-dark)] border border-[var(--rimworld-border)] p-4 mb-6 text-center shadow-inner relative overflow-hidden group">
-                        <div className="text-xs text-[var(--rimworld-text-dim)] mb-2 uppercase tracking-widest">{t('name')}</div>
-                        <div className="text-2xl text-[var(--rimworld-text)] font-bold tracking-wider relative z-10">{userInfo?.name || '정착민'}</div>
+                    <div className="bg-[#111111] border border-[#6b6b6b] p-4 mb-6 text-center shadow-inner relative overflow-hidden group">
+                        <div className="text-xs text-gray-500 mb-2 uppercase tracking-widest">{t('name')}</div>
+                        <div className="text-2xl text-white font-bold tracking-wider relative z-10">{userInfo?.name || '정착민'}</div>
 
                         {/* Subtler MBTI Badge */}
                         {mbti && (
-                            <div className="mt-3 inline-block bg-[var(--rimworld-panel-light)] border border-[var(--rimworld-border)] px-3 py-1 rounded text-xs text-[var(--rimworld-highlight)] font-bold tracking-widest shadow-sm" title="변방계 성격 유형">
+                            <div className="mt-3 inline-block bg-[#333] border border-[#555] px-3 py-1 rounded text-xs text-[#9f752a] font-bold tracking-widest shadow-sm" title="변방계 성격 유형">
                                 {mbti}
                             </div>
                         )}
                     </div>
 
                     {/* Gender & Age */}
-                    <div className="flex justify-around items-center mb-6 bg-[var(--rimworld-panel-dark)] p-3 rounded">
+                    <div className="flex justify-around items-center mb-6 bg-[#1f1f1f] p-3 rounded">
                         <div className="text-center">
-                            <span className="block text-[var(--rimworld-text-dim)] text-[10px] uppercase">{t('gender')}</span>
-                            <span className="text-[var(--rimworld-text)] text-lg">{userInfo?.gender === 'Male' ? '♂ ' + t('male') : '♀ ' + t('female')}</span>
+                            <span className="block text-gray-500 text-[10px] uppercase">{t('gender')}</span>
+                            <span className="text-white text-lg">{userInfo?.gender === 'Male' ? '♂ ' + t('male') : '♀ ' + t('female')}</span>
                         </div>
-                        <div className="w-px h-8 bg-[var(--rimworld-border)] opacity-30"></div>
+                        <div className="w-px h-8 bg-gray-600"></div>
                         <div className="text-center">
-                            <span className="block text-[var(--rimworld-text-dim)] text-[10px] uppercase">{t('age')}</span>
-                            <span className="text-[var(--rimworld-text)] text-lg">{userInfo?.age}</span>
+                            <span className="block text-gray-500 text-[10px] uppercase">{t('age')}</span>
+                            <span className="text-white text-lg">{userInfo?.age}</span>
                         </div>
                     </div>
 
                     {/* Background Stories */}
                     <div className="flex-grow space-y-4">
                         {/* Background Stories Container */}
-                        <div className="bg-[var(--rimworld-panel-dark)] border border-[var(--rimworld-border)] p-3 space-y-4">
+                        <div className="bg-[#111111] border border-[#6b6b6b] p-3 space-y-4">
                             {/* Childhood */}
                             <div>
-                                <h4 className="text-[var(--rimworld-text-dim)] font-semibold mb-1 text-sm flex justify-between">
+                                <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm flex justify-between">
                                     <span>{t('childhood')}</span>
                                     {backstory.childhood.spawnCategories && (
-                                        <span className="text-xs opacity-50 font-normal">[{backstory.childhood.spawnCategories[0]}]</span>
+                                        <span className="text-xs text-[#666] font-normal">[{backstory.childhood.spawnCategories[0]}]</span>
                                     )}
                                 </h4>
-                                <div className="bg-[var(--rimworld-panel-dark)] p-3 border border-[var(--rimworld-border-dim)] group hover:border-[var(--rimworld-border)] transition-colors">
-                                    <div className="text-[var(--rimworld-highlight)] font-bold mb-1">
+                                <div className="bg-[#111] p-3 border border-[#333] group hover:border-[#555] transition-colors">
+                                    <div className="text-[#e2c178] font-bold mb-1">
                                         {backstory.childhood.title}
                                     </div>
-                                    <p className="text-[var(--rimworld-text-dim)] text-xs italic mb-2 leading-relaxed">
+                                    <p className="text-gray-400 text-xs italic mb-2 leading-relaxed">
                                         {backstory.childhood.description}
                                     </p>
 
@@ -263,25 +263,25 @@ function ResultContent() {
                             {/* Adulthood (Only if adult) */}
                             {backstory?.adulthood && userInfo.age >= 20 && (
                                 <div>
-                                    <h4 className="text-[var(--rimworld-text-dim)] font-semibold mb-1 text-sm flex justify-between">
+                                    <h4 className="text-[#a2a2a2] font-semibold mb-1 text-sm flex justify-between">
                                         <span>{t('adulthood')}</span>
                                         {backstory.adulthood.spawnCategories && (
-                                            <span className="text-xs opacity-50 font-normal">[{backstory.adulthood.spawnCategories[0]}]</span>
+                                            <span className="text-xs text-[#666] font-normal">[{backstory.adulthood.spawnCategories[0]}]</span>
                                         )}
                                     </h4>
-                                    <div className="bg-[var(--rimworld-panel-dark)] p-3 border border-[var(--rimworld-border-dim)] group hover:border-[var(--rimworld-border)] transition-colors">
-                                        <div className="text-[var(--rimworld-highlight)] font-bold mb-1">
+                                    <div className="bg-[#111] p-3 border border-[#333] group hover:border-[#555] transition-colors">
+                                        <div className="text-[#e2c178] font-bold mb-1">
                                             {backstory.adulthood.title}
                                         </div>
-                                        <p className="text-[var(--rimworld-text-dim)] text-xs italic mb-2 leading-relaxed">
+                                        <p className="text-gray-400 text-xs italic mb-2 leading-relaxed">
                                             {backstory.adulthood.description}
                                         </p>
 
                                         {/* Skill Bonuses */}
                                         {backstory.adulthood.skillBonuses && Object.keys(backstory.adulthood.skillBonuses).length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2 border-t border-[var(--rimworld-border-dim)] pt-2">
+                                            <div className="flex flex-wrap gap-1 mt-2 border-t border-gray-800 pt-2">
                                                 {Object.entries(backstory.adulthood.skillBonuses).map(([skill, bonus]) => (
-                                                    <span key={skill} className={`text-[10px] px-1.5 py-0.5 rounded border ${bonus > 0 ? 'border-green-900/50 text-green-600 bg-green-900/10' : 'border-red-900/50 text-red-600 bg-red-900/10'}`}>
+                                                    <span key={skill} className={`text-[10px] px-1.5 py-0.5 rounded border ${bonus > 0 ? 'border-green-900 text-green-500 bg-green-900/10' : 'border-red-900 text-red-500 bg-red-900/10'}`}>
                                                         {getSkillName(skill)} {bonus > 0 ? `+${bonus}` : bonus}
                                                     </span>
                                                 ))}
@@ -292,20 +292,20 @@ function ResultContent() {
                             )}
                         </div>
                         {/* Incapability Section */}
-                        <div className="bg-[var(--rimworld-panel-dark)] border border-[var(--rimworld-border)] p-3 mt-4">
-                            <h4 className="text-[#ff4d4d] font-bold text-sm mb-2 border-b border-[var(--rimworld-border-dim)] pb-1">
+                        <div className="bg-[#111111] border border-[#6b6b6b] p-3 mt-4">
+                            <h4 className="text-[#ff4d4d] font-bold text-sm mb-2 border-b border-gray-700 pb-1">
                                 {t('incapable')}
                             </h4>
                             {result.incapabilities && result.incapabilities.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
                                     {result.incapabilities.map(skillKey => (
-                                        <span key={skillKey} className="px-2 py-1 bg-red-900/20 border border-[#ff4d4d]/50 text-[#ff4d4d] text-xs font-bold rounded">
+                                        <span key={skillKey} className="px-2 py-1 bg-[#3a1a1a] border border-[#ff4d4d] text-[#ff4d4d] text-xs font-bold rounded">
                                             {getSkillName(skillKey)}
                                         </span>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-[var(--rimworld-text-dim)] text-xs italic opacity-50">{t('none')}</div>
+                                <div className="text-gray-500 text-xs italic">{t('none')}</div>
                             )}
                         </div>
                     </div>
@@ -324,10 +324,10 @@ function ResultContent() {
                 <div className="w-full md:w-2/3 flex flex-col md:flex-row">
 
                     {/* Traits Column */}
-                    <div className="w-full md:w-1/2 p-4 border-r border-[var(--rimworld-border)] flex flex-col bg-[var(--rimworld-panel)] relative">
-                        <h3 className="text-[var(--rimworld-highlight)] font-bold mb-4 border-b border-[var(--rimworld-border-dim)] pb-1 flex justify-between">
+                    <div className="w-full md:w-1/2 p-4 border-r border-[#6b6b6b] flex flex-col bg-[#212121] relative">
+                        <h3 className="text-[#9f752a] font-bold mb-4 border-b border-gray-600 pb-1 flex justify-between">
                             <span>{t('traits')}</span>
-                            <span className="text-[10px] text-[var(--rimworld-text-dim)] font-normal mt-1">{t('trait_click_hint')}</span>
+                            <span className="text-[10px] text-gray-500 font-normal mt-1">{t('trait_click_hint')}</span>
                         </h3>
 
                         {/* Traits List Container */}
@@ -343,21 +343,21 @@ function ResultContent() {
                                         <div
                                             key={trait.id}
                                             className={`group relative border p-3 flex items-start cursor-pointer transition-all duration-200 ${isSelected
-                                                ? 'bg-[var(--rimworld-panel-light)] border-[var(--rimworld-highlight)] shadow-md'
-                                                : 'bg-[var(--rimworld-panel-dark)] hover:bg-[var(--rimworld-panel)] border-transparent hover:border-[var(--rimworld-border)]'
+                                                ? 'bg-[#444444] border-[#9f752a] shadow-md'
+                                                : 'bg-[#333333] hover:bg-[#3a3a3a] border-[#111] hover:border-gray-500'
                                                 }`}
                                             onClick={() => setSelectedTrait(trait)}
                                         >
                                             <div className="flex-grow">
-                                                <div className={`text-sm font-bold ${isSelected ? 'text-[var(--rimworld-highlight)]' : 'text-[var(--rimworld-text)]'}`}>{trait.name}</div>
-                                                <div className="text-[10px] text-[var(--rimworld-text-dim)]">{trait.group || 'General'}</div>
+                                                <div className={`text-sm font-bold ${isSelected ? 'text-[#ffc45d]' : 'text-white'}`}>{trait.name}</div>
+                                                <div className="text-[10px] text-gray-400">{trait.group || 'General'}</div>
                                             </div>
                                         </div>
                                     );
                                 })}
 
                                 {traits.length === 0 && (
-                                    <div className="text-[var(--rimworld-text-dim)] text-sm italic text-center py-10">{t('no_traits')}</div>
+                                    <div className="text-gray-500 text-sm italic text-center py-10">{t('no_traits')}</div>
                                 )}
                             </div>
 
@@ -390,8 +390,9 @@ function ResultContent() {
                         </div>
                     </div>
 
-                    <div className="w-full md:w-1/2 p-4 bg-[var(--rimworld-panel)] relative flex flex-col">
-                        <h3 className="text-[var(--rimworld-highlight)] font-bold mb-4 border-b border-[var(--rimworld-border-dim)] pb-1">{t('skills')}</h3>
+                    {/* Skills Column */}
+                    <div className="w-full md:w-1/2 p-4 bg-[#1e1e1e] relative flex flex-col">
+                        <h3 className="text-[#9f752a] font-bold mb-4 border-b border-gray-600 pb-1">{t('skills')}</h3>
 
                         {/* Skills List - Only fully visible if isFullResult is true */}
                         <div className={`space-y-3 p-2 flex-grow transition-all duration-500 ${!isFullResult ? 'blur-sm opacity-30 pointer-events-none' : 'opacity-100'}`}>
@@ -406,30 +407,30 @@ function ResultContent() {
                                 return (
                                     <div key={idx} className="flex flex-col space-y-1">
                                         <div className="flex justify-between items-end text-xs mb-0.5">
-                                            <span className={`font-bold ${isIncapable ? 'text-[var(--rimworld-text-dim)] line-through' : 'text-[var(--rimworld-text-dim)]'}`}>
+                                            <span className={`font-bold ${isIncapable ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
                                                 {localizedName}
                                             </span>
                                             <div className="flex items-center">
                                                 {!isIncapable && <span className="text-[#ffb000] text-[10px] mr-1">{fire}</span>}
-                                                <span className="text-[var(--rimworld-text)] font-mono">{isIncapable ? '-' : level}</span>
+                                                <span className="text-white font-mono">{isIncapable ? '-' : level}</span>
                                             </div>
                                         </div>
                                         {/* Bar Graph */}
-                                        <div className="w-full h-3 bg-[var(--rimworld-panel-dark)] border border-[var(--rimworld-border-dim)] relative overflow-hidden">
+                                        <div className="w-full h-3 bg-[#111] border border-gray-700 relative overflow-hidden">
                                             {isIncapable ? (
-                                                <div className="w-full h-full bg-red-900/10 flex items-center justify-center">
+                                                <div className="w-full h-full bg-[#2a1a1a] flex items-center justify-center">
                                                     <span className="text-[9px] text-[#ff4d4d] font-bold tracking-widest">{t('skill_incapable')}</span>
                                                 </div>
                                             ) : (
                                                 <>
                                                     <div
-                                                        className="h-full bg-[var(--rimworld-text-dim)] opacity-50"
+                                                        className="h-full bg-[#5b5b5b]"
                                                         style={{ width: `${(level / 20) * 100}%` }}
                                                     ></div>
                                                     {/* Ticks/Grid */}
                                                     <div className="absolute inset-0 flex">
                                                         {[...Array(9)].map((_, i) => (
-                                                            <div key={i} className="flex-1 border-r border-[var(--rimworld-text)]/10 h-full"></div>
+                                                            <div key={i} className="flex-1 border-r border-black/20 h-full"></div>
                                                         ))}
                                                     </div>
                                                 </>
@@ -492,10 +493,10 @@ function ResultContent() {
 
                 <ShareButtons result={result} userInfo={userInfo} shareId={shareId} />
 
-                <div className="flex justify-between items-center bg-[var(--rimworld-panel-dark)] p-4 border border-[var(--rimworld-border)]">
+                <div className="flex justify-between items-center bg-[#111111] p-4 border border-[#6b6b6b]">
                     <button
                         onClick={() => router.push('/')}
-                        className="px-6 py-2 bg-[var(--rimworld-panel-light)] hover:bg-[var(--rimworld-panel)] text-[var(--rimworld-text)] border border-[var(--rimworld-border)] text-sm"
+                        className="px-6 py-2 bg-[#333333] hover:bg-[#444444] text-white border border-gray-500 text-sm"
                     >
                         {t('back_home')}
                     </button>
