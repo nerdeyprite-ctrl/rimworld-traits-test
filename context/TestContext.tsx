@@ -501,96 +501,99 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         // Range: 0-20.
         // Passion: Minor (🔥) if score > 5, Major (🔥🔥) if score > 10 (Example logic)
 
+        // --- SKILL LOGIC ---
         const incapabilities: string[] = [];
 
         // Define Incapability Mapping
         const INCAPABILITY_MAP: Record<string, string[]> = {
             'inc_violence': ['Shooting', 'Melee'],
             'inc_animals': ['Animals'],
-            // Add others if needed
         };
 
-        const finalSkills = R_SKILLS.map(skillName => {
+        // 1. Pre-calculate raw stats and potential passion scores for all skills
+        const skillInfo = R_SKILLS.map(skillName => {
             const rawScore = skillScores[skillName] || 0;
-            let finalLevelCalc = rawScore; // Start with raw score
+            const historyBonus = ((selectedChildhood?.skillBonuses?.[skillName as keyof typeof selectedChildhood.skillBonuses] as number) || 0) +
+                ((selectedAdulthood?.skillBonuses?.[skillName as keyof typeof selectedAdulthood.skillBonuses] as number) || 0);
 
-            // Check Incapability Counters
-            // Find which inc_key affects this skill
             let isTotallyIncapable = false;
             let penalty = 0;
 
             Object.entries(INCAPABILITY_MAP).forEach(([incKey, affectedSkills]) => {
                 if (affectedSkills.includes(skillName)) {
                     const count = scores[incKey] || 0;
-                    if (count >= 2) {
-                        isTotallyIncapable = true;
-                    } else if (count === 1) {
-                        penalty += 8; // -8 penalty for hesitation
-                    }
+                    if (count >= 2) isTotallyIncapable = true;
+                    else if (count === 1) penalty += 8;
                 }
             });
 
-            // Legacy Fallback (keeping just in case, though we replaced data)
             if (rawScore <= -19) isTotallyIncapable = true;
 
-            // Incapability Logic
             if (isTotallyIncapable) {
-                // Avoid duplicates in list
-                if (!incapabilities.includes(skillName)) {
-                    incapabilities.push(skillName);
-                }
-                return {
-                    name: skillName,
-                    level: 0,
-                    passion: 'None' as Passion
-                };
+                if (!incapabilities.includes(skillName)) incapabilities.push(skillName);
+                return { name: skillName, isTotallyIncapable: true, level: 0, passion: 'None' as Passion, passionScore: -100 };
             }
 
-            // Apply Backstory Bonuses to base level calculation
-            const childhoodBonus = (selectedChildhood?.skillBonuses?.[skillName as keyof typeof selectedChildhood.skillBonuses] as number) || 0;
-            const adulthoodBonus = (selectedAdulthood?.skillBonuses?.[skillName as keyof typeof selectedAdulthood.skillBonuses] as number) || 0;
-            const historyBonus = childhoodBonus + adulthoodBonus;
-
-            // Base level logic: random base (0-3) + score + history - penalty
-            const baseLevel = Math.floor(Math.random() * 3);
-            let calculatedLevel = baseLevel + finalLevelCalc + Math.floor(historyBonus / 2) - penalty;
+            // Adjusted level logic: 
+            // Divide rawScore by 5 to bring it down to 1-4 range (assuming rawScore max is ~20)
+            // Divide historyBonus by 3 for less impact
+            const baseLevel = Math.random() < 0.3 ? 1 : 0; // 30% chance of starting at 1
+            let calculatedLevel = baseLevel + (rawScore / 5) + (historyBonus / 3) - penalty;
 
             // Age Factor Logic
-            // < 19: Low skill level (Learning phase)
-            // 20 ~ 60: Skill accumulates, peaking at 60
-            // > 60: Maintains peak experience
             let ageFactor = 1.0;
             const age = userInfo.age;
+            if (age < 20) ageFactor = Math.max(0.1, age / 20);
+            else if (age <= 60) ageFactor = 1.0 + ((age - 20) / 40) * 0.5;
+            else ageFactor = 1.5;
 
-            if (age < 20) {
-                // Age 0-19: 0.1 ~ 0.95
-                ageFactor = Math.max(0.1, age / 20);
-            } else if (age <= 60) {
-                // Age 20-60: 1.0 ~ 1.5 (Experience growth)
-                ageFactor = 1.0 + ((age - 20) / 40) * 0.5;
-            } else {
-                // Age 60+: Max experience (1.5x)
-                ageFactor = 1.5;
-            }
+            let finalLevel = Math.floor(calculatedLevel * ageFactor);
+            if (finalLevel > 20) finalLevel = 20;
+            if (finalLevel < 0) finalLevel = 0;
 
-            let level = Math.floor(calculatedLevel * ageFactor);
-
-            if (level > 20) level = 20;
-            if (level < 0) level = 0;
-
-            let passion: Passion = 'None';
-            // Passion depends on RAW answers mostly, but history can nudge
+            // Prepare passion scoring
             const passionScore = rawScore + (historyBonus > 0 ? 2 : 0);
-
-            if (passionScore >= 8) passion = 'Major'; // 🔥🔥
-            else if (passionScore >= 4) passion = 'Minor'; // 🔥
 
             return {
                 name: skillName,
-                level: level,
-                passion: passion
+                isTotallyIncapable: false,
+                level: finalLevel,
+                passionScore: passionScore,
+                passion: 'None' as Passion
             };
         });
+
+        // 2. Assign Passions with limits: Max 2 Majors (🔥🔥), Max Total 8 Flames
+        const sortedForPassion = [...skillInfo]
+            .filter(s => !s.isTotallyIncapable)
+            .sort((a, b) => b.passionScore - a.passionScore);
+
+        let majorCount = 0;
+        let totalFlames = 0;
+        const MAJOR_LIMIT = 2;
+        const TOTAL_FLAME_LIMIT = 8;
+
+        const passionMap: Record<string, Passion> = {};
+
+        sortedForPassion.forEach(s => {
+            if (s.passionScore >= 8 && majorCount < MAJOR_LIMIT && (totalFlames + 2) <= TOTAL_FLAME_LIMIT) {
+                passionMap[s.name] = 'Major';
+                majorCount++;
+                totalFlames += 2;
+            } else if (s.passionScore >= 4 && (totalFlames + 1) <= TOTAL_FLAME_LIMIT) {
+                passionMap[s.name] = 'Minor';
+                totalFlames += 1;
+            } else {
+                passionMap[s.name] = 'None';
+            }
+        });
+
+        // 3. Assemble final skill list
+        const finalSkills = skillInfo.map(s => ({
+            name: s.name,
+            level: s.level,
+            passion: passionMap[s.name] || 'None'
+        }));
 
         return {
             traits: finalTraits,
