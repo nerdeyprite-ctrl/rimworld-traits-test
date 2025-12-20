@@ -32,10 +32,10 @@ function ResultContent() {
     const [shareId, setShareId] = useState<string | null>(s);
     const isSavedRef = useRef(false);
 
-    // Fetch result if ID provided
+    // Fetch result if ID provided or handle legacy link
     useEffect(() => {
-        if (s && !isSavedRef.current) {
-            const fetchSharedResult = async () => {
+        const fetchSharedResult = async () => {
+            if (s) {
                 setLoading(true);
                 try {
                     const { data, error } = await supabase
@@ -54,7 +54,7 @@ function ResultContent() {
                             },
                             skills: data.skills || [],
                             incapabilities: data.incapabilities || [],
-                            scoreLog: {} // Not strictly needed for display
+                            scoreLog: {}
                         };
                         setResult(fetchedResult);
                         setLocalUserInfo({
@@ -63,22 +63,53 @@ function ResultContent() {
                             gender: data.gender || 'Male'
                         });
                         setIsFullResult(!!data.skills && data.skills.length > 0);
-                        isSavedRef.current = true; // Mark as "handled" so we don't re-save or re-calc
+                        isSavedRef.current = true;
                     }
                 } catch (err) {
                     console.error("Failed to fetch shared result:", err);
                 } finally {
                     setLoading(false);
                 }
-            };
-            fetchSharedResult();
-        } else if (!s) {
-            // Normal flow: calculate from context
-            const res = calculateFinalTraits();
-            setResult(res);
-            setIsFullResult(contextTestPhase === 'skill');
-        }
-    }, [s, language, contextTestPhase]);
+            } else if (searchParams.get('name')) {
+                // Legacy URL handle (name, mbti, traits)
+                const name = searchParams.get('name') || '정착민';
+                const mbti = searchParams.get('mbti') || 'Unknown';
+                const traitsStr = searchParams.get('traits') || '';
+                const age = Number(searchParams.get('age')) || 20;
+                const gender = (searchParams.get('gender') as any) || 'Male';
+
+                // Reconstruct traits from names
+                const traitNames = traitsStr.split(',');
+                const reconstructedTraits: Trait[] = traitNames.filter(t => t).map(t => ({
+                    id: t,
+                    name: t,
+                    description: '공유된 결과입니다.'
+                }));
+
+                const legacyResult: TestResult = {
+                    mbti,
+                    traits: reconstructedTraits,
+                    backstory: {
+                        childhood: { id: 'legacy', title: '데이터 없음', titleShort: 'N/A', description: '구버전 공유 링크는 상세 데이터를 포함하지 않습니다.' },
+                        adulthood: { id: 'legacy', title: '데이터 없음', titleShort: 'N/A', description: '구버전 공유 링크는 상세 데이터를 포함하지 않습니다.' }
+                    },
+                    skills: [],
+                    incapabilities: [],
+                    scoreLog: {}
+                };
+                setResult(legacyResult);
+                setLocalUserInfo({ name, age, gender });
+                setIsFullResult(false);
+                isSavedRef.current = true;
+            } else {
+                // Normal flow: calculate from context
+                const res = calculateFinalTraits();
+                setResult(res);
+                setIsFullResult(contextTestPhase === 'skill');
+            }
+        };
+        fetchSharedResult();
+    }, [s, language, contextTestPhase, searchParams]);
 
     // Save logic
     useEffect(() => {

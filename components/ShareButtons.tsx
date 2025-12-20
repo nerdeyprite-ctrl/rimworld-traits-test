@@ -72,6 +72,25 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
 
     const shareTitle = t('app_title') + " - " + t('landing_subtitle');
 
+    const getShareUrl = () => {
+        if (!origin) return '';
+        if (shareId) return `${origin}/share?s=${shareId}`;
+
+        if (result && userInfo) {
+            const params = new URLSearchParams();
+            if (userInfo.name) params.set('name', userInfo.name);
+            if (result.mbti) params.set('mbti', result.mbti);
+            const traitNames = result.traits.slice(0, 3).map(tr => tr.name).join(',');
+            if (traitNames) params.set('traits', traitNames);
+            params.set('age', userInfo.age.toString());
+            params.set('gender', userInfo.gender);
+            return `${origin}/share?${params.toString()}`;
+        }
+        return typeof window !== 'undefined' ? window.location.href : '';
+    };
+
+    const currentUrl = getShareUrl();
+
     const shareKakao = () => {
         if (window.Kakao && window.Kakao.isInitialized()) {
             const traitNames = result?.traits.slice(0, 3).map(tr => tr.name).join(', ') || '';
@@ -79,10 +98,9 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
                 ? `${userInfo.name}님은 ${result.mbti} 유형입니다. (특성: ${traitNames})`
                 : t('landing_subtitle');
 
-            // Dynamic Image URL
             const imageUrl = result && userInfo
                 ? `${origin}/api/og?name=${encodeURIComponent(userInfo.name || '')}&mbti=${encodeURIComponent(result.mbti || '')}&traits=${encodeURIComponent(traitNames)}`
-                : 'https://placeholder.com/rimworld-og.png';
+                : `${origin}/og-image.png`;
 
             window.Kakao.Share.sendDefault({
                 objectType: 'feed',
@@ -91,16 +109,16 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
                     description: description,
                     imageUrl: imageUrl,
                     link: {
-                        mobileWebUrl: shareUrl,
-                        webUrl: shareUrl,
+                        mobileWebUrl: currentUrl,
+                        webUrl: currentUrl,
                     },
                 },
                 buttons: [
                     {
                         title: '결과 확인하기',
                         link: {
-                            mobileWebUrl: shareUrl,
-                            webUrl: shareUrl,
+                            mobileWebUrl: currentUrl,
+                            webUrl: currentUrl,
                         },
                     },
                     {
@@ -113,8 +131,7 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
                 ],
             });
         } else {
-            const hasKey = !!process.env.NEXT_PUBLIC_KAKAO_API_KEY;
-            alert(`Kakao SDK not initialized.\n- Key Configured: ${hasKey}\n- Script Loaded: ${!!window.Kakao}\n\nPlease check Vercel Env Vars and Redeploy.`);
+            alert('카카오톡 공유 기능을 준비 중입니다. 잠시만 기다려주세요.');
         }
     };
 
@@ -123,30 +140,18 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
             ? `[변방계 정착민 테스트] 제 결과는 ${result.mbti}입니다. #${userInfo.name}\n\n`
             : shareTitle;
 
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentUrl)}`;
         window.open(twitterUrl, '_blank');
     };
 
     const shareDiscord = () => {
-        // Discord deep link - opens Discord app if installed
-        const text = result && userInfo
-            ? `[변방계 정착민 테스트] ${userInfo.name}님의 결과는 ${result.mbti}입니다!\\n${shareUrl}`
-            : `${shareTitle}\\n${shareUrl}`;
-
-        // Try to open Discord app first (mobile/desktop)
-        const discordUrl = `discord://`;
-        window.location.href = discordUrl;
-
-        // Fallback: Copy to clipboard after a short delay
-        setTimeout(() => {
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                alert('공유 링크가 복사되었습니다! 디스코드에 붙여넣으세요.');
-            });
-        }, 500);
+        navigator.clipboard.writeText(currentUrl).then(() => {
+            alert('공유 링크가 복사되었습니다! 디스코드에 붙여넣으세요.');
+        });
     };
 
     const copyUrl = () => {
-        navigator.clipboard.writeText(shareUrl).then(() => {
+        navigator.clipboard.writeText(currentUrl).then(() => {
             alert('공유 링크가 복사되었습니다!');
         });
     };
