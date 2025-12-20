@@ -118,14 +118,14 @@ export default function StatsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#111] text-gray-200 p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-[var(--rimworld-bg)] text-[var(--rimworld-text)] p-4 md:p-8 font-sans">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
-                    <h1 className="text-3xl font-bold text-[#e2c178]">
+                <div className="flex justify-between items-center mb-8 border-b border-[var(--rimworld-border-dim)] pb-4">
+                    <h1 className="text-3xl font-bold text-[var(--rimworld-highlight)]">
                         📊 {t('app_title')} {t('statistics') || '통계'}
                     </h1>
-                    <Link href="/" className="px-4 py-2 bg-[#333] hover:bg-[#444] rounded text-sm text-gray-300 transition-colors">
+                    <Link href="/" className="px-4 py-2 bg-[var(--rimworld-panel-light)] hover:bg-[var(--rimworld-panel)] border border-[var(--rimworld-border-dim)] rounded text-sm text-[var(--rimworld-text)] transition-colors">
                         {t('back_home')}
                     </Link>
                 </div>
@@ -139,16 +139,16 @@ export default function StatsPage() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div className="bg-[#1e1e1e] p-6 rounded-lg border border-[#333] shadow-lg">
-                        <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Total Participants</h3>
-                        <p className="text-4xl font-bold text-white">{totalCount.toLocaleString()}</p>
+                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
+                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Total Participants</h3>
+                        <p className="text-4xl font-bold text-[var(--rimworld-text)]">{totalCount.toLocaleString()}</p>
                     </div>
-                    <div className="bg-[#1e1e1e] p-6 rounded-lg border border-[#333] shadow-lg">
-                        <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Most Common Type</h3>
+                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
+                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Most Common Type</h3>
                         <p className="text-4xl font-bold text-[#00C49F]">{mbtiData[0]?.name || '-'}</p>
                     </div>
-                    <div className="bg-[#1e1e1e] p-6 rounded-lg border border-[#333] shadow-lg">
-                        <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Top Trait</h3>
+                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
+                        <h3 className="text-[var(--rimworld-text-dim)] text-sm uppercase tracking-wider mb-2">Top Trait</h3>
                         <p className="text-4xl font-bold text-[#FFBB28]">{traitData[0]?.name || '-'}</p>
                     </div>
                 </div>
@@ -156,16 +156,16 @@ export default function StatsPage() {
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                     {/* MBTI Chart */}
-                    <div className="bg-[#1e1e1e] p-6 rounded-lg border border-[#333] shadow-lg">
-                        <h3 className="text-xl font-bold text-white mb-6 border-l-4 border-[#00C49F] pl-3">MBTI Distribution</h3>
+                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
+                        <h3 className="text-xl font-bold text-[var(--rimworld-text)] mb-6 border-l-4 border-[#00C49F] pl-3">MBTI Distribution</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={mbtiData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis type="number" stroke="#888" />
-                                    <YAxis dataKey="name" type="category" stroke="#fff" width={60} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--rimworld-border-dim)" />
+                                    <XAxis type="number" stroke="var(--rimworld-text-dim)" />
+                                    <YAxis dataKey="name" type="category" stroke="var(--rimworld-text)" width={60} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#222', borderColor: '#555', color: '#fff' }}
+                                        contentStyle={{ backgroundColor: 'var(--rimworld-panel-dark)', borderColor: 'var(--rimworld-border)', color: 'var(--rimworld-text)' }}
                                         itemStyle={{ color: '#00C49F' }}
                                     />
                                     <Bar dataKey="value" fill="#00C49F" radius={[0, 4, 4, 0]}>
@@ -179,8 +179,8 @@ export default function StatsPage() {
                     </div>
 
                     {/* Traits Pie Chart */}
-                    <div className="bg-[#1e1e1e] p-6 rounded-lg border border-[#333] shadow-lg">
-                        <h3 className="text-xl font-bold text-white mb-6 border-l-4 border-[#FFBB28] pl-3">Top 10 Traits</h3>
+                    <div className="bg-[var(--rimworld-panel)] p-6 rounded-lg border border-[var(--rimworld-border-dim)] shadow-lg">
+                        <h3 className="text-xl font-bold text-[var(--rimworld-text)] mb-6 border-l-4 border-[#FFBB28] pl-3">Top 10 Traits</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>

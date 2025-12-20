@@ -3,24 +3,48 @@
 :root {
   --background: #111111;
   --foreground: #dddddd;
-  
-  /* Rimworld Palette */
+
+  /* Rimworld Palette (Dark) */
   --rimworld-bg: #111111;
   --rimworld-panel: #1e1e1e;
-  --rimworld-test: #dddddd;
+  --rimworld-panel-light: #2b2b2b;
+  --rimworld-panel-dark: #111111;
+  --rimworld-text: #dddddd;
+  --rimworld-text-dim: #a2a2a2;
   --rimworld-highlight: #9f752a;
   --rimworld-border: #6b6b6b;
+  --rimworld-border-dim: #333333;
+}
+
+.light {
+  --background: #fdfdfd;
+  --foreground: #222222;
+
+  /* Rimworld Palette (Light) */
+  --rimworld-bg: #fdfdfd;
+  --rimworld-panel: #f0f0f0;
+  --rimworld-panel-light: #ffffff;
+  --rimworld-panel-dark: #e0e0e0;
+  --rimworld-text: #222222;
+  --rimworld-text-dim: #666666;
+  --rimworld-highlight: #9f752a;
+  --rimworld-border: #bbbbbb;
+  --rimworld-border-dim: #dddddd;
 }
 
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-rimworld-bg: var(--rimworld-bg);
   --color-rimworld-panel: var(--rimworld-panel);
-  --color-rimworld-text: var(--rimworld-test);
+  --color-rimworld-panel-light: var(--rimworld-panel-light);
+  --color-rimworld-panel-dark: var(--rimworld-panel-dark);
+  --color-rimworld-text: var(--rimworld-text);
+  --color-rimworld-text-dim: var(--rimworld-text-dim);
   --color-rimworld-highlight: var(--rimworld-highlight);
   --color-rimworld-border: var(--rimworld-border);
+  --color-rimworld-border-dim: var(--rimworld-border-dim);
 }
 
 body {

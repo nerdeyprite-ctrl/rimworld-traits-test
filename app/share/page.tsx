@@ -87,36 +87,36 @@ export default async function SharePage({ searchParams }: Props) {
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4 animate-fade-in text-center">
 
-            <div className="bg-[#1b1b1b] border-2 border-[#6b6b6b] p-8 max-w-2xl w-full shadow-2xl relative">
+            <div className="bg-[var(--rimworld-panel)] border-2 border-[var(--rimworld-border)] p-8 max-w-2xl w-full shadow-2xl relative text-center items-center flex flex-col">
                 {/* Header */}
-                <div className="border-b border-gray-600 pb-4 mb-6">
-                    <div className="text-[#9f752a] font-bold text-sm tracking-widest uppercase mb-1">DATA LOG #39482</div>
-                    <h1 className="text-3xl font-bold text-white">생존자 분석 데이터</h1>
+                <div className="border-b border-[var(--rimworld-border-dim)] pb-4 mb-6 w-full">
+                    <div className="text-[var(--rimworld-highlight)] font-bold text-sm tracking-widest uppercase mb-1">DATA LOG #39482</div>
+                    <h1 className="text-3xl font-bold text-[var(--rimworld-text)]">생존자 분석 데이터</h1>
                 </div>
 
                 {/* User Info */}
-                <div className="mb-8">
-                    <div className="text-gray-400 text-sm mb-2">IDENTIFIER</div>
-                    <div className="text-4xl font-bold text-white mb-2">{name}</div>
-                    <div className="text-gray-500 text-xs uppercase tracking-wider">
+                <div className="mb-8 w-full">
+                    <div className="text-[var(--rimworld-text-dim)] text-sm mb-2 uppercase">IDENTIFIER</div>
+                    <div className="text-4xl font-bold text-[var(--rimworld-text)] mb-2">{name}</div>
+                    <div className="text-[var(--rimworld-text-dim)] text-xs uppercase tracking-wider">
                         {gender === 'Male' ? 'Male' : 'Female'} | Age {age}
                     </div>
                 </div>
 
                 {/* Result MBTI & Traits */}
-                <div className="bg-[#111] border border-[#333] p-6 mb-8 rounded">
-                    <div className="text-[#9f752a] font-bold text-3xl mb-4">{mbti}</div>
+                <div className="bg-[var(--rimworld-panel-dark)] border border-[var(--rimworld-border-dim)] p-6 mb-8 rounded w-full">
+                    <div className="text-[var(--rimworld-highlight)] font-bold text-3xl mb-4">{mbti}</div>
                     <div className="flex flex-wrap justify-center gap-2">
                         {traits.map((t: string, i: number) => (
-                            <span key={i} className="px-3 py-1 bg-[#333] border border-gray-600 text-white text-sm rounded">
+                            <span key={i} className="px-3 py-1 bg-[var(--rimworld-panel-light)] border border-[var(--rimworld-border)] text-[var(--rimworld-text)] text-sm rounded">
                                 {t}
                             </span>
                         ))}
-                        {traits.length === 0 && <span className="text-gray-500">데이터 없음</span>}
+                        {traits.length === 0 && <span className="text-[var(--rimworld-text-dim)]">데이터 없음</span>}
                     </div>
                 </div>
 
-                <div className="text-gray-300 mb-8 whitespace-pre-line">
+                <div className="text-[var(--rimworld-text-dim)] mb-8 whitespace-pre-line">
                     이 생존자의 상세 데이터가 궁금하신가요?
                     <br />
                     지금 바로 당신의 적성도 테스트해보세요.
