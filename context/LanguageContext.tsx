@@ -16,9 +16,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Simple dictionary for UI strings
 const translations: Record<Language, Record<string, string>> = {
     ko: {
-        'app_title': '변방계 정착민 테스트 (림월드 테스트)',
+        'app_title': '변방계 정착민 테스트',
         'start_test': '테스트 시작하기',
-        'landing_subtitle': '"당신이 30일간의 불시착 후 살아남을 확률은 몇 퍼센트입니까?"\n림월드 테스트 사이트: 세계관 기반 성격 유형 및 적성 검사',
+        'landing_subtitle': '"당신이 30일간의 불시착 후 살아남을 확률은 몇 퍼센트입니까?"\n변방계 세계관 기반 성격 유형 및 적성 검사',
         'landing_traits_title': '✦ 특성 (Traits)',
         'landing_traits_desc': '낙천적, 유리정신, 식인종...\n당신의 고유한 성격은 정착지의 운명을 결정합니다.',
         'landing_skills_title': '⚔ 기술 (Skills)',

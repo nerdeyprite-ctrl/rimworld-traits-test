@@ -23,7 +23,7 @@ export default function ResultPage() {
     const isSavedRef = useRef(false);
 
     useEffect(() => {
-        if (result && userInfo && !isSavedRef.current && isSupabaseConfigured()) {
+        if (result && userInfo && !isSavedRef.current && isSupabaseConfigured() && testPhase === 'trait') {
             const saveStats = async () => {
                 try {
                     const { data, error } = await supabase

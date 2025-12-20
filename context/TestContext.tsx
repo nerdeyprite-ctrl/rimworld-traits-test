@@ -272,14 +272,19 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             Object.entries(answer.scores).forEach(([key, value]) => {
                 const numericVal = Number(value);
 
+                // If we are in 'skill' phase, only allow skill-related scores
+                // This prevents Part 3 answers from changing already determined traits/backstories
+                const isSkillKey = R_SKILLS.includes(key) || key.startsWith('inc_');
+                if (testPhase === 'skill' && !isSkillKey) {
+                    return; // Skip non-skill scores in skill phase
+                }
+
                 // Standard Score Add
                 newScores[key] = (newScores[key] || 0) + numericVal;
 
-                // Spectrum Score Add
-                if (TRAIT_TO_SPECTRUM[key]) {
+                // Spectrum Score Add (Only in trait phase)
+                if (testPhase === 'trait' && TRAIT_TO_SPECTRUM[key]) {
                     const { id: spectrumId, value: weight } = TRAIT_TO_SPECTRUM[key];
-                    // Score logic: If answering 'industrious' (+1), add 1 * 2 = +2 to work_spectrum
-                    // If answering 'lazy' (+1 to lazy), add 1 * -1 = -1 to work_spectrum
                     newScores[spectrumId] = (newScores[spectrumId] || 0) + (numericVal * weight);
                 }
             });
