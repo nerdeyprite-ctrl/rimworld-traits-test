@@ -68,7 +68,7 @@ const ShareButtons = ({ result, userInfo, shareId }: ShareButtonsProps) => {
                 setTimeout(() => clearInterval(timer), 5000); // Stop polling after 5s
             }
         }
-    }, [result, userInfo]);
+    }, [result, userInfo, shareId]);
 
     const shareTitle = t('app_title') + " - " + t('landing_subtitle');
 
