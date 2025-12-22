@@ -347,7 +347,6 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 'cannibal': 2,
                 'nudist': 2,
                 'pyromaniac': 2,
-                'bloodlust': 3,
                 'psychopath': 3
             };
 
@@ -493,6 +492,16 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             // 디버깅 로그
             console.log('=== Trait Selection Debug ===');
             console.log('Input scores:', scores);
+
+            // 모든 특성 점수를 정렬하여 출력
+            const allScores = Object.entries(scores)
+                .filter(([key]) => !key.includes('_spectrum'))
+                .sort((a, b) => (b[1] as number) - (a[1] as number));
+            console.log('All trait scores (sorted):');
+            allScores.forEach(([trait, score]) => {
+                console.log(`  ${trait}: ${score}`);
+            });
+
             console.log('Strong traits:', guaranteedTraits.map(t => t.id));
             console.log('Valid candidates:', validCandidates.map(c => ({ id: c.trait.id, score: c.score })));
             console.log('Final regular traits:', finalRegularTraits.map(t => t.id));
