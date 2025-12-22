@@ -263,8 +263,12 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleAnswer = (questionId: number, answer: Answer) => {
-        // 1. Record Answer
-        setAnswers(prev => ({ ...prev, [questionId]: answer }));
+        // 1. Record Answer with part information
+        const answerWithPart: Answer = {
+            ...answer,
+            part: testPhase === 'trait' ? (questionId < 200 ? 1 : 2) : 3
+        };
+        setAnswers(prev => ({ ...prev, [questionId]: answerWithPart }));
 
         // 2. Update Scores
         setScores(prev => {
