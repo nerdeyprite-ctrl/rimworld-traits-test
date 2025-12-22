@@ -347,7 +347,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 'cannibal': 3,
                 'nudist': 3,
                 'pyromaniac': 3,
-                'psychopath': 3
+                'psychopath': 4
             };
 
             const processedTraitIds = new Set<string>();

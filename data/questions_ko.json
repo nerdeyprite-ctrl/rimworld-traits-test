@@ -687,7 +687,6 @@
       {
         "text": "명령이니까... 최소한으로만 한다.",
         "scores": {
-          "psychopath": 1,
           "steadfast": 1
         }
       },
@@ -747,7 +746,7 @@
     "text": "습격자 무리 중에 당신의 형제가 섞여 있습니다!",
     "answers": [
       {
-        "text": "혈육이라도 적이면 적이다. 쏜다.",
+        "text": "형제가 무슨 상관이지? 다를 바 없는 적이다. 쏜다.",
         "scores": {
           "psychopath": 2,
           "iron_willed": 1
@@ -784,8 +783,7 @@
       {
         "text": "최고의 순간이다! 전율이 느껴진다!",
         "scores": {
-          "bloodlust": 2,
-          "psychopath": 2
+          "bloodlust": 2
         }
       },
       {
@@ -851,7 +849,7 @@
     "text": "식량이 바닥났습니다. 남은 것은 인육 요리뿐입니다.",
     "answers": [
       {
-        "text": "맛있어 보이는데? 기꺼이 먹는다!",
+        "text": "맛있어 보이는데? 먹는다!",
         "scores": {
           "cannibal": 2,
           "psychopath": 1
@@ -985,7 +983,7 @@
     "text": "고대 무덤에서 보물을 발견했습니다. 하지만 묘소를 훼손하는 겁니다.",
     "answers": [
       {
-        "text": "죽은 자에게 보물이 무슨 소용? 다 가져간다!",
+        "text": "죽은 자에게 보물이 무슨 소용이지? 다 가져간다!",
         "scores": {
           "greedy": 2,
           "psychopath": 1
@@ -1085,7 +1083,7 @@
       {
         "text": "장기에 가죽까지! 큰돈 벌 생각에 신난다.",
         "scores": {
-          "psychopath": 2,
+          "psychopath": 1,
           "greedy": 2,
           "cannibal": 1
         }
@@ -1093,7 +1091,6 @@
       {
         "text": "생존을 위해 어쩔 수 없다. 무표정으로 한다.",
         "scores": {
-          "psychopath": 1,
           "steadfast": 1
         }
       },
@@ -1992,7 +1989,7 @@
         }
       },
       {
-        "text": "대충 돌덩이 하나 세운다. 형식일 뿐이야.",
+        "text": "대충 돌덩이 하나 세운다. 죽은게 대수는 아니야.",
         "scores": {
           "lazy": 1,
           "psychopath": 1
