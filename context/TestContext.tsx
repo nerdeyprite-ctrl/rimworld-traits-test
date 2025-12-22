@@ -440,9 +440,21 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 return !conflicts.some(c => selectedIds.has(c));
             });
 
-            // 5. 가중 랜덤 선택 (점수 비율 기반) - 총 5개 제한
-            const MAX_TOTAL_TRAITS = 5;
-            const remainingSlots = Math.max(0, MAX_TOTAL_TRAITS - guaranteedTraits.length);
+            // 5. 가중 랜덤 선택 (점수 비율 기반) - 동적 특성 개수 제한
+            // 강한 특성 0-1개: 총 4-5개
+            // 강한 특성 2개 이상: 총 6개
+            const strongTraitCount = guaranteedTraits.length;
+            let MAX_TOTAL_TRAITS: number;
+
+            if (strongTraitCount === 0) {
+                MAX_TOTAL_TRAITS = 4;
+            } else if (strongTraitCount === 1) {
+                MAX_TOTAL_TRAITS = 5;
+            } else {
+                MAX_TOTAL_TRAITS = 6;
+            }
+
+            const remainingSlots = Math.max(0, MAX_TOTAL_TRAITS - strongTraitCount);
             let finalRegularTraits: Trait[] = [];
 
             if (validCandidates.length <= remainingSlots) {
@@ -504,6 +516,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             });
 
             console.log('Strong traits:', guaranteedTraits.map(t => t.id));
+            console.log('Max total traits:', MAX_TOTAL_TRAITS);
             console.log('Remaining slots for regular traits:', remainingSlots);
             console.log('Valid candidates:', validCandidates.map(c => ({ id: c.trait.id, score: c.score })));
             console.log('Final regular traits:', finalRegularTraits.map(t => t.id));
