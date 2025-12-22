@@ -322,11 +322,11 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             }
         });
 
-        // --- TRAIT SELECTION LOGIC (IMPROVED) ---
+        // --- TRAIT SELECTION LOGIC (WEIGHTED RANDOM) ---
         const selectTraits = (scores: Record<string, number>): Trait[] => {
             const getTraitDef = (id: string) => traitDefinitions.find(t => t.id === id);
 
-            // 강한 특성: 선택지 하나로도 확정 (낮은 임계값)
+            // 강한 특성: 선택지 하나로도 확정 (낮은 임계값, 무조건 표시)
             const STRONG_TRAITS: Record<string, number> = {
                 // 성적 지향 (1점 이상이면 확정)
                 'gay': 1,
@@ -341,7 +341,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             };
 
             const processedTraitIds = new Set<string>();
-            const guaranteedTraits: Trait[] = []; // 강한 특성 (5개 제한 제외)
+            const guaranteedTraits: Trait[] = []; // 강한 특성 (무조건 표시)
             const candidates: { trait: Trait, score: number }[] = [];
 
             // 1. 강한 특성 먼저 확정
@@ -356,7 +356,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 }
             });
 
-            // 2. Spectrum 분석
+            // 2. Spectrum 분석 (3점 이상 후보 포함)
             Object.entries(SPECTRUM_CONFIG).forEach(([spectrumId, config]) => {
                 const rawScore = scores[spectrumId] || 0;
                 let selectedTraitId: string | null = null;
@@ -374,10 +374,9 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 if (selectedTraitId && !processedTraitIds.has(selectedTraitId)) {
                     const def = getTraitDef(selectedTraitId);
                     if (def) {
-                        // Spectrum 특성은 높은 우선순위 (100점)
                         candidates.push({
                             trait: def,
-                            score: 100 + Math.abs(rawScore)
+                            score: Math.abs(rawScore)
                         });
                     }
                 }
@@ -385,8 +384,8 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 config.forEach(c => processedTraitIds.add(c.id));
             });
 
-            // 3. 일반 특성 (단순 점수 기반, 임계값 5점)
-            const NORMAL_THRESHOLD = 5;
+            // 3. 일반 특성 (임계값 3점)
+            const NORMAL_THRESHOLD = 3;
             const groupScores: Record<string, { trait: Trait, score: number }[]> = {};
             const standalones: { trait: Trait, score: number }[] = [];
 
@@ -424,31 +423,57 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 candidates.push(item);
             });
 
-            // 4. 점수순 정렬 및 충돌 해결
-            candidates.sort((a, b) => b.score - a.score);
-
-            const regularTraits: Trait[] = [];
+            // 4. 충돌 해결 (강한 특성 기준)
             const selectedIds = new Set<string>(guaranteedTraits.map(t => t.id));
-
-            for (const cand of candidates) {
-                // 충돌 체크
+            const validCandidates = candidates.filter(cand => {
                 const conflicts = cand.trait.conflicts || [];
-                if (conflicts.some(c => selectedIds.has(c))) continue;
+                return !conflicts.some(c => selectedIds.has(c));
+            });
 
-                regularTraits.push(cand.trait);
-                selectedIds.add(cand.trait.id);
-            }
-
-            // 5. 최종 제한: 강한 특성 + 일반 특성 최대 5개
+            // 5. 가중 랜덤 선택 (점수 비율 기반)
             const MAX_REGULAR_TRAITS = 5;
-            let finalRegularTraits = regularTraits;
+            let finalRegularTraits: Trait[] = [];
 
-            if (regularTraits.length > MAX_REGULAR_TRAITS) {
-                // 우선순위 높은 순으로 5개만 선택
-                // 단, 랜덤성을 위해 상위 후보 중에서 랜덤 선택
-                const topCandidates = regularTraits.slice(0, Math.min(8, regularTraits.length));
-                const shuffled = [...topCandidates].sort(() => Math.random() - 0.5);
-                finalRegularTraits = shuffled.slice(0, MAX_REGULAR_TRAITS);
+            if (validCandidates.length <= MAX_REGULAR_TRAITS) {
+                // 후보가 5개 이하면 전부 선택
+                finalRegularTraits = validCandidates.map(c => c.trait);
+            } else {
+                // 가중 랜덤 선택
+                const totalScore = validCandidates.reduce((sum, c) => sum + c.score, 0);
+                const selectedCandidates: typeof validCandidates = [];
+                const remainingCandidates = [...validCandidates];
+
+                for (let i = 0; i < MAX_REGULAR_TRAITS && remainingCandidates.length > 0; i++) {
+                    // 현재 남은 후보들의 총점 계산
+                    const currentTotal = remainingCandidates.reduce((sum, c) => sum + c.score, 0);
+
+                    // 랜덤 값 생성 (0 ~ currentTotal)
+                    let random = Math.random() * currentTotal;
+
+                    // 가중치에 따라 선택
+                    let selectedIndex = 0;
+                    for (let j = 0; j < remainingCandidates.length; j++) {
+                        random -= remainingCandidates[j].score;
+                        if (random <= 0) {
+                            selectedIndex = j;
+                            break;
+                        }
+                    }
+
+                    // 선택된 후보 추가 및 제거
+                    const selected = remainingCandidates.splice(selectedIndex, 1)[0];
+                    selectedCandidates.push(selected);
+
+                    // 충돌하는 특성 제거
+                    const conflicts = selected.trait.conflicts || [];
+                    for (let k = remainingCandidates.length - 1; k >= 0; k--) {
+                        if (conflicts.includes(remainingCandidates[k].trait.id)) {
+                            remainingCandidates.splice(k, 1);
+                        }
+                    }
+                }
+
+                finalRegularTraits = selectedCandidates.map(c => c.trait);
             }
 
             // 강한 특성 + 일반 특성 결합
