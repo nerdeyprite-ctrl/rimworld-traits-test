@@ -316,7 +316,14 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                     } else if (R_SKILLS.includes(id)) {
                         p1p2SkillScores[id] = (p1p2SkillScores[id] || 0) + (score as number);
                     } else {
-                        traitScores[id] = (traitScores[id] || 0) + (score as number);
+                        const numericScore = score as number;
+                        traitScores[id] = (traitScores[id] || 0) + numericScore;
+
+                        // Spectrum Score 계산 (handleAnswer와 동일)
+                        if (TRAIT_TO_SPECTRUM[id]) {
+                            const { id: spectrumId, value: weight } = TRAIT_TO_SPECTRUM[id];
+                            traitScores[spectrumId] = (traitScores[spectrumId] || 0) + (numericScore * weight);
+                        }
                     }
                 });
             }
