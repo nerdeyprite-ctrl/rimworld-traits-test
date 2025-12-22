@@ -339,14 +339,14 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
             // 강한 특성: 선택지 하나로도 확정 (낮은 임계값, 무조건 표시)
             const STRONG_TRAITS: Record<string, number> = {
-                // 성적 지향 (1점 이상이면 확정)
+                // 성적 지향 (1점 이상이면 확정 - 질문 1개)
                 'gay': 1,
                 'bisexual': 1,
                 'asexual': 1,
-                // 극단적 특성 (2점 이상이면 확정)
-                'cannibal': 2,
-                'nudist': 2,
-                'pyromaniac': 2,
+                // 극단적 특성 (3점 이상이면 확정)
+                'cannibal': 3,
+                'nudist': 3,
+                'pyromaniac': 3,
                 'psychopath': 3
             };
 
@@ -394,8 +394,8 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 config.forEach(c => processedTraitIds.add(c.id));
             });
 
-            // 3. 일반 특성 (임계값 3점)
-            const NORMAL_THRESHOLD = 3;
+            // 3. 일반 특성 (임계값 5점)
+            const NORMAL_THRESHOLD = 5;
             const groupScores: Record<string, { trait: Trait, score: number }[]> = {};
             const standalones: { trait: Trait, score: number }[] = [];
 
@@ -440,12 +440,13 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 return !conflicts.some(c => selectedIds.has(c));
             });
 
-            // 5. 가중 랜덤 선택 (점수 비율 기반)
-            const MAX_REGULAR_TRAITS = 5;
+            // 5. 가중 랜덤 선택 (점수 비율 기반) - 총 5개 제한
+            const MAX_TOTAL_TRAITS = 5;
+            const remainingSlots = Math.max(0, MAX_TOTAL_TRAITS - guaranteedTraits.length);
             let finalRegularTraits: Trait[] = [];
 
-            if (validCandidates.length <= MAX_REGULAR_TRAITS) {
-                // 후보가 5개 이하면 전부 선택
+            if (validCandidates.length <= remainingSlots) {
+                // 후보가 남은 슬롯보다 적거나 같으면 전부 선택
                 finalRegularTraits = validCandidates.map(c => c.trait);
             } else {
                 // 가중 랜덤 선택
@@ -453,7 +454,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 const selectedCandidates: typeof validCandidates = [];
                 const remainingCandidates = [...validCandidates];
 
-                for (let i = 0; i < MAX_REGULAR_TRAITS && remainingCandidates.length > 0; i++) {
+                for (let i = 0; i < remainingSlots && remainingCandidates.length > 0; i++) {
                     // 현재 남은 후보들의 총점 계산
                     const currentTotal = remainingCandidates.reduce((sum, c) => sum + c.score, 0);
 
@@ -503,6 +504,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             });
 
             console.log('Strong traits:', guaranteedTraits.map(t => t.id));
+            console.log('Remaining slots for regular traits:', remainingSlots);
             console.log('Valid candidates:', validCandidates.map(c => ({ id: c.trait.id, score: c.score })));
             console.log('Final regular traits:', finalRegularTraits.map(t => t.id));
             console.log('Total final traits:', finalResult.map(t => t.id));
