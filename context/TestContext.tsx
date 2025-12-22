@@ -327,7 +327,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             const getTraitDef = (id: string) => traitDefinitions.find(t => t.id === id);
 
             // 강한 특성: 선택지 하나로도 확정 (낮은 임계값)
-            const STRONG_TRAITS = {
+            const STRONG_TRAITS: Record<string, number> = {
                 // 성적 지향 (1점 이상이면 확정)
                 'gay': 1,
                 'bisexual': 1,
@@ -340,39 +340,9 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 'psychopath': 3
             };
 
-            // 출현 빈도 기반 가중치 (높을수록 점수 요구량 증가)
-            const FREQUENCY_WEIGHTS: Record<string, number> = {
-                // 매우 흔함 (30회 이상) - 점수 0.5배
-                'wimp': 0.5,
-                'kind': 0.6,
-                'iron_willed': 0.65,
-                'psychopath': 0.7,
-                'nervous': 0.7,
-                'abrasive': 0.7,
-                'steadfast': 0.7,
-                'greedy': 0.7,
-                'optimist': 0.75,
-                // 흔함 (15-30회) - 점수 0.8배
-                'bloodlust': 0.8,
-                'depressive': 0.8,
-                'hard_worker': 0.85,
-                'lazy': 0.85,
-                'ascetic': 0.85,
-                // 희귀 (5회 이하) - 점수 1.5배
-                'beautiful': 1.5,
-                'ugly': 1.5,
-                'gay': 2.0,
-                'bisexual': 2.0,
-                'asexual': 2.0,
-                'nudist': 1.8,
-                'masochist': 1.8,
-                'jogger': 1.5,
-                'slowpoke': 1.5
-            };
-
             const processedTraitIds = new Set<string>();
             const guaranteedTraits: Trait[] = []; // 강한 특성 (5개 제한 제외)
-            const candidates: { trait: Trait, score: number, priority: number }[] = [];
+            const candidates: { trait: Trait, score: number }[] = [];
 
             // 1. 강한 특성 먼저 확정
             Object.entries(STRONG_TRAITS).forEach(([traitId, threshold]) => {
@@ -386,34 +356,28 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 }
             });
 
-            // 2. Spectrum 분석 (가중치 적용)
+            // 2. Spectrum 분석
             Object.entries(SPECTRUM_CONFIG).forEach(([spectrumId, config]) => {
                 const rawScore = scores[spectrumId] || 0;
                 let selectedTraitId: string | null = null;
-                let selectedThreshold = 0;
 
                 if (rawScore >= 6) {
                     selectedTraitId = config.find(c => c.threshold === 6)?.id || null;
-                    selectedThreshold = 6;
                 } else if (rawScore >= 3) {
                     selectedTraitId = config.find(c => c.threshold === 3)?.id || null;
-                    selectedThreshold = 3;
                 } else if (rawScore <= -6) {
                     selectedTraitId = config.find(c => c.threshold === -6)?.id || null;
-                    selectedThreshold = -6;
                 } else if (rawScore <= -3) {
                     selectedTraitId = config.find(c => c.threshold === -3)?.id || null;
-                    selectedThreshold = -3;
                 }
 
                 if (selectedTraitId && !processedTraitIds.has(selectedTraitId)) {
                     const def = getTraitDef(selectedTraitId);
                     if (def) {
-                        // Spectrum 특성은 높은 우선순위
+                        // Spectrum 특성은 높은 우선순위 (100점)
                         candidates.push({
                             trait: def,
-                            score: Math.abs(rawScore),
-                            priority: 100
+                            score: 100 + Math.abs(rawScore)
                         });
                     }
                 }
@@ -421,32 +385,24 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 config.forEach(c => processedTraitIds.add(c.id));
             });
 
-            // 3. 일반 특성 (가중치 적용)
-            const groupScores: Record<string, { trait: Trait, score: number, priority: number }[]> = {};
-            const standalones: { trait: Trait, score: number, priority: number }[] = [];
+            // 3. 일반 특성 (단순 점수 기반, 임계값 5점)
+            const NORMAL_THRESHOLD = 5;
+            const groupScores: Record<string, { trait: Trait, score: number }[]> = {};
+            const standalones: { trait: Trait, score: number }[] = [];
 
             Object.keys(scores).forEach(id => {
                 if (processedTraitIds.has(id)) return;
                 if (id.includes('_spectrum')) return;
 
                 const rawScore = scores[id] || 0;
-                if (rawScore <= 0) return;
+                if (rawScore < NORMAL_THRESHOLD) return;
 
                 const def = getTraitDef(id);
                 if (!def) return;
 
-                // 가중치 적용
-                const weight = FREQUENCY_WEIGHTS[id] || 1.0;
-                const adjustedScore = rawScore * weight;
-
-                // 임계값: 가중치 적용 후 3점 이상
-                if (adjustedScore < 3) return;
-
-                // 우선순위: 조정된 점수
                 const item = {
                     trait: def,
-                    score: adjustedScore,
-                    priority: adjustedScore
+                    score: rawScore
                 };
 
                 if (def.group) {
@@ -468,8 +424,8 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
                 candidates.push(item);
             });
 
-            // 4. 우선순위 정렬 및 충돌 해결
-            candidates.sort((a, b) => b.priority - a.priority);
+            // 4. 점수순 정렬 및 충돌 해결
+            candidates.sort((a, b) => b.score - a.score);
 
             const regularTraits: Trait[] = [];
             const selectedIds = new Set<string>(guaranteedTraits.map(t => t.id));
