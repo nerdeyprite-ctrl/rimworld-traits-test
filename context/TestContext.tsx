@@ -484,7 +484,18 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             }
 
             // 강한 특성 + 일반 특성 결합
-            return [...guaranteedTraits, ...finalRegularTraits];
+            const finalResult = [...guaranteedTraits, ...finalRegularTraits];
+
+            // 디버깅 로그
+            console.log('=== Trait Selection Debug ===');
+            console.log('Input scores:', scores);
+            console.log('Strong traits:', guaranteedTraits.map(t => t.id));
+            console.log('Valid candidates:', validCandidates.map(c => ({ id: c.trait.id, score: c.score })));
+            console.log('Final regular traits:', finalRegularTraits.map(t => t.id));
+            console.log('Total final traits:', finalResult.map(t => t.id));
+            console.log('============================');
+
+            return finalResult;
         };
 
         // Calculate Traits Based on P1+P2 scores
