@@ -493,7 +493,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '질병이 퍼져 몸이 약해졌다.' : 'A disease spreads through the camp.',
             category: 'danger',
             weight: 3,
-            base: { hp: -2, food: 0, meds: -1, money: 0 },
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
             traitMods: {
                 hp: {
                     pos: ['tough', 'iron_willed'],
@@ -504,18 +504,26 @@ const buildSimEvents = (language: string): SimEvent[] => {
             },
             choices: [
                 {
-                    id: 'treat',
-                    label: isKo ? '치료' : 'Treat',
-                    description: isKo ? '치료제로 즉시 대응한다.' : 'Use meds immediately.',
-                    delta: { hp: 1, food: 0, meds: -1, money: 0 },
-                    response: isKo ? '치료에 나섰다.' : 'You begin treatment.',
+                    id: 'treat_with_meds',
+                    label: isKo ? '치료제 사용' : 'Use Meds',
+                    description: isKo ? '치료제 1개로 확실히 치료한다.' : 'Use 1 med for guaranteed treatment.',
+                    delta: { hp: 2, food: 0, meds: -1, money: 0 },
+                    response: isKo ? '치료제를 써 상태가 회복됐다.' : 'You use meds and recover.',
+                    requirements: { meds: 1 }
+                },
+                {
+                    id: 'treat_without_meds',
+                    label: isKo ? '무치료 치료' : 'Treat Without Meds',
+                    description: isKo ? '치료제 없이 의학으로 치료한다.' : 'Treat using medical skills without meds.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '치료제 없이 치료를 시도했다.' : 'You attempt treatment without meds.',
                     skillCheck: {
-                        label: isKo ? '치료' : 'Treatment',
+                        label: isKo ? '무치료 치료' : 'Field Treatment',
                         group: 'medical',
-                        successDelta: { hp: 2, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '치료가 성공해 컨디션이 회복됐다.' : 'Treatment succeeds and you recover.',
-                        failText: isKo ? '치료가 잘되지 않았다.' : 'Treatment fails to stabilize.'
+                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -2, food: 0, meds: 0, money: 0 },
+                        successText: isKo ? '응급 처치에 성공했다.' : 'Field treatment succeeds.',
+                        failText: isKo ? '치료가 실패해 상태가 악화됐다.' : 'Treatment fails and worsens.'
                     }
                 }
             ]
@@ -740,6 +748,7 @@ export default function SimulationClient() {
     const [cardView, setCardView] = useState<'event' | 'result'>('result');
     const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
     const [showMoreChoices, setShowMoreChoices] = useState(false);
+    const [showLog, setShowLog] = useState(false);
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -932,6 +941,7 @@ export default function SimulationClient() {
         setCurrentCard(null);
         setCardView('result');
         setShowMoreChoices(false);
+        setShowLog(false);
         autoResumeRef.current = false;
         setSimAuto(false);
     }, [language]);
@@ -1399,133 +1409,63 @@ export default function SimulationClient() {
                     <span className="text-slate-100 font-semibold">{userInfo?.name || '정착민'}</span>
                 </div>
             </div>
-
-            <div className="bg-[#0f0f0f] border border-[#3b3b3b] rounded-xl shadow-lg p-4 md:p-6 space-y-5">
-                <p className="text-sm text-slate-400">
-                    {language === 'ko'
-                        ? '당신의 캐릭터는 몇일차까지 살아남을 수 있을까요?'
-                        : 'How many days can your character survive?'}
-                </p>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">{language === 'ko' ? '현재 일차' : 'Day'}</div>
-                        <div className="text-white font-bold text-sm">{simState.day} / {MAX_DAYS}</div>
-                    </div>
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">{language === 'ko' ? '계절' : 'Season'}</div>
-                        <div className="text-white font-bold text-sm">{getSeasonLabel(simState.day, language)}</div>
-                    </div>
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">HP</div>
-                        <div className="text-white font-bold text-sm">{simState.hp} / 10</div>
-                    </div>
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">{language === 'ko' ? '식량' : 'Food'}</div>
-                        <div className="text-white font-bold text-sm">{simState.food} / 10</div>
-                    </div>
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">{language === 'ko' ? '치료제' : 'Meds'}</div>
-                        <div className="text-white font-bold text-sm">{simState.meds} / 10</div>
-                    </div>
-                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
-                        <div className="text-slate-400">{language === 'ko' ? '돈' : 'Money'}</div>
-                        <div className="text-white font-bold text-sm">{simState.money} / 10</div>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={startSimulation}
-                        className="px-4 py-2 rounded-md bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border border-[#7a5a20] shadow-sm"
-                    >
-                        {language === 'ko' ? '시뮬레이션 시작/재시작' : 'Start/Restart'}
-                    </button>
-                    <button
-                        onClick={advanceDay}
-                        disabled={!canAdvanceDay}
-                        className={`px-4 py-2 text-sm font-bold border ${canAdvanceDay
-                            ? 'bg-[#1c3d5a] hover:bg-[#2c5282] text-white border-blue-900 rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko' ? '하루 진행' : 'Advance Day'}
-                    </button>
-                    <button
-                        onClick={() => setSimAuto(prev => !prev)}
-                        disabled={simState.status !== 'running' || !!pendingChoice}
-                        className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
-                            ? 'bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white border-gray-600 rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {simAuto
-                            ? (language === 'ko' ? '자동 진행 일시정지' : 'Pause Auto')
-                            : (language === 'ko' ? '자동 진행 시작' : 'Start Auto')}
-                    </button>
-                    <button
-                        onClick={handleUseMeds}
-                        disabled={!canUseMeds}
-                        className={`px-4 py-2 text-sm font-bold border ${canUseMeds
-                            ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332] rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
-                    </button>
-                    <button
-                        onClick={handleUpgradeCamp}
-                        disabled={!canUpgradeCamp}
-                        className={`px-4 py-2 text-sm font-bold border ${canUpgradeCamp
-                            ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko'
-                            ? `캠프 강화 Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (돈 ${nextCampCost})` : ''}`
-                            : `Camp Upgrade Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (Money ${nextCampCost})` : ''}`}
-                    </button>
-                </div>
-            </div>
-
             <div className="flex flex-col items-center gap-4">
-                <div
-                    key={`card-${currentCard?.day ?? 'idle'}`}
-                    className={`reigns-card reigns-card-enter ${cardView === 'result' ? 'reigns-card--flipped' : ''}`}
-                >
-                    <div className="reigns-card-inner">
-                        <div className="reigns-card-face reigns-card-front">
-                            <div className="text-xs text-slate-400">
-                                {currentCard
-                                    ? `Day ${currentCard.day} • ${currentCard.season}`
-                                    : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
-                            </div>
-                            <div className="mt-3 text-xl font-bold text-white">
-                                {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
-                            </div>
-                            <div className="mt-2 text-sm text-slate-300">
-                                {currentCard?.event.description || (language === 'ko' ? '하루 진행 버튼을 눌러 사건을 확인하세요.' : 'Press Advance Day to see the event.')}
-                            </div>
-                            {pendingChoice && (
-                                <div className="mt-4 text-xs text-[#e7c07a]">
-                                    {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                <div className="relative w-full flex items-center justify-center">
+                    <div className="relative">
+                        <div
+                            key={`card-${currentCard?.day ?? 'idle'}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' ? 'reigns-card--flipped' : ''}`}
+                        >
+                            <div className="reigns-card-inner">
+                                <div className="reigns-card-face reigns-card-front">
+                                <div className="text-xs text-slate-400">
+                                    {currentCard
+                                        ? `Day ${currentCard.day} • ${currentCard.season}`
+                                        : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
                                 </div>
-                            )}
-                        </div>
-                        <div className="reigns-card-face reigns-card-back">
-                            <div className="text-xs text-slate-400">
-                                {currentCard
-                                    ? `Day ${currentCard.day} • ${currentCard.season}`
-                                    : (language === 'ko' ? '결과 대기' : 'Result Pending')}
-                            </div>
-                            <div className="mt-3 text-xl font-bold text-white">
-                                {language === 'ko' ? '결과' : 'Result'}
-                            </div>
-                            <div className="mt-2 text-sm text-slate-300">
-                                {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
-                            </div>
-                            {currentCard?.entry && (
-                                <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
-                                    {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
+                                <div className="mt-3 text-xl font-bold text-white">
+                                    {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
                                 </div>
-                            )}
+                                <div className="mt-2 text-sm text-slate-300">
+                                    {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                </div>
+                                {pendingChoice && (
+                                    <div className="mt-4 text-xs text-[#e7c07a]">
+                                        {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="reigns-card-face reigns-card-back">
+                                <div className="text-xs text-slate-400">
+                                    {currentCard
+                                        ? `Day ${currentCard.day} • ${currentCard.season}`
+                                        : (language === 'ko' ? '결과 대기' : 'Result Pending')}
+                                </div>
+                                <div className="mt-3 text-xl font-bold text-white">
+                                    {language === 'ko' ? '결과' : 'Result'}
+                                </div>
+                                <div className="mt-2 text-sm text-slate-300">
+                                    {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                                </div>
+                                {currentCard?.entry && (
+                                    <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
+                                        {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
+                                    </div>
+                                )}
+                            </div>
+                                </div>
+                            </div>
                         </div>
+                        <button
+                            onClick={advanceDay}
+                            disabled={!canAdvanceDay}
+                            className={`absolute -right-12 md:-right-16 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full border text-lg font-bold ${canAdvanceDay
+                                ? 'bg-[#1c3d5a] hover:bg-[#2c5282] text-white border-blue-900 shadow-lg'
+                                : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed'}`}
+                            aria-label={language === 'ko' ? '다음 날로 넘기기' : 'Advance to next day'}
+                        >
+                            →
+                        </button>
                     </div>
                 </div>
 
@@ -1617,44 +1557,121 @@ export default function SimulationClient() {
                 )}
             </div>
 
-            <div className="bg-[#0d0d0d] border border-[#3b3b3b] rounded-xl p-5 shadow-xl">
-                <h3 className="text-sm font-bold text-[#e7c07a] mb-3">
-                    {language === 'ko' ? '생존 로그' : 'Survival Log'}
-                </h3>
-                <div className="max-h-[480px] overflow-y-auto border border-[#2a2a2a] rounded-lg bg-black/40 p-3 space-y-3 text-xs">
-                    {simState.log.length === 0 && (
-                        <div className="text-slate-500">
-                            {language === 'ko' ? '로그가 비어 있습니다.' : 'No logs yet.'}
-                        </div>
-                    )}
-                    {simState.log.map((entry, idx) => (
-                        <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#121212] p-3 shadow-sm space-y-2">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="text-slate-500 text-xs">
-                                    Day {entry.day} • {entry.season}
-                                </div>
-                                <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
-                                    ? 'text-green-400'
-                                    : entry.status === 'bad'
-                                        ? 'text-red-400'
-                                        : 'text-slate-200'}`}
-                                >
-                                    {entry.title}
-                                </div>
-                            </div>
-                            <div className="rounded-md border border-[#222] bg-[#1a1a1a] p-2 text-slate-300">
-                                {language === 'ko' ? '사건' : 'Event'}: {entry.description}
-                            </div>
-                            <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
-                                {language === 'ko' ? '대처' : 'Response'}: {entry.response}
-                            </div>
-                            <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2 text-slate-300">
-                                {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
-                            </div>
-                        </div>
-                    ))}
+            <div className="bg-[#0f0f0f] border border-[#3b3b3b] rounded-xl shadow-lg p-4 md:p-6 space-y-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '현재 일차' : 'Day'}</div>
+                        <div className="text-white font-bold text-sm">{simState.day} / {MAX_DAYS}</div>
+                    </div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '계절' : 'Season'}</div>
+                        <div className="text-white font-bold text-sm">{getSeasonLabel(simState.day, language)}</div>
+                    </div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">HP</div>
+                        <div className="text-white font-bold text-sm">{simState.hp} / 10</div>
+                    </div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '식량' : 'Food'}</div>
+                        <div className="text-white font-bold text-sm">{simState.food} / 10</div>
+                    </div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '치료제' : 'Meds'}</div>
+                        <div className="text-white font-bold text-sm">{simState.meds} / 10</div>
+                    </div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '돈' : 'Money'}</div>
+                        <div className="text-white font-bold text-sm">{simState.money} / 10</div>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={startSimulation}
+                        className="px-4 py-2 rounded-md bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border border-[#7a5a20] shadow-sm"
+                    >
+                        {language === 'ko' ? '시뮬레이션 시작/재시작' : 'Start/Restart'}
+                    </button>
+                    <button
+                        onClick={() => setSimAuto(prev => !prev)}
+                        disabled={simState.status !== 'running' || !!pendingChoice}
+                        className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
+                            ? 'bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white border-gray-600 rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                    >
+                        {simAuto
+                            ? (language === 'ko' ? '자동 진행 일시정지' : 'Pause Auto')
+                            : (language === 'ko' ? '자동 진행 시작' : 'Start Auto')}
+                    </button>
+                    <button
+                        onClick={handleUseMeds}
+                        disabled={!canUseMeds}
+                        className={`px-4 py-2 text-sm font-bold border ${canUseMeds
+                            ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332] rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                    >
+                        {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
+                    </button>
+                    <button
+                        onClick={handleUpgradeCamp}
+                        disabled={!canUpgradeCamp}
+                        className={`px-4 py-2 text-sm font-bold border ${canUpgradeCamp
+                            ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                    >
+                        {language === 'ko'
+                            ? `캠프 강화 Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (돈 ${nextCampCost})` : ''}`
+                            : `Camp Upgrade Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (Money ${nextCampCost})` : ''}`}
+                    </button>
+                    <button
+                        onClick={() => setShowLog(prev => !prev)}
+                        className="px-4 py-2 rounded-md bg-[#1a1a1a] hover:bg-[#262626] text-slate-200 text-sm border border-[#2a2a2a]"
+                    >
+                        {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Log') : (language === 'ko' ? '로그 보기' : 'Show Log')}
+                    </button>
                 </div>
             </div>
+
+            {showLog && (
+                <div className="bg-[#0d0d0d] border border-[#3b3b3b] rounded-xl p-5 shadow-xl">
+                    <h3 className="text-sm font-bold text-[#e7c07a] mb-3">
+                        {language === 'ko' ? '생존 로그' : 'Survival Log'}
+                    </h3>
+                    <div className="max-h-[480px] overflow-y-auto border border-[#2a2a2a] rounded-lg bg-black/40 p-3 space-y-3 text-xs">
+                        {simState.log.length === 0 && (
+                            <div className="text-slate-500">
+                                {language === 'ko' ? '로그가 비어 있습니다.' : 'No logs yet.'}
+                            </div>
+                        )}
+                        {simState.log.map((entry, idx) => (
+                            <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#121212] p-3 shadow-sm space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div className="text-slate-500 text-xs">
+                                        Day {entry.day} • {entry.season}
+                                    </div>
+                                    <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
+                                        ? 'text-green-400'
+                                        : entry.status === 'bad'
+                                            ? 'text-red-400'
+                                            : 'text-slate-200'}`}
+                                    >
+                                        {entry.title}
+                                    </div>
+                                </div>
+                                <div className="rounded-md border border-[#222] bg-[#1a1a1a] p-2 text-slate-300">
+                                    {language === 'ko' ? '사건' : 'Event'}: {entry.description}
+                                </div>
+                                <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
+                                    {language === 'ko' ? '대처' : 'Response'}: {entry.response}
+                                </div>
+                                <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2 text-slate-300">
+                                    {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

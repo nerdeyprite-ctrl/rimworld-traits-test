@@ -31,6 +31,13 @@ function ResultContent() {
     const [shareId, setShareId] = useState<string | null>(s);
     const isSavedRef = useRef(false);
 
+    useEffect(() => {
+        const id = shareId || s;
+        if (id && typeof window !== 'undefined') {
+            localStorage.setItem('last_share_id', id);
+        }
+    }, [shareId, s]);
+
     // Fetch result if ID provided or handle legacy link
     useEffect(() => {
         const fetchSharedResult = async () => {

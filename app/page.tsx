@@ -3,17 +3,22 @@
 import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import { useTest } from '../context/TestContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import VisitorCounter from '../components/VisitorCounter';
 
 export default function Home() {
   const { t, language } = useLanguage();
   const { resetTest } = useTest();
+  const router = useRouter();
+  const [lastShareId, setLastShareId] = useState<string | null>(null);
 
   // Reset test state whenever Home is mounted (returning from test/result)
   useEffect(() => {
     resetTest();
-  }, []);
+    const storedId = typeof window !== 'undefined' ? localStorage.getItem('last_share_id') : null;
+    setLastShareId(storedId);
+  }, [resetTest]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up">
@@ -26,9 +31,27 @@ export default function Home() {
         </p>
 
 
-        <Link href="/test/intro" className="inline-block px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]">
-          {t('start_test')}
-        </Link>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3">
+          <Link href="/test/intro" className="inline-block px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]">
+            {t('start_test')}
+          </Link>
+          <button
+            onClick={() => {
+              if (lastShareId) router.push(`/simulation?s=${lastShareId}`);
+            }}
+            disabled={!lastShareId}
+            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${lastShareId
+              ? 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'
+              : 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-not-allowed'}`}
+          >
+            {language === 'ko' ? '기존 캐릭터로 시뮬레이션하기' : 'Simulate Existing Character'}
+          </button>
+        </div>
+        {!lastShareId && (
+          <p className="text-xs text-gray-500">
+            {language === 'ko' ? '저장된 캐릭터가 없습니다.' : 'No saved character found.'}
+          </p>
+        )}
         <VisitorCounter />
       </section>
 

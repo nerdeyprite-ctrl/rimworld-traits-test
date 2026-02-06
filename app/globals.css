@@ -51,14 +51,14 @@ body {
 
 .reigns-card {
   width: 100%;
-  max-width: 720px;
+  max-width: 420px;
   perspective: 1200px;
 }
 
 .reigns-card-inner {
   position: relative;
   width: 100%;
-  min-height: 260px;
+  aspect-ratio: 5 / 7;
   transform-style: preserve-3d;
   transition: transform 0.5s ease;
 }
