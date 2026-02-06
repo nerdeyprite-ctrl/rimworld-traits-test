@@ -95,35 +95,20 @@ export default function Home() {
     setLoginMessage(language === 'ko' ? '로그아웃되었습니다.' : 'Logged out.');
   };
 
-  const requireLoginAndSettlers = async () => {
+  const requireLogin = async () => {
     if (!accountId) {
-      window.alert(language === 'ko' ? '로그인이 필요합니다.' : 'Please log in first.');
+      window.alert(language === 'ko' ? '로그인이 필요합니다. 아래에서 로그인해주세요.' : 'Please log in first. Use the login form below.');
+      const loginSection = document.getElementById('login-section');
+      if (loginSection) {
+        loginSection.scrollIntoView({ behavior: 'smooth' });
+      }
       return false;
     }
     if (!canUseSupabase) {
       window.alert(language === 'ko' ? 'DB가 설정되어 있지 않습니다.' : 'Database is not configured.');
       return false;
     }
-    setCheckLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('settler_profiles')
-        .select('id')
-        .eq('account_id', accountId)
-        .limit(1);
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        window.alert(language === 'ko' ? '저장된 캐릭터가 없습니다.' : 'No saved character found.');
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.error('Failed to check settlers:', err);
-      window.alert(language === 'ko' ? '정착민 조회에 실패했습니다.' : 'Failed to fetch settlers.');
-      return false;
-    } finally {
-      setCheckLoading(false);
-    }
+    return true;
   };
 
   return (
@@ -146,19 +131,17 @@ export default function Home() {
           </a>
           <button
             onClick={async () => {
-              const ok = await requireLoginAndSettlers();
+              const ok = await requireLogin();
               if (ok) {
                 router.push('/settlers');
               }
             }}
-            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${checkLoading
-              ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-wait'
-              : 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'}`}
+            className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border"
           >
             {language === 'ko' ? '정착민 관리하기' : 'Manage Settlers'}
           </button>
         </div>
-        <div className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
+        <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
           <div className="text-sm font-bold text-[#9f752a]">
             {language === 'ko' ? '정착민 로그인' : 'Settler Login'}
           </div>
