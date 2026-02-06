@@ -106,12 +106,13 @@ export default function Home() {
     }
     setCheckLoading(true);
     try {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('settler_profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_id', accountId);
+        .select('id')
+        .eq('account_id', accountId)
+        .limit(1);
       if (error) throw error;
-      if (!count || count <= 0) {
+      if (!data || data.length === 0) {
         window.alert(language === 'ko' ? '저장된 캐릭터가 없습니다.' : 'No saved character found.');
         return false;
       }

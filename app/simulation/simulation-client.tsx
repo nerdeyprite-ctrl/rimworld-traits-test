@@ -807,12 +807,17 @@ export default function SimulationClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const s = searchParams.get('s');
+    const selectMode = searchParams.get('select') === '1';
     const shouldShowSelect = searchParams.get('select');
 
     const [result, setResult] = useState<TestResult | null>(null);
     const [localUserInfo, setLocalUserInfo] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [isFullResult, setIsFullResult] = useState(false);
+    const [settlers, setSettlers] = useState<any[]>([]);
+    const [settlersLoading, setSettlersLoading] = useState(false);
+    const [settlersError, setSettlersError] = useState<string | null>(null);
+    const selectedSettlerRef = useRef(false);
     const [simAuto, setSimAuto] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
     const autoResumeRef = useRef(false);
@@ -855,6 +860,8 @@ export default function SimulationClient() {
 
     useEffect(() => {
         const fetchSharedResult = async () => {
+            if (selectMode) return;
+            if (selectedSettlerRef.current && result) return;
             if (s) {
                 if (!isSupabaseConfigured()) {
                     setIsFullResult(false);
@@ -900,7 +907,40 @@ export default function SimulationClient() {
             }
         };
         fetchSharedResult();
-    }, [s, language, contextTestPhase, calculateFinalTraits]);
+    }, [s, language, contextTestPhase, calculateFinalTraits, selectMode, result]);
+
+    useEffect(() => {
+        const loadSettlers = async () => {
+            if (!selectMode) return;
+            if (!isSupabaseConfigured()) {
+                setSettlersError(language === 'ko' ? 'DB가 설정되어 있지 않습니다.' : 'Database is not configured.');
+                return;
+            }
+            const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
+            if (!accountId) {
+                setSettlersError(language === 'ko' ? '로그인이 필요합니다.' : 'Login required.');
+                return;
+            }
+            setSettlersLoading(true);
+            setSettlersError(null);
+            try {
+                const { data, error } = await supabase
+                    .from('settler_profiles')
+                    .select('*')
+                    .eq('account_id', accountId)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                if (error) throw error;
+                setSettlers(data || []);
+            } catch (err) {
+                console.error('Failed to load settlers:', err);
+                setSettlersError(language === 'ko' ? '정착민을 불러오지 못했습니다.' : 'Failed to load settlers.');
+            } finally {
+                setSettlersLoading(false);
+            }
+        };
+        loadSettlers();
+    }, [selectMode, language]);
 
     useEffect(() => {
         const loadSettlers = async () => {
@@ -1738,6 +1778,83 @@ export default function SimulationClient() {
 
     if (loading) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
+    }
+
+    if (selectMode) {
+        return (
+            <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold text-[#e7c07a]">
+                        {language === 'ko' ? '정착민 선택' : 'Select Settler'}
+                    </h1>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="px-4 py-2 bg-[#333] hover:bg-[#444] text-white border border-gray-600 text-sm"
+                    >
+                        {language === 'ko' ? '홈으로' : 'Back Home'}
+                    </button>
+                </div>
+
+                {settlersLoading && (
+                    <div className="text-center text-gray-400 animate-pulse">
+                        {language === 'ko' ? '정착민을 불러오는 중...' : 'Loading settlers...'}
+                    </div>
+                )}
+
+                {settlersError && (
+                    <div className="bg-[#1b1b1b] border border-[#6b6b6b] p-6 text-center text-red-300">
+                        {settlersError}
+                    </div>
+                )}
+
+                {!settlersLoading && !settlersError && settlers.length === 0 && (
+                    <div className="bg-[#1b1b1b] border border-[#6b6b6b] p-6 text-center text-gray-300">
+                        {language === 'ko' ? '저장된 정착민이 없습니다.' : 'No saved settlers found.'}
+                    </div>
+                )}
+
+                {!settlersLoading && settlers.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {settlers.map(settler => (
+                            <div key={settler.id} className="bg-[#111111] border border-[#6b6b6b] p-4 space-y-2">
+                                <div className="text-lg font-bold text-white">{settler.name || '정착민'}</div>
+                                <div className="text-xs text-gray-400">
+                                    {language === 'ko' ? '성별/나이' : 'Gender/Age'}: {settler.gender} / {settler.age}
+                                </div>
+                                <div className="text-xs text-gray-400">MBTI: {settler.mbti || '-'}</div>
+                                <button
+                                    onClick={() => {
+                                        const fetchedResult: TestResult = {
+                                            mbti: settler.mbti,
+                                            traits: settler.traits || [],
+                                            backstory: {
+                                                childhood: settler.backstory_childhood,
+                                                adulthood: settler.backstory_adulthood
+                                            },
+                                            skills: settler.skills || [],
+                                            incapabilities: settler.incapabilities || [],
+                                            scoreLog: {}
+                                        };
+                                        setResult(fetchedResult);
+                                        setLocalUserInfo({
+                                            name: settler.name || '정착민',
+                                            age: settler.age || 20,
+                                            gender: settler.gender || 'Male'
+                                        });
+                                        setIsFullResult(true);
+                                        selectedSettlerRef.current = true;
+                                        router.replace('/simulation');
+                                    }}
+                                    className="mt-2 px-4 py-2 bg-[#6e4e1e] hover:bg-[#856026] text-white border border-[#9f752a] text-sm font-bold"
+                                >
+                                    {language === 'ko' ? '이 정착민으로 시작' : 'Start Simulation'}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
     }
 
     if (!result) {
