@@ -1666,11 +1666,11 @@ export default function SimulationClient() {
                                         </h3>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs text-slate-400">
-                                                {language === 'ko' ? '나이' : 'Age'}: {settler.age}
+                                                {language === 'ko' ? '나이' : 'Age'}: {settler.age || 0}
                                             </span>
                                             <span className="text-slate-600 text-[10px]">|</span>
-                                            <span className="text-xs text-slate-400">
-                                                {new Date(settler.created_at).toLocaleDateString()}
+                                            <span className="text-xs text-slate-400" suppressHydrationWarning>
+                                                {settler.created_at ? new Date(settler.created_at).toLocaleDateString() : ''}
                                             </span>
                                         </div>
                                     </div>
@@ -1686,7 +1686,7 @@ export default function SimulationClient() {
                                     <span className="text-[10px] bg-[#2d3748] text-slate-300 px-1.5 py-0.5 rounded">
                                         {settler.mbti}
                                     </span>
-                                    {settler.traits?.slice(0, 3).map((trait: string, idx: number) => (
+                                    {(settler.traits || []).slice(0, 3).map((trait: string, idx: number) => (
                                         <span key={idx} className="text-[10px] bg-[#1c3d5a] text-[#a5d8ff] px-1.5 py-0.5 rounded">
                                             {trait}
                                         </span>
