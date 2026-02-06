@@ -180,14 +180,6 @@ function ResultContent() {
         router.push('/simulation');
     };
 
-    const handleSimulationClick = () => {
-        setShowSimulation(true);
-        startSimulation();
-        setTimeout(() => {
-            simPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 50);
-    };
-
     if (loading) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{t('loading_gene')}...</div>;
     }
