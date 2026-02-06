@@ -21,6 +21,7 @@ import Link from 'next/link';
 
 // Mock Data for fallback
 const MOCK_TOTAL_COUNT = 1234;
+const MOCK_TOTAL_COUNT_WEEK = 234;
 const MOCK_MBTI_DATA = [
     { name: 'ENTJ', value: 400 },
     { name: 'INFP', value: 300 },
@@ -44,28 +45,44 @@ export default function StatsPage() {
     const [traitData, setTraitData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDbConnected, setIsDbConnected] = useState(false);
+    const [statsRange, setStatsRange] = useState<'week' | 'all'>('week');
 
     useEffect(() => {
         if (isSupabaseConfigured()) {
-            fetchStats();
+            fetchStats(statsRange);
         } else {
             // Use Mock Data if DB is not configured
             setIsDbConnected(false);
-            setTotalCount(MOCK_TOTAL_COUNT);
+            setTotalCount(statsRange === 'week' ? MOCK_TOTAL_COUNT_WEEK : MOCK_TOTAL_COUNT);
             setMbtiData(MOCK_MBTI_DATA);
             setTraitData(MOCK_TRAIT_DATA);
             setIsLoading(false);
         }
-    }, []);
+    }, [statsRange]);
 
-    const fetchStats = async () => {
+    const getWeekStartIso = () => {
+        const now = new Date();
+        const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+        const diffToMonday = (day + 6) % 7;
+        const start = new Date(now);
+        start.setDate(now.getDate() - diffToMonday);
+        start.setHours(0, 0, 0, 0);
+        return start.toISOString();
+    };
+
+    const fetchStats = async (range: 'week' | 'all') => {
         try {
             setIsLoading(true);
+            const weekStartIso = range === 'week' ? getWeekStartIso() : null;
 
             // 1. Total Count
-            const { count, error: countError } = await supabase
+            let countQuery = supabase
                 .from('test_results')
                 .select('*', { count: 'exact', head: true });
+            if (weekStartIso) {
+                countQuery = countQuery.gte('created_at', weekStartIso);
+            }
+            const { count, error: countError } = await countQuery;
 
             if (!countError) {
                 setTotalCount(count || 0);
@@ -73,10 +90,14 @@ export default function StatsPage() {
             }
 
             // 2. MBTI Distribution
-            const { data: results, error: dataError } = await supabase
+            let resultsQuery = supabase
                 .from('test_results')
                 .select('mbti, traits')
                 .limit(1000);
+            if (weekStartIso) {
+                resultsQuery = resultsQuery.gte('created_at', weekStartIso);
+            }
+            const { data: results, error: dataError } = await resultsQuery;
 
             if (results) {
                 // Process MBTI
@@ -118,13 +139,29 @@ export default function StatsPage() {
         <div className="min-h-screen bg-[var(--rimworld-bg)] text-[var(--rimworld-text)] p-4 md:p-8 font-sans transition-colors duration-300">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-8 border-b border-[var(--rimworld-border)] pb-4">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 border-b border-[var(--rimworld-border)] pb-4 gap-4">
                     <h1 className="text-3xl font-bold text-[var(--rimworld-highlight)]">
                         📊 {t('app_title')} {t('statistics') || '통계'}
                     </h1>
-                    <Link href="/" className="px-4 py-2 bg-[var(--rimworld-panel)] border border-[var(--rimworld-border)] hover:bg-gray-700/20 rounded text-sm text-[var(--rimworld-text)] transition-colors">
-                        {t('back_home')}
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <div className="flex bg-[var(--rimworld-panel)] border border-[var(--rimworld-border)] rounded overflow-hidden text-sm">
+                            <button
+                                className={`px-3 py-2 ${statsRange === 'week' ? 'bg-[#9f752a] text-white' : 'text-[var(--rimworld-text)] hover:bg-gray-700/20'}`}
+                                onClick={() => setStatsRange('week')}
+                            >
+                                이번 주
+                            </button>
+                            <button
+                                className={`px-3 py-2 ${statsRange === 'all' ? 'bg-[#9f752a] text-white' : 'text-[var(--rimworld-text)] hover:bg-gray-700/20'}`}
+                                onClick={() => setStatsRange('all')}
+                            >
+                                전체
+                            </button>
+                        </div>
+                        <Link href="/" className="px-4 py-2 bg-[var(--rimworld-panel)] border border-[var(--rimworld-border)] hover:bg-gray-700/20 rounded text-sm text-[var(--rimworld-text)] transition-colors">
+                            {t('back_home')}
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Connection Status Warning */}
@@ -137,7 +174,9 @@ export default function StatsPage() {
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
-                        <h3 className="opacity-60 text-sm uppercase tracking-wider mb-2">Total Participants</h3>
+                        <h3 className="opacity-60 text-sm uppercase tracking-wider mb-2">
+                            {statsRange === 'week' ? 'This Week Participants' : 'Total Participants'}
+                        </h3>
                         <p className="text-4xl font-bold">{totalCount.toLocaleString()}</p>
                     </div>
                     <div className="bg-[var(--rimworld-card)] p-6 rounded-lg border border-[var(--rimworld-border)] shadow-lg">
