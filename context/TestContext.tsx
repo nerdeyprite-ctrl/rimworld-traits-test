@@ -36,7 +36,6 @@ interface TestContextType {
     calculateFinalTraits: () => TestResult | null;
     resetTest: () => void;
     shuffledQuestions: Question[];
-    startSkillTest: () => void;
     testPhase: TestPhase;
 }
 
@@ -49,7 +48,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
     const [answers, setAnswers] = useState<Record<number, Answer>>({});
     const [scores, setScores] = useState<Record<string, number>>({}); // Stores both trait scores and skill scores
     const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
-    const [testPhase, setTestPhase] = useState<TestPhase>('trait');
+    const [testPhase] = useState<TestPhase>('skill'); // Always full state now
 
     // Helper to shuffle array
     const shuffleArray = (array: any[]) => {
@@ -61,59 +60,58 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         return newArray;
     };
 
-    const QUESTIONS_PER_TRAIT_TEST = 40;
-    const QUESTIONS_PER_SKILL_TEST = 15;
+    // Unified test constants
+    const TRAITS_COUNT = 40;
+    const SKILLS_COUNT = 15;
 
-    const initializeTest = React.useCallback((phase: TestPhase = 'trait') => {
+    const initializeTest = React.useCallback(() => {
         try {
             const currentQuestionsData = language === 'ko' ? questionsKo : questionsEn;
             const allQuestions = currentQuestionsData as unknown as Question[];
-            let finalQ: Question[] = [];
 
-            if (phase === 'trait') {
-                const part1Questions = allQuestions.filter(q => q.id < 200);
-                const groups: Record<string, Question[]> = {};
-                part1Questions.forEach(q => {
-                    const key = q.groupId || `unique_${q.id}`;
-                    if (!groups[key]) groups[key] = [];
-                    groups[key].push(q);
-                });
+            // --- Part 1: Traits (40 Groups) ---
+            const part1Questions = allQuestions.filter(q => q.id < 200);
+            const groups: Record<string, Question[]> = {};
+            part1Questions.forEach(q => {
+                const key = q.groupId || `unique_${q.id}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(q);
+            });
+            const groupKeys = shuffleArray(Object.keys(groups));
+            const selectedPart1 = groupKeys.slice(0, TRAITS_COUNT).map(key => {
+                const variants = groups[key];
+                return variants[Math.floor(Math.random() * variants.length)];
+            });
 
-                const groupKeys = shuffleArray(Object.keys(groups));
-                const selectedKeys = groupKeys.slice(0, 40);
-                const selectedPart1 = selectedKeys.map(key => {
-                    const variants = groups[key];
-                    return variants[Math.floor(Math.random() * variants.length)];
-                });
+            // --- Part 2: Backstories (5 Variants) ---
+            const part2Groups = ['p2_origin', 'p2_childhood', 'p2_adulthood', 'p2_event', 'p2_goal'];
+            const part2QuestionsFull = allQuestions.filter(q => q.id >= 200 && q.id < 1000);
+            const selectedPart2 = part2Groups.map(groupKey => {
+                const variants = part2QuestionsFull.filter(q => q.groupId === groupKey);
+                return variants[Math.floor(Math.random() * variants.length)];
+            }).filter(q => q !== undefined);
 
-                const part2Groups = ['p2_origin', 'p2_childhood', 'p2_adulthood', 'p2_event', 'p2_goal'];
-                const part2QuestionsFull = allQuestions.filter(q => q.id >= 200 && q.id < 1000);
-                const selectedPart2 = part2Groups.map(groupKey => {
-                    const variants = part2QuestionsFull.filter(q => q.groupId === groupKey);
-                    return variants[Math.floor(Math.random() * variants.length)];
-                }).filter(q => q !== undefined);
+            // --- Part 3: Skills (15 Questions) ---
+            const skillQuestions = allQuestions.filter(q => q.id >= 1000);
+            const selectedPart3 = shuffleArray(skillQuestions).slice(0, SKILLS_COUNT);
 
-                const combinedQuestions = [...shuffleArray(selectedPart1), ...selectedPart2];
-                finalQ = combinedQuestions.map((q: Question) => ({
-                    ...q,
-                    answers: shuffleArray(q.answers)
-                }));
-            } else {
-                const skillQuestions = allQuestions.filter(q => q.id >= 1000);
-                const shuffledSkills = shuffleArray(skillQuestions).slice(0, 15);
-                finalQ = shuffledSkills.map((q: Question) => ({
-                    ...q,
-                    answers: shuffleArray(q.answers)
-                }));
-            }
+            // Combine All (Total ~60 questions)
+            const combinedQuestions = [
+                ...shuffleArray(selectedPart1),
+                ...shuffleArray(selectedPart2),
+                ...shuffleArray(selectedPart3)
+            ];
+
+            const finalQ = combinedQuestions.map((q: Question) => ({
+                ...q,
+                answers: shuffleArray(q.answers)
+            }));
 
             setShuffledQuestions(finalQ);
             setCurrentQuestionIndex(0);
-            setTestPhase(phase);
-            if (phase === 'trait') {
-                setAnswers({});
-                setScores({});
-            }
+            setAnswers({});
+            setScores({});
+            // No phase change needed
         } catch (error) {
             console.error("Failed to load questions:", error);
         }
@@ -126,9 +124,9 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
     // Initial Load
     useEffect(() => {
         if (shuffledQuestions.length === 0) {
-            initializeTest('trait');
+            initializeTest();
         }
-    }, []);
+    }, [initializeTest, shuffledQuestions.length]);
 
     // Effect to update questions when language changes
     useEffect(() => {
@@ -166,12 +164,10 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
     const resetTest = React.useCallback(() => {
         setUserInfo({ name: '정착민', age: 20, gender: 'Male' });
-        initializeTest('trait');
+        initializeTest();
     }, [initializeTest]);
 
-    const startSkillTest = React.useCallback(() => {
-        initializeTest('skill');
-    }, [initializeTest]);
+    // startSkillTest removed
 
     // --- SPECTRUM LOGIC CONFIGURATION ---
     const SPECTRUM_CONFIG: Record<string, { id: string, threshold: number, type: 'min' | 'max' }[]> = {
@@ -234,9 +230,13 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleAnswer = React.useCallback((questionId: number, answer: Answer) => {
+        let part = 1;
+        if (questionId >= 1000) part = 3;
+        else if (questionId >= 200) part = 2;
+
         const answerWithPart: Answer = {
             ...answer,
-            part: testPhase === 'trait' ? (questionId < 200 ? 1 : 2) : 3
+            part
         };
         setAnswers(prev => ({ ...prev, [questionId]: answerWithPart }));
 
@@ -244,11 +244,9 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             const newScores = { ...prev };
             Object.entries(answer.scores).forEach(([key, value]) => {
                 const numericVal = Number(value);
-                const isSkillKey = R_SKILLS.includes(key) || key.startsWith('inc_');
-                if (testPhase === 'skill' && !isSkillKey) return;
-
                 newScores[key] = (newScores[key] || 0) + numericVal;
-                if (testPhase === 'trait' && TRAIT_TO_SPECTRUM[key]) {
+
+                if (part < 3 && TRAIT_TO_SPECTRUM[key]) {
                     const { id: spectrumId, value: weight } = TRAIT_TO_SPECTRUM[key];
                     newScores[spectrumId] = (newScores[spectrumId] || 0) + (numericVal * weight);
                 }
@@ -257,12 +255,13 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
         });
 
         setCurrentQuestionIndex(prev => prev + 1);
-    }, [testPhase]);
+    }, []);
 
     const calculateFinalTraits = React.useCallback((): TestResult | null => {
         const traitsData = language === 'ko' ? traitsKo : traitsEn;
         const traitDefinitions = traitsData as Trait[];
         const traitAnswers = Object.values(answers).filter(a => a.part === 1 || a.part === 2);
+        const skillAnswers = Object.values(answers).filter(a => a.part === 3);
 
         const traitScores: Record<string, number> = {};
         const backstoryPreferences: Record<string, number> = {};
@@ -481,7 +480,6 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
             calculateFinalTraits,
             resetTest,
             shuffledQuestions,
-            startSkillTest,
             testPhase
         }}>
             {children}

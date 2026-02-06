@@ -10,7 +10,7 @@ import ShareButtons from '../../components/ShareButtons';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 function ResultContent() {
-    const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase, startSkillTest } = useTest();
+    const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase } = useTest();
     const { t, language } = useLanguage();
     const searchParams = useSearchParams();
     const s = searchParams.get('s');
@@ -18,7 +18,7 @@ function ResultContent() {
     const [result, setResult] = useState<TestResult | null>(null);
     const [selectedTrait, setSelectedTrait] = useState<Trait | null>(null);
     const [localUserInfo, setLocalUserInfo] = useState<any>(null);
-    const [isFullResult, setIsFullResult] = useState(false);
+    const [isFullResult] = useState(true);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
@@ -47,7 +47,6 @@ function ResultContent() {
             if (!accountId) return;
 
             try {
-                // 1. Check current count and delete oldest if >= 10
                 const { data: existing, error: countError } = await supabase
                     .from('settler_profiles')
                     .select('id, created_at')
@@ -57,9 +56,8 @@ function ResultContent() {
                 if (countError) throw countError;
 
                 if (existing && existing.length >= 10) {
-                    const toDeleteCount = existing.length - 9; // 10개 미만이 되도록 삭제 (신규 추가분 고려)
+                    const toDeleteCount = existing.length - 9;
                     const toDeleteIds = existing.slice(0, toDeleteCount).map(s => s.id);
-                    console.log(`Limit reached (10). Deleting oldest ${toDeleteCount} settlers...`, toDeleteIds);
                     await supabase.from('settler_profiles').delete().in('id', toDeleteIds);
                 }
 
@@ -77,7 +75,6 @@ function ResultContent() {
                 };
                 const { error } = await supabase.from('settler_profiles').insert(payload);
                 if (error) throw error;
-                console.log('Successfully saved settler profile to Supabase.');
                 isSettlerSavedRef.current = true;
             } catch (err) {
                 console.error('Failed to auto-save settler:', err);
@@ -116,7 +113,7 @@ function ResultContent() {
                             age: data.age || 20,
                             gender: data.gender || 'Male'
                         });
-                        setIsFullResult(!!data.skills && data.skills.length > 0);
+                        //setIsFullResult(true);
                         isSavedRef.current = true;
                     }
                 } catch (err) {
@@ -153,13 +150,11 @@ function ResultContent() {
                 };
                 setResult(legacyResult);
                 setLocalUserInfo({ name, age, gender });
-                setIsFullResult(false);
                 isSavedRef.current = true;
             } else {
                 // Normal flow: calculate from context
                 const res = calculateFinalTraits();
                 setResult(res);
-                setIsFullResult(contextTestPhase === 'skill');
             }
         };
         fetchSharedResult();
@@ -222,8 +217,7 @@ function ResultContent() {
     }, [result]);
 
     const handleUnlockSkills = () => {
-        startSkillTest();
-        router.push('/test');
+        // No longer used, combined into one test
     };
 
     const handleSimulationClick = () => {
@@ -504,40 +498,7 @@ function ResultContent() {
                             })}
                         </div>
 
-                        {/* Lock Overlay for Phase 1 */}
-                        {!isFullResult && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]">
-                                <h4 className="text-white font-bold mb-2 drop-shadow-md">상세 기술 분석 필요? (Should translate?) </h4>
-                                {/* Wait, I forgot keys for this part. 
-                                    Looking at keys again: 'unlock_skills', 'unlock_desc', 'unlock_info' 
-                                */}
-                                {/* Re-doing this block with translations */}
-                                <h4 className="text-white font-bold mb-2 drop-shadow-md">Expert Verification Required</h4>
-                                {/* I don't have a key for "Expert Verification Required". 
-                                    I'll just use a generic "Phase 2 Required" or use 'unlock_skills' context.
-                                    Actually I can use `t('phase_skill')` but that's "Phase 2: Skill Assessment".
-                                    I will default to English "Skill Analysis Required" if no key found.
-                                    Or I can just use Korean for now in the JSX below.
-                                */}
-                            </div>
-                        )}
-
-                        {/* Correcting the overlay block */}
-                        {!isFullResult && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]">
-                                <h4 className="text-white font-bold mb-2 drop-shadow-md">{t('phase_skill')}</h4>
-                                <button
-                                    onClick={handleUnlockSkills}
-                                    className="bg-[#9f752a] hover:bg-[#b08535] text-white font-bold py-3 px-8 border-2 border-[#7a5a20] shadow-[0_0_20px_rgba(159,117,42,0.4)] transform hover:scale-105 transition-all text-sm animate-pulse"
-                                >
-                                    {t('unlock_skills')}
-                                    <span className="block text-[10px] font-normal mt-1 text-white/80">{t('unlock_desc')}</span>
-                                </button>
-                                <p className="text-[10px] text-gray-400 mt-4 max-w-[200px] text-center">
-                                    {t('unlock_info')}
-                                </p>
-                            </div>
-                        )}
+                        {/* Skills are now always full */}
 
                         {isFullResult && (
                             <div className="mt-4 text-center animate-fade-in border-t border-gray-700 pt-2">

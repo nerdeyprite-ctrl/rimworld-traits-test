@@ -35,14 +35,12 @@ export default function TestPage() {
 
     // Determine Part Title
     let partTitle = '';
-    if (testPhase === 'skill') {
-        partTitle = t('part3_title');
+    if (currentQuestionIndex < 40) {
+        partTitle = t('part1_title');
+    } else if (currentQuestionIndex < 45) {
+        partTitle = t('part2_title');
     } else {
-        if (currentQuestionIndex < 40) {
-            partTitle = t('part1_title');
-        } else {
-            partTitle = t('part2_title');
-        }
+        partTitle = t('part3_title');
     }
 
     return (

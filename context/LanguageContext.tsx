@@ -70,8 +70,8 @@ const translations: Record<Language, Record<string, string>> = {
         'part1_title': 'PART 1: 성향 분석',
         'part2_title': 'PART 2: 배경 탐색',
         'part3_title': 'PART 3: 기술 정밀 검사',
-        'estimated_time': '예상 소요 시간: 10분',
-        'questions_count': '기본 설문 45문항 + 추가 설문 15문항'
+        'estimated_time': '예상 소요 시간: 약 10~15분',
+        'questions_count': '총 60문항 (통합 분석)'
     },
     en: {
         'app_title': 'Rimworld Colonist Test',
@@ -79,8 +79,8 @@ const translations: Record<Language, Record<string, string>> = {
         'part1_title': 'PART 1: Personality Analysis',
         'part2_title': 'PART 2: Background Check',
         'part3_title': 'PART 3: Skill Assessment',
-        'estimated_time': 'Estimated Time: 10 min',
-        'questions_count': '45 Basic Questions + 15 Extra Questions',
+        'estimated_time': 'Estimated Time: ~12 min',
+        'questions_count': 'Total 60 Questions (Unified)',
         'landing_subtitle': '"What is your survival rate after 30 days of crash landing?"\nPersonality and aptitude test based on Rimworld universe',
         'landing_traits_title': '✦ Traits',
         'landing_traits_desc': 'Sanguine, Volatile, Cannibal...\nYour unique traits decide the colony\'s fate.',
