@@ -94,7 +94,6 @@ type CurrentCard = {
 const MAX_DAYS = 60;
 const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
 const CAMP_UPGRADE_COSTS = [3, 5];
-const CARD_FLIP_MS = 500;
 const AUTO_RESULT_DELAY_MS = 900;
 
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
@@ -744,10 +743,9 @@ export default function SimulationClient() {
     const [simAuto, setSimAuto] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
     const autoResumeRef = useRef(false);
-    const flipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [startQueued, setStartQueued] = useState(false);
     const [cardView, setCardView] = useState<'event' | 'result'>('result');
     const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
-    const [showMoreChoices, setShowMoreChoices] = useState(false);
     const [showLog, setShowLog] = useState(false);
 
     const [simState, setSimState] = useState<{
@@ -901,18 +899,12 @@ export default function SimulationClient() {
         return { success: roll < chance, chance };
     }, [getGroupAverage]);
 
-    const scheduleFlipToResult = useCallback(() => {
-        if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
-        flipTimerRef.current = setTimeout(() => {
-            setCardView('result');
-        }, CARD_FLIP_MS);
-    }, []);
-
     useEffect(() => {
-        return () => {
-            if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
-        };
-    }, []);
+        if (!startQueued) return;
+        if (simState.status !== 'running' || simState.day !== 0 || currentCard || pendingChoice) return;
+        setStartQueued(false);
+        advanceDay();
+    }, [startQueued, simState.status, simState.day, currentCard, pendingChoice, advanceDay]);
 
     const startSimulation = useCallback(() => {
         const introText = language === 'ko'
@@ -939,9 +931,9 @@ export default function SimulationClient() {
         });
         setPendingChoice(null);
         setCurrentCard(null);
-        setCardView('result');
-        setShowMoreChoices(false);
+        setCardView('event');
         setShowLog(false);
+        setStartQueued(true);
         autoResumeRef.current = false;
         setSimAuto(false);
     }, [language]);
@@ -1121,7 +1113,6 @@ export default function SimulationClient() {
         if (event.choices && event.choices.length > 0) {
             autoResumeRef.current = simAuto;
             setSimAuto(false);
-            setShowMoreChoices(false);
             setPendingChoice({
                 day: nextDay,
                 season,
@@ -1195,10 +1186,8 @@ export default function SimulationClient() {
             event,
             entry
         });
-        setShowMoreChoices(false);
         setCardView('event');
-        scheduleFlipToResult();
-    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, scheduleFlipToResult]);
+    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView]);
 
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
@@ -1261,9 +1250,7 @@ export default function SimulationClient() {
             event: pendingChoice.event,
             entry
         });
-        setShowMoreChoices(false);
         setCardView('event');
-        scheduleFlipToResult();
 
         const shouldResume = autoResumeRef.current && status === 'running';
         autoResumeRef.current = false;
@@ -1388,8 +1375,6 @@ export default function SimulationClient() {
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard);
     const allChoices = pendingChoice?.event.choices ?? [];
-    const primaryChoices = allChoices.slice(0, 2);
-    const extraChoices = allChoices.slice(2);
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
@@ -1417,38 +1402,80 @@ export default function SimulationClient() {
                             className={`reigns-card reigns-card-enter ${cardView === 'result' ? 'reigns-card--flipped' : ''}`}
                         >
                             <div className="reigns-card-inner">
-                                <div className="reigns-card-face reigns-card-front">
-                                    <div className="text-xs text-slate-400">
-                                        {currentCard
-                                            ? `Day ${currentCard.day} • ${currentCard.season}`
-                                            : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
-                                    </div>
-                                    <div className="mt-3 text-xl font-bold text-white">
-                                        {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
-                                    </div>
-                                    <div className="mt-2 text-sm text-slate-300">
-                                        {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
-                                    </div>
-                                    {pendingChoice && (
-                                        <div className="mt-4 text-xs text-[#e7c07a]">
-                                            {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                <div className="reigns-card-face reigns-card-front flex flex-col text-center">
+                                    <div>
+                                        <div className="text-xs text-slate-400">
+                                            {currentCard
+                                                ? `Day ${currentCard.day} • ${currentCard.season}`
+                                                : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
                                         </div>
-                                    )}
+                                        <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
+                                            {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
+                                        </div>
+                                        <div className="mt-3 text-base md:text-lg text-slate-300">
+                                            {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-auto pt-6 space-y-3">
+                                        {pendingChoice && (
+                                            <div className="text-xs text-[#e7c07a]">
+                                                {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                            </div>
+                                        )}
+                                        {pendingChoice && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                {allChoices.map(choice => {
+                                                    let chanceText = '';
+                                                    if (choice.skillCheck) {
+                                                        const avg = getGroupAverage(choice.skillCheck.group);
+                                                        const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
+                                                        chanceText = language === 'ko'
+                                                            ? `성공 확률 ${chance}%`
+                                                            : `Success ${chance}%`;
+                                                    }
+                                                    return (
+                                                        <button
+                                                            key={choice.id}
+                                                            onClick={() => resolveChoice(choice.id)}
+                                                            className="px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md"
+                                                        >
+                                                            <div className="font-bold">{choice.label}</div>
+                                                            {choice.description && (
+                                                                <div className="text-xs text-white/70 mt-1">{choice.description}</div>
+                                                            )}
+                                                            {chanceText && (
+                                                                <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {!pendingChoice && currentCard?.entry && cardView === 'event' && (
+                                            <button
+                                                onClick={() => setCardView('result')}
+                                                className="w-full px-4 py-3 rounded-xl bg-[#2d6a4f] hover:bg-[#40916c] text-white text-sm font-bold border border-[#1b4332] shadow-md"
+                                            >
+                                                {language === 'ko' ? '결과 보기' : 'Show Result'}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="reigns-card-face reigns-card-back">
+                                <div className="reigns-card-face reigns-card-back flex flex-col text-center">
                                     <div className="text-xs text-slate-400">
                                         {currentCard
                                             ? `Day ${currentCard.day} • ${currentCard.season}`
                                             : (language === 'ko' ? '결과 대기' : 'Result Pending')}
                                     </div>
-                                    <div className="mt-3 text-xl font-bold text-white">
+                                    <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
                                         {language === 'ko' ? '결과' : 'Result'}
                                     </div>
-                                    <div className="mt-2 text-sm text-slate-300">
+                                    <div className="mt-3 text-base md:text-lg text-slate-300">
                                         {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
                                     </div>
                                     {currentCard?.entry && (
-                                        <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
+                                        <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
                                             {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
                                         </div>
                                     )}
@@ -1467,82 +1494,6 @@ export default function SimulationClient() {
                         </button>
                     </div>
                 </div>
-
-                {pendingChoice && (
-                    <div className="w-full max-w-3xl space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {primaryChoices.map(choice => {
-                                let chanceText = '';
-                                if (choice.skillCheck) {
-                                    const avg = getGroupAverage(choice.skillCheck.group);
-                                    const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
-                                    chanceText = language === 'ko'
-                                        ? `성공 확률 ${chance}%`
-                                        : `Success ${chance}%`;
-                                }
-                                return (
-                                    <button
-                                        key={choice.id}
-                                        onClick={() => resolveChoice(choice.id)}
-                                        className="px-4 py-4 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md text-left"
-                                    >
-                                        <div className="font-bold">{choice.label}</div>
-                                        {choice.description && (
-                                            <div className="text-xs text-white/70 mt-1">{choice.description}</div>
-                                        )}
-                                        {chanceText && (
-                                            <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        {extraChoices.length > 0 && (
-                            <div className="space-y-2">
-                                <button
-                                    onClick={() => setShowMoreChoices(prev => !prev)}
-                                    className="px-4 py-2 rounded-md bg-[#222] hover:bg-[#2f2f2f] text-slate-200 text-xs border border-[#333]"
-                                >
-                                    {showMoreChoices
-                                        ? (language === 'ko' ? '추가 선택지 접기' : 'Hide More Choices')
-                                        : (language === 'ko' ? '추가 선택지 보기' : 'Show More Choices')}
-                                </button>
-                                {showMoreChoices && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {extraChoices.map(choice => {
-                                            let chanceText = '';
-                                            if (choice.skillCheck) {
-                                                const avg = getGroupAverage(choice.skillCheck.group);
-                                                const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
-                                                chanceText = language === 'ko'
-                                                    ? `성공 확률 ${chance}%`
-                                                    : `Success ${chance}%`;
-                                            }
-                                            return (
-                                                <button
-                                                    key={choice.id}
-                                                    onClick={() => resolveChoice(choice.id)}
-                                                    className="px-4 py-3 rounded-lg bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white text-xs border border-gray-700 text-left"
-                                                >
-                                                    <div className="font-bold">{choice.label}</div>
-                                                    {choice.description && (
-                                                        <div className="text-xs text-white/70 mt-1">{choice.description}</div>
-                                                    )}
-                                                    {chanceText && (
-                                                        <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div className="text-xs text-slate-500">
-                            {language === 'ko' ? '선택을 완료해야 다음 날로 진행됩니다.' : 'Choose an action to continue.'}
-                        </div>
-                    </div>
-                )}
 
                 {simState.status === 'dead' && (
                     <div className="text-red-400 text-sm font-bold">
