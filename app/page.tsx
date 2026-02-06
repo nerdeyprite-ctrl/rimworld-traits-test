@@ -147,7 +147,7 @@ export default function Home() {
             }}
             className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
           >
-            {language === 'ko' ? '정착민 관리하기' : 'Manage Settlers'}
+            {language === 'ko' ? '시뮬레이션 시작하기' : 'Start Simulation'}
           </button>
         </div>
         <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
