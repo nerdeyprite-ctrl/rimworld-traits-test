@@ -899,13 +899,6 @@ export default function SimulationClient() {
         return { success: roll < chance, chance };
     }, [getGroupAverage]);
 
-    useEffect(() => {
-        if (!startQueued) return;
-        if (simState.status !== 'running' || simState.day !== 0 || currentCard || pendingChoice) return;
-        setStartQueued(false);
-        advanceDay();
-    }, [startQueued, simState.status, simState.day, currentCard, pendingChoice, advanceDay]);
-
     const startSimulation = useCallback(() => {
         const introText = language === 'ko'
             ? '당신의 캐릭터는 몇일차까지 살아남을 수 있을까요?'
@@ -1188,6 +1181,13 @@ export default function SimulationClient() {
         });
         setCardView('event');
     }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView]);
+
+    useEffect(() => {
+        if (!startQueued) return;
+        if (simState.status !== 'running' || simState.day !== 0 || currentCard || pendingChoice) return;
+        setStartQueued(false);
+        advanceDay();
+    }, [startQueued, simState.status, simState.day, currentCard, pendingChoice, advanceDay]);
 
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
