@@ -84,10 +84,18 @@ type PendingChoice = {
     responseNotes: string[];
 };
 
+type CurrentCard = {
+    day: number;
+    season: string;
+    event: SimEvent;
+    entry?: SimLogEntry;
+};
+
 const MAX_DAYS = 60;
 const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
-const AUTO_INTERVAL_MS = 1500;
 const CAMP_UPGRADE_COSTS = [3, 5];
+const CARD_FLIP_MS = 500;
+const AUTO_RESULT_DELAY_MS = 900;
 
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
 const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
@@ -728,6 +736,10 @@ export default function SimulationClient() {
     const [simAuto, setSimAuto] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
     const autoResumeRef = useRef(false);
+    const flipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [cardView, setCardView] = useState<'event' | 'result'>('result');
+    const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
+    const [showMoreChoices, setShowMoreChoices] = useState(false);
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -873,12 +885,25 @@ export default function SimulationClient() {
         return levels.reduce((sum, v) => sum + v, 0) / levels.length;
     }, [skillMap]);
 
-const rollSkillCheck = useCallback((check: SkillCheck) => {
+    const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
         const chance = check.fixedChance ?? getSkillChance(avg);
         const roll = Math.random() * 100;
         return { success: roll < chance, chance };
     }, [getGroupAverage]);
+
+    const scheduleFlipToResult = useCallback(() => {
+        if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
+        flipTimerRef.current = setTimeout(() => {
+            setCardView('result');
+        }, CARD_FLIP_MS);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
+        };
+    }, []);
 
     const startSimulation = useCallback(() => {
         const introText = language === 'ko'
@@ -904,6 +929,9 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
             }]
         });
         setPendingChoice(null);
+        setCurrentCard(null);
+        setCardView('result');
+        setShowMoreChoices(false);
         autoResumeRef.current = false;
         setSimAuto(false);
     }, [language]);
@@ -1033,6 +1061,7 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
 
     const advanceDay = useCallback(() => {
         if (simState.status !== 'running' || pendingChoice) return;
+        if (currentCard && cardView === 'event') return;
 
         const dayStart = { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money };
         const nextDay = simState.day + 1;
@@ -1082,6 +1111,7 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
         if (event.choices && event.choices.length > 0) {
             autoResumeRef.current = simAuto;
             setSimAuto(false);
+            setShowMoreChoices(false);
             setPendingChoice({
                 day: nextDay,
                 season,
@@ -1098,6 +1128,12 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                 meds,
                 money
             }));
+            setCurrentCard({
+                day: nextDay,
+                season,
+                event
+            });
+            setCardView('event');
             return;
         }
 
@@ -1143,7 +1179,16 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                 log
             };
         });
-    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus]);
+        setCurrentCard({
+            day: nextDay,
+            season,
+            event,
+            entry
+        });
+        setShowMoreChoices(false);
+        setCardView('event');
+        scheduleFlipToResult();
+    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, scheduleFlipToResult]);
 
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
@@ -1200,6 +1245,15 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                 log
             };
         });
+        setCurrentCard({
+            day: pendingChoice.day,
+            season: pendingChoice.season,
+            event: pendingChoice.event,
+            entry
+        });
+        setShowMoreChoices(false);
+        setCardView('event');
+        scheduleFlipToResult();
 
         const shouldResume = autoResumeRef.current && status === 'running';
         autoResumeRef.current = false;
@@ -1263,11 +1317,12 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
 
     useEffect(() => {
         if (!simAuto || simState.status !== 'running' || pendingChoice) return;
-        const timer = setInterval(() => {
+        if (currentCard && cardView === 'event') return;
+        const timer = setTimeout(() => {
             advanceDay();
-        }, AUTO_INTERVAL_MS);
-        return () => clearInterval(timer);
-    }, [simAuto, simState.status, pendingChoice, advanceDay]);
+        }, AUTO_RESULT_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, [simAuto, simState.status, pendingChoice, cardView, currentCard, advanceDay]);
 
     useEffect(() => {
         if (simState.status === 'dead' || simState.status === 'success') {
@@ -1321,6 +1376,10 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
     const canUseMeds = simState.meds > 0 && simState.hp < 10 && !pendingChoice;
     const nextCampCost = CAMP_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
+    const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard);
+    const allChoices = pendingChoice?.event.choices ?? [];
+    const primaryChoices = allChoices.slice(0, 2);
+    const extraChoices = allChoices.slice(2);
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
@@ -1384,8 +1443,8 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                     </button>
                     <button
                         onClick={advanceDay}
-                        disabled={simState.status !== 'running' || !!pendingChoice}
-                        className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
+                        disabled={!canAdvanceDay}
+                        className={`px-4 py-2 text-sm font-bold border ${canAdvanceDay
                             ? 'bg-[#1c3d5a] hover:bg-[#2c5282] text-white border-blue-900 rounded-md shadow-sm'
                             : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
@@ -1423,16 +1482,57 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                             : `Camp Upgrade Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (Money ${nextCampCost})` : ''}`}
                     </button>
                 </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+                <div
+                    key={`card-${currentCard?.day ?? 'idle'}`}
+                    className={`reigns-card reigns-card-enter ${cardView === 'result' ? 'reigns-card--flipped' : ''}`}
+                >
+                    <div className="reigns-card-inner">
+                        <div className="reigns-card-face reigns-card-front">
+                            <div className="text-xs text-slate-400">
+                                {currentCard
+                                    ? `Day ${currentCard.day} • ${currentCard.season}`
+                                    : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
+                            </div>
+                            <div className="mt-3 text-xl font-bold text-white">
+                                {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
+                            </div>
+                            <div className="mt-2 text-sm text-slate-300">
+                                {currentCard?.event.description || (language === 'ko' ? '하루 진행 버튼을 눌러 사건을 확인하세요.' : 'Press Advance Day to see the event.')}
+                            </div>
+                            {pendingChoice && (
+                                <div className="mt-4 text-xs text-[#e7c07a]">
+                                    {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                </div>
+                            )}
+                        </div>
+                        <div className="reigns-card-face reigns-card-back">
+                            <div className="text-xs text-slate-400">
+                                {currentCard
+                                    ? `Day ${currentCard.day} • ${currentCard.season}`
+                                    : (language === 'ko' ? '결과 대기' : 'Result Pending')}
+                            </div>
+                            <div className="mt-3 text-xl font-bold text-white">
+                                {language === 'ko' ? '결과' : 'Result'}
+                            </div>
+                            <div className="mt-2 text-sm text-slate-300">
+                                {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                            </div>
+                            {currentCard?.entry && (
+                                <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
+                                    {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {pendingChoice && (
-                    <div className="bg-[#141414] border border-[#3b3b3b] rounded-lg p-4 space-y-3 shadow-inner">
-                        <div className="text-sm font-bold text-[#e7c07a]">
-                            {language === 'ko' ? '중요 사건 발생' : 'Important Event'}
-                        </div>
-                        <div className="text-white font-bold">{pendingChoice.event.title}</div>
-                        <div className="text-slate-400 text-sm">{pendingChoice.event.description}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {pendingChoice.event.choices?.map(choice => {
+                    <div className="w-full max-w-3xl space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {primaryChoices.map(choice => {
                                 let chanceText = '';
                                 if (choice.skillCheck) {
                                     const avg = getGroupAverage(choice.skillCheck.group);
@@ -1445,19 +1545,60 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                                     <button
                                         key={choice.id}
                                         onClick={() => resolveChoice(choice.id)}
-                                        className="px-4 py-3 rounded-lg bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md text-left"
+                                        className="px-4 py-4 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md text-left"
                                     >
                                         <div className="font-bold">{choice.label}</div>
                                         {choice.description && (
                                             <div className="text-xs text-white/70 mt-1">{choice.description}</div>
                                         )}
                                         {chanceText && (
-                                            <div className="text-xs text-[#e7c07a] mt-1">{chanceText}</div>
+                                            <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
                                         )}
                                     </button>
                                 );
                             })}
                         </div>
+                        {extraChoices.length > 0 && (
+                            <div className="space-y-2">
+                                <button
+                                    onClick={() => setShowMoreChoices(prev => !prev)}
+                                    className="px-4 py-2 rounded-md bg-[#222] hover:bg-[#2f2f2f] text-slate-200 text-xs border border-[#333]"
+                                >
+                                    {showMoreChoices
+                                        ? (language === 'ko' ? '추가 선택지 접기' : 'Hide More Choices')
+                                        : (language === 'ko' ? '추가 선택지 보기' : 'Show More Choices')}
+                                </button>
+                                {showMoreChoices && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {extraChoices.map(choice => {
+                                            let chanceText = '';
+                                            if (choice.skillCheck) {
+                                                const avg = getGroupAverage(choice.skillCheck.group);
+                                                const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
+                                                chanceText = language === 'ko'
+                                                    ? `성공 확률 ${chance}%`
+                                                    : `Success ${chance}%`;
+                                            }
+                                            return (
+                                                <button
+                                                    key={choice.id}
+                                                    onClick={() => resolveChoice(choice.id)}
+                                                    className="px-4 py-3 rounded-lg bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white text-xs border border-gray-700 text-left"
+                                                >
+                                                    <div className="font-bold">{choice.label}</div>
+                                                    {choice.description && (
+                                                        <div className="text-xs text-white/70 mt-1">{choice.description}</div>
+                                                    )}
+                                                    {chanceText && (
+                                                        <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="text-xs text-slate-500">
                             {language === 'ko' ? '선택을 완료해야 다음 날로 진행됩니다.' : 'Choose an action to continue.'}
                         </div>
@@ -1487,9 +1628,9 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                         </div>
                     )}
                     {simState.log.map((entry, idx) => (
-                        <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#131313] p-3 shadow-sm">
+                        <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#121212] p-3 shadow-sm space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="text-slate-500">
+                                <div className="text-slate-500 text-xs">
                                     Day {entry.day} • {entry.season}
                                 </div>
                                 <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
@@ -1501,13 +1642,13 @@ const rollSkillCheck = useCallback((check: SkillCheck) => {
                                     {entry.title}
                                 </div>
                             </div>
-                            <div className="text-slate-300 mt-2">
+                            <div className="rounded-md border border-[#222] bg-[#1a1a1a] p-2 text-slate-300">
                                 {language === 'ko' ? '사건' : 'Event'}: {entry.description}
                             </div>
-                            <div className="text-[#e7c07a] mt-2">
+                            <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
                                 {language === 'ko' ? '대처' : 'Response'}: {entry.response}
                             </div>
-                            <div className="text-slate-400 mt-2">
+                            <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2 text-slate-300">
                                 {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
                             </div>
                         </div>
