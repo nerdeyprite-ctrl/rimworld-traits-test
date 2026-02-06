@@ -51,7 +51,7 @@ body {
 
 .reigns-card {
   width: 100%;
-  max-width: 420px;
+  width: clamp(320px, 70vw, 620px);
   perspective: 1200px;
 }
 
