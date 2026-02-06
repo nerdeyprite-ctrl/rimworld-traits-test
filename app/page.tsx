@@ -31,20 +31,23 @@ export default function Home() {
 
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-3">
-          <button
-            onClick={() => router.push('/test/intro')}
+          <a
+            href="/test/intro"
             className="inline-block px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]"
           >
             {t('start_test')}
-          </button>
+          </a>
           <button
             onClick={() => {
-              if (lastShareId) router.push(`/simulation?s=${lastShareId}`);
+              if (lastShareId) {
+                router.push(`/simulation?s=${lastShareId}`);
+              } else {
+                window.alert(language === 'ko' ? '이전 캐릭터 정보가 없습니다.' : 'No previous character found.');
+              }
             }}
-            disabled={!lastShareId}
             className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${lastShareId
               ? 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'
-              : 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-not-allowed'}`}
+              : 'bg-[#333] border-[#2a2a2a] text-gray-400'}`}
           >
             {language === 'ko' ? '기존 캐릭터로 시뮬레이션하기' : 'Simulate Existing Character'}
           </button>
