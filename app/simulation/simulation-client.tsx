@@ -19,6 +19,7 @@ type SkillCheckGroup = 'combat' | 'social' | 'medical' | 'survival' | 'craft';
 type SkillCheck = {
     label: string;
     group: SkillCheckGroup;
+    fixedChance?: number;
     successDelta: { hp: number; food: number; meds: number; money: number };
     failDelta: { hp: number; food: number; meds: number; money: number };
     successText?: string;
@@ -98,6 +99,8 @@ const SKILL_GROUPS: Record<SkillCheckGroup, string[]> = {
     survival: ['Plants', 'Animals'],
     craft: ['Construction', 'Crafting', 'Mining']
 };
+
+const MOVEMENT_TRAITS = new Set(['fast_walker', 'jogger', 'nimble']);
 
 const clampStat = (value: number) => Math.max(0, Math.min(10, value));
 
@@ -398,17 +401,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'raid_defend',
                     label: isKo ? '방어전' : 'Hold Position',
-                    description: isKo ? '피해를 줄이지만 돈이 든다.' : 'Reduce damage at a cost.',
-                    delta: { hp: 1, food: 0, meds: 0, money: -1 },
-                    response: isKo ? '방어선을 구축했다.' : 'You fortify your position.',
-                    skillCheck: {
-                        label: isKo ? '방어' : 'Defense',
-                        group: 'combat',
-                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '방어가 성공해 피해를 줄였다.' : 'Defense succeeds and damage is reduced.',
-                        failText: isKo ? '방어가 무너졌다.' : 'The defense crumbles.'
-                    }
+                    description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
+                    delta: { hp: 0, food: 0, meds: 0, money: -1 },
+                    response: isKo ? '방어선을 구축해 피해를 줄였다.' : 'You fortify and take controlled damage.'
                 },
                 {
                     id: 'raid_retreat',
@@ -419,6 +414,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '회피' : 'Escape',
                         group: 'survival',
+                        fixedChance: 60,
                         successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -1, food: 0, meds: 0, money: -1 },
                         successText: isKo ? '무사히 후퇴했다.' : 'You retreat safely.',
@@ -461,17 +457,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'defend',
                     label: isKo ? '방어' : 'Defend',
-                    description: isKo ? '안전하게 방어한다.' : 'Play it safe.',
-                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '방어를 택해 피해를 줄였다.' : 'You defend to reduce damage.',
-                    skillCheck: {
-                        label: isKo ? '방어' : 'Defense',
-                        group: 'combat',
-                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '방어가 성공했다.' : 'Defense succeeds.',
-                        failText: isKo ? '방어가 무너졌다.' : 'Defense fails.'
-                    }
+                    description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '방어를 택해 피해를 줄였다.' : 'You defend to reduce damage.'
                 },
                 {
                     id: 'avoid',
@@ -482,6 +470,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '회피' : 'Evasion',
                         group: 'survival',
+                        fixedChance: 60,
                         successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '안전하게 회피했다.' : 'You evade safely.',
@@ -884,9 +873,9 @@ export default function SimulationClient() {
         return levels.reduce((sum, v) => sum + v, 0) / levels.length;
     }, [skillMap]);
 
-    const rollSkillCheck = useCallback((check: SkillCheck) => {
+const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
-        const chance = getSkillChance(avg);
+        const chance = check.fixedChance ?? getSkillChance(avg);
         const roll = Math.random() * 100;
         return { success: roll < chance, chance };
     }, [getGroupAverage]);
@@ -1068,7 +1057,21 @@ export default function SimulationClient() {
 
         event = applyTraitChoices(event, traitIds, language);
         if (event.choices && event.choices.length > 0) {
-            const available = event.choices.filter(choice => meetsRequirements(choice, { food, meds, money }));
+            const available = event.choices
+                .map(choice => {
+                    if (choice.skillCheck && (choice.id === 'avoid' || choice.id === 'raid_retreat')) {
+                        const hasMoveTrait = Array.from(MOVEMENT_TRAITS).some(id => traitIds.has(id));
+                        return {
+                            ...choice,
+                            skillCheck: {
+                                ...choice.skillCheck,
+                                fixedChance: hasMoveTrait ? 90 : 60
+                            }
+                        };
+                    }
+                    return choice;
+                })
+                .filter(choice => meetsRequirements(choice, { food, meds, money }));
             if (available.length === 0) {
                 event = { ...event, choices: undefined };
             } else {
@@ -1320,61 +1323,62 @@ export default function SimulationClient() {
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[#9f752a]">
+                    <h1 className="text-2xl md:text-3xl font-bold text-[#e7c07a] tracking-tight">
                         {language === 'ko' ? '생존 시뮬레이션' : 'Survival Simulation'}
                     </h1>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-slate-400">
                         {language === 'ko'
                             ? '4계절 × 15일 = 60일 생존 시 우주선 탈출 성공'
                             : '4 Seasons × 15 days = Escape if you survive 60 days'}
                     </p>
                 </div>
-                <div className="text-right text-xs text-gray-500">
-                    {language === 'ko' ? '정착민' : 'Colonist'}: <span className="text-gray-200">{userInfo?.name || '정착민'}</span>
+                <div className="text-right text-xs text-slate-400">
+                    {language === 'ko' ? '정착민' : 'Colonist'}:{' '}
+                    <span className="text-slate-100 font-semibold">{userInfo?.name || '정착민'}</span>
                 </div>
             </div>
 
-            <div className="bg-[#111111] border border-[#6b6b6b] p-4 md:p-6 space-y-4">
-                <p className="text-sm text-gray-400">
+            <div className="bg-[#0f0f0f] border border-[#3b3b3b] rounded-xl shadow-lg p-4 md:p-6 space-y-5">
+                <p className="text-sm text-slate-400">
                     {language === 'ko'
                         ? '당신의 캐릭터는 몇일차까지 살아남을 수 있을까요?'
                         : 'How many days can your character survive?'}
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-3 text-xs">
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '현재 일차' : 'Day'}</div>
-                        <div className="text-white font-bold">{simState.day} / {MAX_DAYS}</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '현재 일차' : 'Day'}</div>
+                        <div className="text-white font-bold text-sm">{simState.day} / {MAX_DAYS}</div>
                     </div>
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '계절' : 'Season'}</div>
-                        <div className="text-white font-bold">{getSeasonLabel(simState.day, language)}</div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '계절' : 'Season'}</div>
+                        <div className="text-white font-bold text-sm">{getSeasonLabel(simState.day, language)}</div>
                     </div>
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">HP</div>
-                        <div className="text-white font-bold">{simState.hp} / 10</div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">HP</div>
+                        <div className="text-white font-bold text-sm">{simState.hp} / 10</div>
                     </div>
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '식량' : 'Food'}</div>
-                        <div className="text-white font-bold">{simState.food} / 10</div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '식량' : 'Food'}</div>
+                        <div className="text-white font-bold text-sm">{simState.food} / 10</div>
                     </div>
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '치료제' : 'Meds'}</div>
-                        <div className="text-white font-bold">{simState.meds} / 10</div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '치료제' : 'Meds'}</div>
+                        <div className="text-white font-bold text-sm">{simState.meds} / 10</div>
                     </div>
-                    <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '돈' : 'Money'}</div>
-                        <div className="text-white font-bold">{simState.money} / 10</div>
+                    <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
+                        <div className="text-slate-400">{language === 'ko' ? '돈' : 'Money'}</div>
+                        <div className="text-white font-bold text-sm">{simState.money} / 10</div>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                     <button
                         onClick={startSimulation}
-                        className="px-4 py-2 bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border border-[#7a5a20]"
+                        className="px-4 py-2 rounded-md bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border border-[#7a5a20] shadow-sm"
                     >
                         {language === 'ko' ? '시뮬레이션 시작/재시작' : 'Start/Restart'}
                     </button>
@@ -1382,8 +1386,8 @@ export default function SimulationClient() {
                         onClick={advanceDay}
                         disabled={simState.status !== 'running' || !!pendingChoice}
                         className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
-                            ? 'bg-[#1c3d5a] hover:bg-[#2c5282] text-white border-blue-900'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed'}`}
+                            ? 'bg-[#1c3d5a] hover:bg-[#2c5282] text-white border-blue-900 rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
                         {language === 'ko' ? '하루 진행' : 'Advance Day'}
                     </button>
@@ -1391,8 +1395,8 @@ export default function SimulationClient() {
                         onClick={() => setSimAuto(prev => !prev)}
                         disabled={simState.status !== 'running' || !!pendingChoice}
                         className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
-                            ? 'bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white border-gray-600'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed'}`}
+                            ? 'bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white border-gray-600 rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
                         {simAuto
                             ? (language === 'ko' ? '자동 진행 일시정지' : 'Pause Auto')
@@ -1402,8 +1406,8 @@ export default function SimulationClient() {
                         onClick={handleUseMeds}
                         disabled={!canUseMeds}
                         className={`px-4 py-2 text-sm font-bold border ${canUseMeds
-                            ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332]'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed'}`}
+                            ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332] rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
                         {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
                     </button>
@@ -1411,8 +1415,8 @@ export default function SimulationClient() {
                         onClick={handleUpgradeCamp}
                         disabled={!canUpgradeCamp}
                         className={`px-4 py-2 text-sm font-bold border ${canUpgradeCamp
-                            ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f]'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed'}`}
+                            ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
                         {language === 'ko'
                             ? `캠프 강화 Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (돈 ${nextCampCost})` : ''}`
@@ -1421,18 +1425,18 @@ export default function SimulationClient() {
                 </div>
 
                 {pendingChoice && (
-                    <div className="bg-black/40 border border-[#6b6b6b] p-4 space-y-3">
-                        <div className="text-sm font-bold text-[#9f752a]">
+                    <div className="bg-[#141414] border border-[#3b3b3b] rounded-lg p-4 space-y-3 shadow-inner">
+                        <div className="text-sm font-bold text-[#e7c07a]">
                             {language === 'ko' ? '중요 사건 발생' : 'Important Event'}
                         </div>
                         <div className="text-white font-bold">{pendingChoice.event.title}</div>
-                        <div className="text-gray-400 text-sm">{pendingChoice.event.description}</div>
+                        <div className="text-slate-400 text-sm">{pendingChoice.event.description}</div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                             {pendingChoice.event.choices?.map(choice => {
                                 let chanceText = '';
                                 if (choice.skillCheck) {
                                     const avg = getGroupAverage(choice.skillCheck.group);
-                                    const chance = getSkillChance(avg);
+                                    const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
                                     chanceText = language === 'ko'
                                         ? `성공 확률 ${chance}%`
                                         : `Success ${chance}%`;
@@ -1441,20 +1445,20 @@ export default function SimulationClient() {
                                     <button
                                         key={choice.id}
                                         onClick={() => resolveChoice(choice.id)}
-                                        className="px-4 py-3 bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900"
+                                        className="px-4 py-3 rounded-lg bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md text-left"
                                     >
                                         <div className="font-bold">{choice.label}</div>
                                         {choice.description && (
                                             <div className="text-xs text-white/70 mt-1">{choice.description}</div>
                                         )}
                                         {chanceText && (
-                                            <div className="text-xs text-[#9f752a] mt-1">{chanceText}</div>
+                                            <div className="text-xs text-[#e7c07a] mt-1">{chanceText}</div>
                                         )}
                                     </button>
                                 );
                             })}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-slate-500">
                             {language === 'ko' ? '선택을 완료해야 다음 날로 진행됩니다.' : 'Choose an action to continue.'}
                         </div>
                     </div>
@@ -1472,38 +1476,38 @@ export default function SimulationClient() {
                 )}
             </div>
 
-            <div className="bg-[#0f0f0f] border border-[#6b6b6b] p-5 shadow-xl">
-                <h3 className="text-sm font-bold text-[#9f752a] mb-3">
+            <div className="bg-[#0d0d0d] border border-[#3b3b3b] rounded-xl p-5 shadow-xl">
+                <h3 className="text-sm font-bold text-[#e7c07a] mb-3">
                     {language === 'ko' ? '생존 로그' : 'Survival Log'}
                 </h3>
-                <div className="max-h-[420px] overflow-y-auto border border-gray-800 bg-black/30 p-3 space-y-3 text-xs">
+                <div className="max-h-[480px] overflow-y-auto border border-[#2a2a2a] rounded-lg bg-black/40 p-3 space-y-3 text-xs">
                     {simState.log.length === 0 && (
-                        <div className="text-gray-500">
+                        <div className="text-slate-500">
                             {language === 'ko' ? '로그가 비어 있습니다.' : 'No logs yet.'}
                         </div>
                     )}
                     {simState.log.map((entry, idx) => (
-                        <div key={`${entry.day}-${idx}`} className="border-b border-gray-800 pb-3">
+                        <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#131313] p-3 shadow-sm">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="text-gray-500">
+                                <div className="text-slate-500">
                                     Day {entry.day} • {entry.season}
                                 </div>
-                                <div className={`font-bold ${entry.status === 'good'
+                                <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
                                     ? 'text-green-400'
                                     : entry.status === 'bad'
                                         ? 'text-red-400'
-                                        : 'text-gray-200'}`}
+                                        : 'text-slate-200'}`}
                                 >
                                     {entry.title}
                                 </div>
                             </div>
-                            <div className="text-gray-300 mt-1">
+                            <div className="text-slate-300 mt-2">
                                 {language === 'ko' ? '사건' : 'Event'}: {entry.description}
                             </div>
-                            <div className="text-[#9f752a] mt-1">
+                            <div className="text-[#e7c07a] mt-2">
                                 {language === 'ko' ? '대처' : 'Response'}: {entry.response}
                             </div>
-                            <div className="text-gray-400 mt-1">
+                            <div className="text-slate-400 mt-2">
                                 {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
                             </div>
                         </div>
