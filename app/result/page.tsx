@@ -498,6 +498,17 @@ function ResultContent() {
             }
 
             if (hp <= 0) {
+                const deathEntry: SimLogEntry = {
+                    day: nextDay,
+                    season: getSeasonLabel(nextDay, language),
+                    title: language === 'ko' ? '게임 오버' : 'Game Over',
+                    description: language === 'ko'
+                        ? '생존 유지에 실패했다.'
+                        : 'You could not sustain your colony.',
+                    delta: { hp: -1, food: 0, resources: 0 },
+                    notes,
+                    status: 'bad'
+                };
                 return {
                     ...prev,
                     day: nextDay,
@@ -505,17 +516,7 @@ function ResultContent() {
                     food: Math.max(0, food),
                     resources: Math.max(0, resources),
                     status: 'dead',
-                    log: [{
-                        day: nextDay,
-                        season: getSeasonLabel(nextDay, language),
-                        title: language === 'ko' ? '게임 오버' : 'Game Over',
-                        description: language === 'ko'
-                            ? '생존 유지에 실패했다.'
-                            : 'You could not sustain your colony.',
-                        delta: { hp: -1, food: 0, resources: 0 },
-                        notes,
-                        status: 'bad'
-                    }, ...prev.log].slice(0, 60)
+                    log: [deathEntry, ...prev.log].slice(0, 60)
                 };
             }
 
@@ -553,6 +554,7 @@ function ResultContent() {
             if (hp <= 0) status = 'dead';
             if (nextDay >= MAX_DAYS && hp > 0) status = 'success';
 
+            const entryStatus: SimLogEntry['status'] = hpDelta < 0 ? 'bad' : hpDelta > 0 ? 'good' : 'neutral';
             const entry: SimLogEntry = {
                 day: nextDay,
                 season: getSeasonLabel(nextDay, language),
@@ -560,13 +562,13 @@ function ResultContent() {
                 description: event.description,
                 delta: { hp: hpDelta, food: foodDelta, resources: resourceDelta },
                 notes: [...notes, ...traitNotes],
-                status: hpDelta < 0 ? 'bad' : hpDelta > 0 ? 'good' : 'neutral'
+                status: entryStatus
             };
 
             const newLog = [entry, ...prev.log].slice(0, 60);
 
             if (status === 'success') {
-                newLog.unshift({
+                const successEntry: SimLogEntry = {
                     day: nextDay,
                     season: getSeasonLabel(nextDay, language),
                     title: language === 'ko' ? '우주선 완성' : 'Ship Complete',
@@ -575,7 +577,8 @@ function ResultContent() {
                         : 'You survived a full year and escaped with your ship.',
                     delta: { hp: 0, food: 0, resources: 0 },
                     status: 'good'
-                });
+                };
+                newLog.unshift(successEntry);
             }
 
             return {
