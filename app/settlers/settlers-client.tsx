@@ -62,7 +62,6 @@ export default function SettlersClient() {
             if (delError) throw delError;
 
             setSettlers(prev => prev.filter(s => s.id !== settlerId));
-            alert(language === 'ko' ? '삭제되었습니다.' : 'Deleted successfully.');
         } catch (err) {
             console.error('Delete failed:', err);
             alert(language === 'ko' ? '삭제에 실패했습니다.' : 'Delete failed.');
