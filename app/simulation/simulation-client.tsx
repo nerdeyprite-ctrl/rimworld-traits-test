@@ -121,6 +121,44 @@ const getSeasonLabel = (day: number, language: string) => {
     return language === 'ko' ? `${seasonName} ${seasonDay}일차` : `${seasonName} Day ${seasonDay}`;
 };
 
+const getEventIcon = (event?: SimEvent) => {
+    if (!event) return '🎴';
+    switch (event.id) {
+        case 'raiders':
+            return '⚔️';
+        case 'manhunter':
+            return '🦁';
+        case 'disease':
+            return '🩺';
+        case 'cold_snap':
+            return '❄️';
+        case 'heat_wave':
+            return '🔥';
+        case 'fire':
+            return '🔥';
+        case 'wanderer':
+            return '🧑';
+        case 'trade':
+            return '🪙';
+        case 'cargo_pods':
+            return '📦';
+        case 'ship_chunk':
+            return '🛰️';
+        case 'medical_cache':
+            return '🧰';
+        case 'foraging':
+        case 'crop_boom':
+        case 'blight':
+            return '🌾';
+        case 'supply_trader':
+            return '💰';
+        case 'quiet_day':
+            return '🌤️';
+        default:
+            return event.category === 'danger' ? '⚠️' : event.category === 'noncombat' ? '🧭' : '🌤️';
+    }
+};
+
 const getHealAmount = (medicineLevel: number) => {
     if (medicineLevel <= 3) return 1;
     if (medicineLevel <= 6) return 2;
@@ -372,7 +410,38 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     goodText: isKo ? '협력 덕에 돈이 늘었다.' : 'Cooperation boosts your money.',
                     badText: isKo ? '갈등으로 효율이 떨어졌다.' : 'Friction reduces efficiency.'
                 }
-            }
+            },
+            choices: [
+                {
+                    id: 'wanderer_accept',
+                    label: isKo ? '합류 수락' : 'Accept',
+                    description: isKo ? '인력을 얻지만 식량이 든다.' : 'Gain manpower but spend food.',
+                    delta: { hp: 0, food: -1, meds: 0, money: 1 },
+                    response: isKo ? '방랑자를 받아들였다.' : 'You accept the wanderer.'
+                },
+                {
+                    id: 'wanderer_decline',
+                    label: isKo ? '정중히 거절' : 'Decline',
+                    description: isKo ? '리스크를 피한다.' : 'Avoid the risk.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '정중히 거절했다.' : 'You decline politely.'
+                },
+                {
+                    id: 'wanderer_interview',
+                    label: isKo ? '평판 확인' : 'Interview',
+                    description: isKo ? '사교로 합류 조건을 조율한다.' : 'Use social skills to negotiate terms.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '합류 조건을 조율했다.' : 'You negotiate conditions.',
+                    skillCheck: {
+                        label: isKo ? '협상' : 'Negotiation',
+                        group: 'social',
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
+                        failDelta: { hp: 0, food: -1, meds: 0, money: 0 },
+                        successText: isKo ? '좋은 조건으로 합류를 이끌었다.' : 'You secure favorable terms.',
+                        failText: isKo ? '조건 조율에 실패했다.' : 'Negotiation fails.'
+                    }
+                }
+            ]
         },
         {
             id: 'raiders',
@@ -1096,6 +1165,16 @@ export default function SimulationClient() {
                     return choice;
                 })
                 .filter(choice => meetsRequirements(choice, { food, meds, money }));
+            const hasPass = available.some(choice => choice.id === 'skip' || choice.id === 'pass');
+            if (!hasPass) {
+                available.push({
+                    id: 'pass',
+                    label: language === 'ko' ? '넘어간다' : 'Pass',
+                    description: language === 'ko' ? '굳이 개입하지 않는다.' : 'Let it pass without meddling.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: language === 'ko' ? '상황을 지켜보며 넘어갔다.' : 'You let the situation pass.'
+                });
+            }
             if (available.length === 0) {
                 event = { ...event, choices: undefined };
             } else {
@@ -1409,12 +1488,15 @@ export default function SimulationClient() {
                                                 ? `Day ${currentCard.day} • ${currentCard.season}`
                                                 : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
                                         </div>
-                                        <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
-                                            {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
-                                        </div>
-                                        <div className="mt-3 text-base md:text-lg text-slate-300">
-                                            {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
-                                        </div>
+                                    <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
+                                        {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
+                                    </div>
+                                    <div className="mt-4 text-4xl">
+                                        {getEventIcon(currentCard?.event)}
+                                    </div>
+                                    <div className="mt-3 text-base md:text-lg text-slate-300">
+                                        {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                    </div>
                                     </div>
 
                                     <div className="mt-auto pt-6 space-y-3">
@@ -1468,12 +1550,15 @@ export default function SimulationClient() {
                                             ? `Day ${currentCard.day} • ${currentCard.season}`
                                             : (language === 'ko' ? '결과 대기' : 'Result Pending')}
                                     </div>
-                                    <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
-                                        {language === 'ko' ? '결과' : 'Result'}
-                                    </div>
-                                    <div className="mt-3 text-base md:text-lg text-slate-300">
-                                        {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
-                                    </div>
+                                <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
+                                    {language === 'ko' ? '결과' : 'Result'}
+                                </div>
+                                <div className="mt-4 text-4xl">
+                                    {getEventIcon(currentCard?.event)}
+                                </div>
+                                <div className="mt-3 text-base md:text-lg text-slate-300">
+                                    {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                                </div>
                                     {currentCard?.entry && (
                                         <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
                                             {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
