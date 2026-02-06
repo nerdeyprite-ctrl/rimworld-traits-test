@@ -47,6 +47,22 @@ function ResultContent() {
             if (!accountId) return;
 
             try {
+                // 1. Check current count and delete oldest if >= 10
+                const { data: existing, error: countError } = await supabase
+                    .from('settler_profiles')
+                    .select('id, created_at')
+                    .eq('account_id', accountId)
+                    .order('created_at', { ascending: true });
+
+                if (countError) throw countError;
+
+                if (existing && existing.length >= 10) {
+                    const toDeleteCount = existing.length - 9; // 10개 미만이 되도록 삭제 (신규 추가분 고려)
+                    const toDeleteIds = existing.slice(0, toDeleteCount).map(s => s.id);
+                    console.log(`Limit reached (10). Deleting oldest ${toDeleteCount} settlers...`, toDeleteIds);
+                    await supabase.from('settler_profiles').delete().in('id', toDeleteIds);
+                }
+
                 const payload = {
                     account_id: accountId,
                     name: userInfo.name,
@@ -61,6 +77,7 @@ function ResultContent() {
                 };
                 const { error } = await supabase.from('settler_profiles').insert(payload);
                 if (error) throw error;
+                console.log('Successfully saved settler profile to Supabase.');
                 isSettlerSavedRef.current = true;
             } catch (err) {
                 console.error('Failed to auto-save settler:', err);

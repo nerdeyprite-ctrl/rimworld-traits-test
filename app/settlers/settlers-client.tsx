@@ -54,17 +54,22 @@ export default function SettlersClient() {
         }
 
         try {
+            console.log('Attempting to delete settler:', settlerId);
             const { error: delError } = await supabase
                 .from('settler_profiles')
                 .delete()
                 .eq('id', settlerId);
 
-            if (delError) throw delError;
+            if (delError) {
+                console.error('Supabase delete error:', delError);
+                throw delError;
+            }
 
+            console.log('Successfully deleted settler from DB.');
             setSettlers(prev => prev.filter(s => s.id !== settlerId));
         } catch (err) {
             console.error('Delete failed:', err);
-            alert(language === 'ko' ? '삭제에 실패했습니다.' : 'Delete failed.');
+            alert(language === 'ko' ? '삭제에 실패했습니다. 네트워크 상태를 확인해주세요.' : 'Delete failed. Please check your network.');
         }
     };
 
