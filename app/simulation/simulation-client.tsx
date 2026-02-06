@@ -818,7 +818,7 @@ export default function SimulationClient() {
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
     const autoResumeRef = useRef(false);
     const [startQueued, setStartQueued] = useState(false);
-    const [cardView, setCardView] = useState<'event' | 'result'>('result');
+    const [cardView, setCardView] = useState<'event' | 'result'>('event');
     const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
     const [showLog, setShowLog] = useState(false);
     const [hasShipBuilt, setHasShipBuilt] = useState(false);
@@ -1684,16 +1684,16 @@ export default function SimulationClient() {
                                         <div className="text-xs text-slate-400">
                                             {currentCard
                                                 ? `Day ${currentCard.day} • ${currentCard.season}`
-                                                : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
+                                                : (language === 'ko' ? '시뮬레이션 대기 중' : 'Simulation Standby')}
                                         </div>
                                         <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
-                                            {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
+                                            {currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game')}
                                         </div>
                                         <div className="mt-4 text-4xl">
                                             {getEventIcon(currentCard?.event)}
                                         </div>
                                         <div className="mt-3 text-base md:text-lg text-slate-300">
-                                            {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                            {currentCard?.event.description || (language === 'ko' ? '하단의 [시뮬레이션 시작] 버튼을 눌러주세요.' : 'Please press the [Start Simulation] button below.')}
                                         </div>
                                     </div>
 
@@ -1746,7 +1746,7 @@ export default function SimulationClient() {
                                     <div className="text-xs text-slate-400">
                                         {currentCard
                                             ? `Day ${currentCard.day} • ${currentCard.season}`
-                                            : (language === 'ko' ? '결과 대기' : 'Result Pending')}
+                                            : (language === 'ko' ? '게임 시작 전' : 'Before Starting')}
                                     </div>
                                     <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
                                         {language === 'ko' ? '결과' : 'Result'}
@@ -1755,7 +1755,7 @@ export default function SimulationClient() {
                                         {getEventIcon(currentCard?.event)}
                                     </div>
                                     <div className="mt-3 text-base md:text-lg text-slate-300">
-                                        {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                                        {currentCard?.entry?.response || (language === 'ko' ? '시뮬레이션 시작 버튼을 누르면 첫 이벤트가 시작됩니다.' : 'Press the start button to begin the first event.')}
                                     </div>
                                     {currentCard?.entry && (
                                         <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
