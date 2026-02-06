@@ -1034,14 +1034,32 @@ export default function SimulationClient() {
         else if (avg >= 8) bonus = 1;
 
         let note = '';
+        const getRandomNote = (notes: string[]) => notes[Math.floor(Math.random() * notes.length)];
+
         if (group === 'combat') {
-            if (bonus > 0) note = language === 'ko' ? '전투 기술로 피해를 줄였다.' : 'Combat skills reduce the damage.';
-            else if (bonus < 0) note = language === 'ko' ? '전투 기술이 부족해 피해가 커졌다.' : 'Poor combat skills worsen the damage.';
-            else note = language === 'ko' ? '무난하게 전투에 대응했다.' : 'You handled the fight decently.';
+            if (bonus > 0) {
+                note = language === 'ko'
+                    ? getRandomNote(['전투 기술을 발휘해 피해를 최소화했다.', '숙련된 전투 지식으로 위기를 넘겼다.', '전공을 살려 적절히 대응했다.'])
+                    : getRandomNote(['Combat skills minimized the damage.', 'Experienced tactics helped survive.', 'Your expertise paid off in the fight.']);
+            } else if (bonus < 0) {
+                note = language === 'ko'
+                    ? getRandomNote(['전투 기술이 미비해 불필요한 피해를 입었다.', '경험 부족으로 인해 적의 공세에 밀렸다.', '전투 대응이 늦어 피해가 커졌다.'])
+                    : getRandomNote(['Poor combat skills led to more injuries.', 'Lack of experience made the fight harder.', 'Slow combat response worsened the damage.']);
+            } else {
+                note = language === 'ko' ? '무난하게 전투를 치렀다.' : 'You handled the fight adequately.';
+            }
         } else {
-            if (bonus > 0) note = language === 'ko' ? '기술을 활용해 효율을 높였다.' : 'Your skills improve efficiency.';
-            else if (bonus < 0) note = language === 'ko' ? '기술 부족으로 효율이 떨어졌다.' : 'Lack of skill reduces efficiency.';
-            else note = language === 'ko' ? '무난하게 처리했다.' : 'You handled it adequately.';
+            if (bonus > 0) {
+                note = language === 'ko'
+                    ? getRandomNote(['뛰어난 숙련도로 예상보다 좋은 결과를 얻었다.', '기술적 지식을 활용해 효율을 극대화했다.', '전문가다운 솜씨로 일을 깔끔하게 처리했다.'])
+                    : getRandomNote(['High skill led to better results than expected.', 'Technical knowledge maximized efficiency.', 'Expert handling wrapped things up nicely.']);
+            } else if (bonus < 0) {
+                note = language === 'ko'
+                    ? getRandomNote(['서툰 솜씨 때문에 일이 꼬이고 말았다.', '업무 숙련도가 낮아 평소보다 효율이 떨어졌다.', '익숙하지 않은 작업에 결과가 신통치 않다.'])
+                    : getRandomNote(['Amateur handling caused some issues.', 'Low proficiency reduced the overall efficiency.', 'Clumsy skills led to a poor outcome.']);
+            } else {
+                note = language === 'ko' ? '현상을 유지하며 무난히 처리했다.' : 'You handled it adequately without issues.';
+            }
         }
         return { bonus, note };
     }, [language, skillMap]);
