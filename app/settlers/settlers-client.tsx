@@ -169,7 +169,9 @@ export default function SettlersClient() {
                                     ))}
                                 </div>
                                 <div className="text-xs text-slate-500 italic line-clamp-2">
-                                    {settler.backstory_childhood} - {settler.backstory_adulthood}
+                                    {typeof settler.backstory_childhood === 'string' ? settler.backstory_childhood : (settler.backstory_childhood?.title || settler.backstory_childhood?.id || '')}
+                                    {' - '}
+                                    {typeof settler.backstory_adulthood === 'string' ? settler.backstory_adulthood : (settler.backstory_adulthood?.title || settler.backstory_adulthood?.id || '')}
                                 </div>
                             </div>
 
