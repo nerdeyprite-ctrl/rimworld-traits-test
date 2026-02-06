@@ -1418,41 +1418,40 @@ export default function SimulationClient() {
                         >
                             <div className="reigns-card-inner">
                                 <div className="reigns-card-face reigns-card-front">
-                                <div className="text-xs text-slate-400">
-                                    {currentCard
-                                        ? `Day ${currentCard.day} • ${currentCard.season}`
-                                        : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
-                                </div>
-                                <div className="mt-3 text-xl font-bold text-white">
-                                    {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
-                                </div>
-                                <div className="mt-2 text-sm text-slate-300">
-                                    {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
-                                </div>
-                                {pendingChoice && (
-                                    <div className="mt-4 text-xs text-[#e7c07a]">
-                                        {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                    <div className="text-xs text-slate-400">
+                                        {currentCard
+                                            ? `Day ${currentCard.day} • ${currentCard.season}`
+                                            : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
                                     </div>
-                                )}
-                            </div>
-                            <div className="reigns-card-face reigns-card-back">
-                                <div className="text-xs text-slate-400">
-                                    {currentCard
-                                        ? `Day ${currentCard.day} • ${currentCard.season}`
-                                        : (language === 'ko' ? '결과 대기' : 'Result Pending')}
-                                </div>
-                                <div className="mt-3 text-xl font-bold text-white">
-                                    {language === 'ko' ? '결과' : 'Result'}
-                                </div>
-                                <div className="mt-2 text-sm text-slate-300">
-                                    {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
-                                </div>
-                                {currentCard?.entry && (
-                                    <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
-                                        {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
+                                    <div className="mt-3 text-xl font-bold text-white">
+                                        {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
                                     </div>
-                                )}
-                            </div>
+                                    <div className="mt-2 text-sm text-slate-300">
+                                        {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                    </div>
+                                    {pendingChoice && (
+                                        <div className="mt-4 text-xs text-[#e7c07a]">
+                                            {language === 'ko' ? '선택지를 골라 결과를 확인하세요.' : 'Choose an action to see the outcome.'}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="reigns-card-face reigns-card-back">
+                                    <div className="text-xs text-slate-400">
+                                        {currentCard
+                                            ? `Day ${currentCard.day} • ${currentCard.season}`
+                                            : (language === 'ko' ? '결과 대기' : 'Result Pending')}
+                                    </div>
+                                    <div className="mt-3 text-xl font-bold text-white">
+                                        {language === 'ko' ? '결과' : 'Result'}
+                                    </div>
+                                    <div className="mt-2 text-sm text-slate-300">
+                                        {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                                    </div>
+                                    {currentCard?.entry && (
+                                        <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
+                                            {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
