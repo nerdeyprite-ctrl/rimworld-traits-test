@@ -802,7 +802,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
 };
 
 export default function SimulationClient() {
-    const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase, startSkillTest } = useTest();
+    const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase } = useTest();
     const { language } = useLanguage();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -1624,14 +1624,6 @@ export default function SimulationClient() {
                         ? '스킬 설문까지 완료해야 시뮬레이션이 가능합니다.'
                         : 'You need to complete the skill test to run the simulation.'}
                 </p>
-                {contextTestPhase !== 'skill' && !s && (
-                    <button
-                        onClick={() => { startSkillTest(); router.push('/test'); }}
-                        className="px-6 py-3 bg-[#9f752a] hover:bg-[#b08535] text-white font-bold border border-[#7a5a20]"
-                    >
-                        {language === 'ko' ? '스킬 설문으로 이동' : 'Go to Skill Test'}
-                    </button>
-                )}
                 {(s || contextTestPhase === 'skill') && (
                     <button
                         onClick={() => router.push('/test/intro')}
