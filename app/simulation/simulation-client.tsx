@@ -84,6 +84,8 @@ type PendingChoice = {
     responseNotes: string[];
 };
 
+type ExitType = 'death' | 'ship';
+
 type CurrentCard = {
     day: number;
     season: string;
@@ -95,6 +97,7 @@ const MAX_DAYS = 60;
 const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
 const CAMP_UPGRADE_COSTS = [3, 5];
 const AUTO_RESULT_DELAY_MS = 900;
+const SHIP_BUILD_DAY = 60;
 
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
 const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
@@ -816,6 +819,13 @@ export default function SimulationClient() {
     const [cardView, setCardView] = useState<'event' | 'result'>('result');
     const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
     const [showLog, setShowLog] = useState(false);
+    const [hasShipBuilt, setHasShipBuilt] = useState(false);
+    const [showEndingCard, setShowEndingCard] = useState(false);
+    const [allowContinue, setAllowContinue] = useState(false);
+    const [canBoardShip, setCanBoardShip] = useState(false);
+    const [submittedOnDeath, setSubmittedOnDeath] = useState(false);
+    const [submittedOnExit, setSubmittedOnExit] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -996,6 +1006,13 @@ export default function SimulationClient() {
         setCardView('event');
         setShowLog(false);
         setStartQueued(true);
+        setHasShipBuilt(false);
+        setShowEndingCard(false);
+        setAllowContinue(false);
+        setCanBoardShip(false);
+        setSubmittedOnDeath(false);
+        setSubmittedOnExit(false);
+        setSubmitMessage(null);
         autoResumeRef.current = false;
         setSimAuto(false);
     }, [language]);
@@ -1123,6 +1140,34 @@ export default function SimulationClient() {
         return true;
     };
 
+    const submitScore = useCallback(async (exitType: ExitType, dayCount: number, penalize: boolean) => {
+        if (!isSupabaseConfigured()) {
+            setSubmitMessage(language === 'ko' ? '리더보드 제출에 실패했습니다. (DB 미설정)' : 'Leaderboard submission failed. (DB not configured)');
+            return;
+        }
+        const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
+        if (!accountId) {
+            setSubmitMessage(language === 'ko' ? '로그인이 필요합니다.' : 'Login required.');
+            return;
+        }
+        const finalDay = penalize ? Math.floor(dayCount * 0.9) : dayCount;
+        try {
+            const { error } = await supabase.from('leaderboard_scores').insert({
+                account_id: accountId,
+                settler_name: userInfo?.name || '정착민',
+                day_count: finalDay,
+                exit_type: exitType
+            });
+            if (error) throw error;
+            setSubmitMessage(language === 'ko'
+                ? `리더보드에 기록되었습니다. (일차 ${finalDay})`
+                : `Submitted to leaderboard. (Day ${finalDay})`);
+        } catch (err) {
+            console.error('Failed to submit leaderboard score:', err);
+            setSubmitMessage(language === 'ko' ? '리더보드 제출에 실패했습니다.' : 'Leaderboard submission failed.');
+        }
+    }, [language, userInfo]);
+
     const advanceDay = useCallback(() => {
         if (simState.status !== 'running' || pendingChoice) return;
         if (currentCard && cardView === 'event') return;
@@ -1142,6 +1187,62 @@ export default function SimulationClient() {
         }
 
         let event: SimEvent;
+        if (nextDay >= SHIP_BUILD_DAY && !hasShipBuilt) {
+            const endingEvent: SimEvent = {
+                id: 'ship_built',
+                title: language === 'ko' ? '우주선 완성' : 'Ship Complete',
+                description: language === 'ko'
+                    ? '당신은 결국 우주선을 만들어냈습니다. 이로써 당신은 이 변방계에서 탈출할 수 있게 되었습니다. 지금 당장 탈출하거나, 아니면 더 여기 있기를 선택할 수 있습니다.'
+                    : 'You finally completed the ship. You can escape now or stay and keep surviving.',
+                category: 'noncombat',
+                weight: 0,
+                base: { hp: 0, food: 0, meds: 0, money: 0 },
+                choices: [
+                    {
+                        id: 'escape_now',
+                        label: language === 'ko' ? '지금 탈출하기' : 'Escape Now',
+                        description: language === 'ko' ? '즉시 우주선에 탑승한다.' : 'Board the ship immediately.',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        response: language === 'ko' ? '지금 탈출을 선택했다.' : 'You choose to escape now.'
+                    },
+                    {
+                        id: 'stay_longer',
+                        label: language === 'ko' ? '계속 변방계에서 살아가기' : 'Keep Surviving',
+                        description: language === 'ko' ? '계속 도전한다.' : 'Keep pushing further.',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        response: language === 'ko' ? '더 살아남기로 했다.' : 'You decide to stay.'
+                    }
+                ]
+            };
+            setHasShipBuilt(true);
+            setShowEndingCard(true);
+            autoResumeRef.current = simAuto;
+            setSimAuto(false);
+            setPendingChoice({
+                day: nextDay,
+                season,
+                event: endingEvent,
+                dayStart,
+                baseAfter: { hp, food, meds, money },
+                responseNotes
+            });
+            setSimState(prev => ({
+                ...prev,
+                day: nextDay,
+                hp,
+                food,
+                meds,
+                money
+            }));
+            setCurrentCard({
+                day: nextDay,
+                season,
+                event: endingEvent
+            });
+            setCardView('event');
+            return;
+        }
+
         if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
@@ -1223,24 +1324,9 @@ export default function SimulationClient() {
             status: entryStatus
         };
 
-        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : (nextDay >= MAX_DAYS ? 'success' : 'running');
+        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : 'running';
         setSimState(prev => {
             const log = [entry, ...prev.log].slice(0, 60);
-            if (status === 'success') {
-                log.unshift({
-                    day: nextDay,
-                    season,
-                    title: language === 'ko' ? '우주선 완성' : 'Ship Complete',
-                    description: language === 'ko'
-                        ? '1년을 버텨 우주선을 만들고 탈출에 성공했다.'
-                        : 'You survived a full year and escaped with your ship.',
-                    response: language === 'ko' ? '모든 준비를 마쳤다.' : 'You complete all preparations.',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    after: resolved.after,
-                    status: 'good'
-                });
-            }
-
             return {
                 ...prev,
                 day: nextDay,
@@ -1259,7 +1345,7 @@ export default function SimulationClient() {
             entry
         });
         setCardView('event');
-    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView]);
+    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, hasShipBuilt]);
 
     useEffect(() => {
         if (!startQueued) return;
@@ -1272,6 +1358,61 @@ export default function SimulationClient() {
         if (!pendingChoice) return;
         const choice = pendingChoice.event.choices?.find(c => c.id === choiceId);
         if (!choice) return;
+
+        if (pendingChoice.event.id === 'ship_built') {
+            if (choice.id === 'escape_now') {
+                submitScore('ship', pendingChoice.day, false);
+                setSubmittedOnExit(true);
+                setSimState(prev => ({
+                    ...prev,
+                    status: 'success'
+                }));
+                setPendingChoice(null);
+                setShowEndingCard(false);
+                setAllowContinue(false);
+                setCanBoardShip(false);
+                setCurrentCard({
+                    day: pendingChoice.day,
+                    season: pendingChoice.season,
+                    event: pendingChoice.event,
+                    entry: {
+                        day: pendingChoice.day,
+                        season: pendingChoice.season,
+                        title: pendingChoice.event.title,
+                        description: pendingChoice.event.description,
+                        response: choice.response || '',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
+                        status: 'good'
+                    }
+                });
+                setCardView('result');
+                return;
+            }
+            if (choice.id === 'stay_longer') {
+                setAllowContinue(true);
+                setCanBoardShip(true);
+                setShowEndingCard(false);
+                setPendingChoice(null);
+                setCurrentCard({
+                    day: pendingChoice.day,
+                    season: pendingChoice.season,
+                    event: pendingChoice.event,
+                    entry: {
+                        day: pendingChoice.day,
+                        season: pendingChoice.season,
+                        title: pendingChoice.event.title,
+                        description: pendingChoice.event.description,
+                        response: choice.response || '',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
+                        status: 'neutral'
+                    }
+                });
+                setCardView('result');
+                return;
+            }
+        }
 
         const resolved = resolveEvent(
             pendingChoice.event,
@@ -1294,25 +1435,10 @@ export default function SimulationClient() {
             status: entryStatus
         };
 
-        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : (pendingChoice.day >= MAX_DAYS ? 'success' : 'running');
+        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : 'running';
 
         setSimState(prev => {
             const log = [entry, ...prev.log].slice(0, 60);
-            if (status === 'success') {
-                log.unshift({
-                    day: pendingChoice.day,
-                    season: pendingChoice.season,
-                    title: language === 'ko' ? '우주선 완성' : 'Ship Complete',
-                    description: language === 'ko'
-                        ? '1년을 버텨 우주선을 만들고 탈출에 성공했다.'
-                        : 'You survived a full year and escaped with your ship.',
-                    response: language === 'ko' ? '모든 준비를 마쳤다.' : 'You complete all preparations.',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    after: resolved.after,
-                    status: 'good'
-                });
-            }
-
             return {
                 ...prev,
                 hp: resolved.after.hp,
@@ -1406,6 +1532,12 @@ export default function SimulationClient() {
         }
     }, [simState.status]);
 
+    useEffect(() => {
+        if (simState.status !== 'dead' || submittedOnDeath) return;
+        setSubmittedOnDeath(true);
+        submitScore('death', simState.day, true);
+    }, [simState.status, simState.day, submittedOnDeath, submitScore]);
+
     if (loading) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
     }
@@ -1454,6 +1586,7 @@ export default function SimulationClient() {
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard);
     const allChoices = pendingChoice?.event.choices ?? [];
+    const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
@@ -1659,12 +1792,31 @@ export default function SimulationClient() {
                             : `Camp Upgrade Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (Money ${nextCampCost})` : ''}`}
                     </button>
                     <button
+                        onClick={() => {
+                            if (submittedOnExit) return;
+                            submitScore('ship', simState.day, false);
+                            setSubmittedOnExit(true);
+                            setSimState(prev => ({ ...prev, status: 'success' }));
+                        }}
+                        disabled={!canBoardNow}
+                        className={`px-4 py-2 text-sm font-bold border ${canBoardNow
+                            ? 'bg-[#8b5a2b] hover:bg-[#a06b35] text-white border-[#5a3a1a] rounded-md shadow-sm'
+                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                    >
+                        {language === 'ko' ? '우주선 탑승하기' : 'Board the Ship'}
+                    </button>
+                    <button
                         onClick={() => setShowLog(prev => !prev)}
                         className="px-4 py-2 rounded-md bg-[#1a1a1a] hover:bg-[#262626] text-slate-200 text-sm border border-[#2a2a2a]"
                     >
                         {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Log') : (language === 'ko' ? '로그 보기' : 'Show Log')}
                     </button>
                 </div>
+                {submitMessage && (
+                    <div className="text-xs text-slate-400">
+                        {submitMessage}
+                    </div>
+                )}
             </div>
 
             {showLog && (
