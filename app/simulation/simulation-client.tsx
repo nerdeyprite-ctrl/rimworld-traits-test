@@ -42,6 +42,7 @@ type SimChoice = {
     response?: string;
     skillCheck?: SkillCheck;
     requirements?: ChoiceRequirements;
+    isSpecial?: boolean;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'danger';
@@ -100,6 +101,8 @@ const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
 const CAMP_UPGRADE_COSTS = [3, 5];
 const AUTO_RESULT_DELAY_MS = 900;
 const SHIP_BUILD_DAY = 60;
+
+const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'disease', 'wanderer'];
 
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
 const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
@@ -669,9 +672,94 @@ const pickWeightedEvent = (events: SimEvent[]) => {
     return events[0];
 };
 
-const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: string) => {
+const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Record<string, number>, language: string) => {
     const isKo = language === 'ko';
     const choices = event.choices ? [...event.choices] : [];
+
+    // Global high skill checks
+    const shooting = skillMap[isKo ? '사격' : 'Shooting'] || 0;
+    const melee = skillMap[isKo ? '격투' : 'Melee'] || 0;
+    const social = skillMap[isKo ? '사교' : 'Social'] || 0;
+    const crafting = skillMap[isKo ? '제작' : 'Crafting'] || 0;
+    const medical = skillMap[isKo ? '의학' : 'Medical'] || 0;
+    const plants = skillMap[isKo ? '재배' : 'Plants'] || 0;
+
+    if (event.id === 'quiet_day' && Math.random() < 0.3) {
+        choices.push({
+            id: 'work_day',
+            label: isKo ? '일한다' : 'Work',
+            description: isKo ? '시설을 보수하거나 도구를 정비한다.' : 'Repair facilities or maintain tools.',
+            delta: { hp: 0, food: 0, meds: 0, money: 1 },
+            response: isKo ? '열심히 일해 은을 조금 벌었다.' : 'You worked hard and earned some silver.'
+        });
+    }
+
+    if (event.id === 'raiders' && (shooting >= 15 || melee >= 15)) {
+        choices.push({
+            id: 'raid_counter',
+            label: isKo ? '역습 및 약탈' : 'Counter-attack & Loot',
+            description: isKo ? '압도적인 무력으로 적을 소탕하고 기지를 턴다.' : 'Crush the raiders and loot their camp.',
+            delta: { hp: 0, food: 1, meds: 1, money: 5 },
+            response: isKo ? '적들을 전멸시키고 그들의 물자를 역으로 약탈했다.' : 'You annihilated the raiders and looted their supplies.',
+            isSpecial: true
+        });
+    }
+
+    if (event.id === 'trade' && social >= 15) {
+        choices.push({
+            id: 'master_trade',
+            label: isKo ? '전설적인 거래' : 'Legendary Deal',
+            description: isKo ? '상인을 완전히 설득하여 최고의 이득을 챙긴다.' : 'Persuade the trader for ultimate gain.',
+            delta: { hp: 0, food: 3, meds: 3, money: 5 },
+            response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었다.' : 'The trader, charmed by your words, gave everything.',
+            isSpecial: true
+        });
+    }
+
+    if (event.id === 'manhunter' && (shooting >= 12 || melee >= 12)) {
+        choices.push({
+            id: 'hunt_all',
+            label: isKo ? '일가실각' : 'Exterminate',
+            description: isKo ? '동물들을 모두 사격해 대량의 고기를 얻는다.' : 'Kill all animals for a massive meat harvest.',
+            delta: { hp: 1, food: 6, meds: 0, money: 0 },
+            response: isKo ? '달려드는 동물들을 모두 사냥해 축제를 열었다.' : 'You hunted all the attackers and held a feast.',
+            isSpecial: true
+        });
+    }
+
+    if (event.id === 'disease' && medical >= 15) {
+        choices.push({
+            id: 'perfect_treat',
+            label: isKo ? '완벽한 치료' : 'Miracle Cure',
+            description: isKo ? '최고의 술법으로 모든 후유증을 막는다.' : 'Cure the disease with expert care.',
+            delta: { hp: 4, food: 0, meds: -1, money: 0 },
+            response: isKo ? '당신의 신의에 가까운 의술로 질병을 완전히 극복했다.' : 'Your god-like medical skill completely cured the disease.',
+            isSpecial: true,
+            requirements: { meds: 1 }
+        });
+    }
+
+    if (event.id === 'blight' && plants >= 12) {
+        choices.push({
+            id: 'plant_save',
+            label: isKo ? '해충 전문가' : 'Pest Specialist',
+            description: isKo ? '해충의 생태를 이용해 피해를 완전히 막는다.' : 'Use expert knowledge to stop the blight.',
+            delta: { hp: 0, food: 2, meds: 0, money: 0 },
+            response: isKo ? '해충 전문가인 당신에게 이 정도 병충해는 아무것도 아니었다.' : 'As a pest specialist, you saved the crops with ease.',
+            isSpecial: true
+        });
+    }
+
+    if (event.id === 'ship_chunk' && crafting >= 12) {
+        choices.push({
+            id: 'perfect_salvage',
+            label: isKo ? '정밀 분해' : 'Precision Salvage',
+            description: isKo ? '잔해에서 모든 유용한 부품을 추출한다.' : 'Extract every useful component.',
+            delta: { hp: 0, food: 0, meds: 0, money: 6 },
+            response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 은을 챙겼다.' : 'Your precision salvage earned you a fortune in silver.',
+            isSpecial: true
+        });
+    }
 
     if (event.id === 'raiders' && traitIds.has('tough')) {
         choices.push({
@@ -680,6 +768,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '강인함을 믿고 돌파한다.' : 'Charge through with toughness.',
             delta: { hp: -1, food: 0, meds: 0, money: 1 },
             response: isKo ? '강인함을 믿고 돌격했다.' : 'You charge with confidence.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '돌격' : 'Charge',
                 group: 'combat',
@@ -698,6 +787,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '숨어서 피해를 줄인다.' : 'Hide to avoid damage.',
             delta: { hp: 1, food: 0, meds: 0, money: -1 },
             response: isKo ? '숨어서 상황을 피하려 했다.' : 'You try to hide from the raid.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '은신' : 'Stealth',
                 group: 'survival',
@@ -716,6 +806,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '상인에게 호의를 보인다.' : 'Offer kindness to the trader.',
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '호의로 거래를 시도했다.' : 'You offer kindness in the deal.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '호의' : 'Kindness',
                 group: 'social',
@@ -734,6 +825,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '강경한 태도로 압박한다.' : 'Force a deal with threats.',
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '협박으로 거래를 시도했다.' : 'You attempt to threaten the trader.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '협박' : 'Intimidation',
                 group: 'combat',
@@ -752,6 +844,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '위험하지만 보상을 노린다.' : 'Risky but tempting.',
             delta: { hp: -1, food: 0, meds: 0, money: 1 },
             response: isKo ? '불길을 확장하려 했다.' : 'You feed the fire.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '방화' : 'Arson',
                 group: 'craft',
@@ -764,21 +857,25 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
     }
 
     if (event.id === 'quiet_day' && traitIds.has('industrious')) {
-        choices.push({
-            id: 'work_overtime',
-            label: isKo ? '야근' : 'Overtime',
-            description: isKo ? '돈과 식량을 더 확보한다.' : 'Work for extra supplies.',
-            delta: { hp: -1, food: 1, meds: 0, money: 2 },
-            response: isKo ? '야근으로 추가 물자를 확보했다.' : 'You work overtime for extra supplies.',
-            skillCheck: {
-                label: isKo ? '노동' : 'Labor',
-                group: 'craft',
-                successDelta: { hp: 0, food: 1, meds: 0, money: 1 },
-                failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                successText: isKo ? '노동이 잘 풀렸다.' : 'The extra work pays off.',
-                failText: isKo ? '과로로 컨디션이 나빠졌다.' : 'Overwork backfires.'
-            }
-        });
+        // 30% chance to show 'Work Overtime'
+        if (Math.random() < 0.3) {
+            choices.push({
+                id: 'work_overtime',
+                label: isKo ? '야근' : 'Overtime',
+                description: isKo ? '돈과 식량을 더 확보한다.' : 'Work for extra supplies.',
+                delta: { hp: -1, food: 1, meds: 0, money: 2 },
+                response: isKo ? '야근으로 추가 물자를 확보했다.' : 'You work overtime for extra supplies.',
+                isSpecial: true,
+                skillCheck: {
+                    label: isKo ? '노동' : 'Labor',
+                    group: 'craft',
+                    successDelta: { hp: 0, food: 1, meds: 0, money: 1 },
+                    failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
+                    successText: isKo ? '노동이 잘 풀렸다.' : 'The extra work pays off.',
+                    failText: isKo ? '과로로 컨디션이 나빠졌다.' : 'Overwork backfires.'
+                }
+            });
+        }
     }
 
     if (event.id === 'quiet_day' && traitIds.has('lazy')) {
@@ -788,6 +885,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             description: isKo ? '체력을 회복한다.' : 'Recover some stamina.',
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '휴식을 택해 체력을 회복했다.' : 'You rest and recover.',
+            isSpecial: true,
             skillCheck: {
                 label: isKo ? '휴식' : 'Rest',
                 group: 'medical',
@@ -1322,7 +1420,7 @@ export default function SimulationClient() {
             event = pickWeightedEvent(events);
         }
 
-        event = applyTraitChoices(event, traitIds, language);
+        event = applyTraitChoices(event!, traitIds, skillMap, language);
         if (event.choices && event.choices.length > 0) {
             const available = event.choices
                 .map(choice => {
@@ -1339,8 +1437,10 @@ export default function SimulationClient() {
                     return choice;
                 })
                 .filter(choice => meetsRequirements(choice, { food, meds, money }));
+            const isSpecialEvent = SPECIAL_EVENT_IDS.includes(event.id);
             const hasPass = available.some(choice => choice.id === 'skip' || choice.id === 'pass');
-            if (!hasPass) {
+
+            if (!hasPass && !isSpecialEvent) {
                 available.push({
                     id: 'pass',
                     label: language === 'ko' ? '넘어간다' : 'Pass',
@@ -1357,8 +1457,11 @@ export default function SimulationClient() {
         }
 
         if (event.choices && event.choices.length > 0) {
-            autoResumeRef.current = simAuto;
-            setSimAuto(false);
+            const isSpecial = SPECIAL_EVENT_IDS.includes(event.id);
+            if (isSpecial) {
+                autoResumeRef.current = simAuto;
+                setSimAuto(false);
+            }
             setPendingChoice({
                 day: nextDay,
                 season,
@@ -1599,6 +1702,26 @@ export default function SimulationClient() {
         return () => clearTimeout(timer);
     }, [simAuto, simState.status, pendingChoice, cardView, currentCard, advanceDay]);
 
+    // Handle auto-resolving normal events during simAuto
+    useEffect(() => {
+        if (!simAuto || !pendingChoice) return;
+
+        // Pick 'pass' or 'skip' automatically for normal events
+        const available = pendingChoice.event.choices || [];
+        const passChoice = available.find(c => c.id === 'pass' || c.id === 'skip');
+
+        // If it's a normal event with a pass choice, or it's just 'quiet_day' with fallback
+        const isQuietDay = pendingChoice.event.id === 'quiet_day';
+        const autoChoice = passChoice || (isQuietDay ? available[0] : null);
+
+        if (autoChoice) {
+            const timer = setTimeout(() => {
+                resolveChoice(autoChoice.id);
+            }, AUTO_RESULT_DELAY_MS);
+            return () => clearTimeout(timer);
+        }
+    }, [simAuto, pendingChoice, resolveChoice]);
+
     useEffect(() => {
         if (simState.status === 'dead' || simState.status === 'success') {
             setSimAuto(false);
@@ -1750,9 +1873,9 @@ export default function SimulationClient() {
                                                         <div key={choice.id} className="group relative">
                                                             <button
                                                                 onClick={() => resolveChoice(choice.id)}
-                                                                className="w-full px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md transition-all h-full flex flex-col items-center justify-center"
+                                                                className={`w-full px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border ${choice.isSpecial ? 'border-[#e7c07a] shadow-[0_0_10px_rgba(231,192,122,0.3)]' : 'border-blue-900'} shadow-md transition-all h-full flex flex-col items-center justify-center`}
                                                             >
-                                                                <div className="font-bold">{choice.label}</div>
+                                                                <div className={`font-bold ${choice.isSpecial ? 'text-[#e7c07a]' : ''}`}>{choice.label}</div>
                                                                 {choice.description && (
                                                                     <div className="text-xs text-white/70 mt-1">{choice.description}</div>
                                                                 )}
