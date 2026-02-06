@@ -7,6 +7,8 @@ import { useLanguage } from '../../context/LanguageContext';
 import { TestResult } from '../../types/rimworld';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
+type SimDelta = { hp: number; food: number; meds: number; money: number };
+
 type TraitMod = {
     pos: string[];
     neg: string[];
@@ -20,8 +22,8 @@ type SkillCheck = {
     label: string;
     group: SkillCheckGroup;
     fixedChance?: number;
-    successDelta: { hp: number; food: number; meds: number; money: number };
-    failDelta: { hp: number; food: number; meds: number; money: number };
+    successDelta: SimDelta;
+    failDelta: SimDelta;
     successText?: string;
     failText?: string;
 };
@@ -36,7 +38,7 @@ type SimChoice = {
     id: string;
     label: string;
     description?: string;
-    delta: { hp: number; food: number; meds: number; money: number };
+    delta: SimDelta;
     response?: string;
     skillCheck?: SkillCheck;
     requirements?: ChoiceRequirements;
@@ -50,7 +52,7 @@ type SimEvent = {
     description: string;
     category: SimEventCategory;
     weight: number;
-    base: { hp: number; food: number; meds: number; money: number };
+    base: SimDelta;
     traitMods?: {
         hp?: TraitMod;
         food?: TraitMod;
@@ -68,8 +70,8 @@ type SimLogEntry = {
     title: string;
     description: string;
     response: string;
-    delta: { hp: number; food: number; meds: number; money: number };
-    after: { hp: number; food: number; meds: number; money: number };
+    delta: SimDelta;
+    after: SimDelta;
     status?: 'good' | 'bad' | 'warn' | 'neutral';
 };
 
@@ -268,7 +270,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '상인들이 들러 교역을 제안했다.' : 'A trader caravan offers a deal.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: 1, meds: 0, money: 1 },
+            base: { hp: 0, food: 0, meds: 0, money: 1 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -306,7 +308,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         label: isKo ? '협상' : 'Negotiation',
                         group: 'social',
                         successDelta: { hp: 0, food: 1, meds: 1, money: 2 },
-                        failDelta: { hp: 0, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: -2 },
                         successText: isKo ? '협상에 성공해 더 좋은 거래를 얻었다.' : 'You negotiate a better deal.',
                         failText: isKo ? '협상에 실패해 손해를 봤다.' : 'Negotiations fail and you lose out.'
                     }
@@ -452,7 +454,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '무장한 침입자들이 기지를 습격했다.' : 'Raiders assault the colony.',
             category: 'danger',
             weight: 6,
-            base: { hp: -2, food: -1, meds: 0, money: -1 },
+            base: { hp: -3, food: -1, meds: 0, money: -1 },
             traitMods: {
                 hp: {
                     pos: ['tough', 'brawler', 'nimble', 'careful_shooter', 'iron_willed'],
@@ -481,7 +483,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     id: 'raid_defend',
                     label: isKo ? '방어전' : 'Hold Position',
                     description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
-                    delta: { hp: 0, food: 0, meds: 0, money: -1 },
+                    delta: { hp: 1, food: 0, meds: 0, money: -1 },
                     response: isKo ? '방어선을 구축해 피해를 줄였다.' : 'You fortify and take controlled damage.'
                 },
                 {
@@ -508,7 +510,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '광포해진 동물들이 덮쳐왔다.' : 'A pack of enraged animals attacks.',
             category: 'danger',
             weight: 5,
-            base: { hp: -2, food: 1, meds: 0, money: 0 },
+            base: { hp: -3, food: 1, meds: 0, money: 0 },
             traitMods: {
                 hp: {
                     pos: ['tough', 'nimble', 'brawler'],
@@ -537,14 +539,14 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     id: 'defend',
                     label: isKo ? '방어' : 'Defend',
                     description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
                     response: isKo ? '방어를 택해 피해를 줄였다.' : 'You defend to reduce damage.'
                 },
                 {
                     id: 'avoid',
                     label: isKo ? '회피' : 'Avoid',
                     description: isKo ? '피해를 피하지만 수확이 없다.' : 'Avoid damage but gain nothing.',
-                    delta: { hp: 1, food: -1, meds: 0, money: 0 },
+                    delta: { hp: 2, food: -1, meds: 0, money: 0 },
                     response: isKo ? '회피에 성공했지만 수확이 줄었다.' : 'You avoid danger but lose the harvest.',
                     skillCheck: {
                         label: isKo ? '회피' : 'Evasion',
@@ -784,15 +786,15 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, language: str
             id: 'rest_day',
             label: isKo ? '휴식' : 'Rest',
             description: isKo ? '체력을 회복한다.' : 'Recover some stamina.',
-            delta: { hp: 1, food: 0, meds: 0, money: 0 },
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '휴식을 택해 체력을 회복했다.' : 'You rest and recover.',
             skillCheck: {
                 label: isKo ? '휴식' : 'Rest',
                 group: 'medical',
-                successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
-                successText: isKo ? '휴식이 잘 통했다.' : 'Rest helps.',
-                failText: isKo ? '휴식 효과가 미미했다.' : 'Rest has little effect.'
+                successDelta: { hp: 2, food: 0, meds: 0, money: 0 },
+                failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
+                successText: isKo ? '깊은 휴식으로 체력을 크게 회복했다.' : 'Deep rest recovers a lot of stamina.',
+                failText: isKo ? '잠자리가 불편해 오히려 몸이 찌푸둥해졌다.' : 'Uncomfortable sleep makes you feel stiff.'
             }
         });
     }
@@ -1707,27 +1709,69 @@ export default function SimulationClient() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {allChoices.map(choice => {
                                                     let chanceText = '';
+                                                    let outcomeInfo = [] as string[];
+
                                                     if (choice.skillCheck) {
                                                         const avg = getGroupAverage(choice.skillCheck.group);
                                                         const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
                                                         chanceText = language === 'ko'
                                                             ? `성공 확률 ${chance}%`
                                                             : `Success ${chance}%`;
+
+                                                        const s = choice.skillCheck.successDelta;
+                                                        const f = choice.skillCheck.failDelta;
+
+                                                        const formatDelta = (d: SimDelta) => {
+                                                            const parts = [] as string[];
+                                                            if (d.hp !== 0) parts.push(`HP ${d.hp > 0 ? '+' : ''}${d.hp}`);
+                                                            if (d.food !== 0) parts.push(`${language === 'ko' ? '식량' : 'Food'} ${d.food > 0 ? '+' : ''}${d.food}`);
+                                                            if (d.meds !== 0) parts.push(`${language === 'ko' ? '치료제' : 'Meds'} ${d.meds > 0 ? '+' : ''}${d.meds}`);
+                                                            if (d.money !== 0) parts.push(`${language === 'ko' ? '은' : 'Silver'} ${d.money > 0 ? '+' : ''}${d.money}`);
+                                                            return parts.join(', ');
+                                                        };
+
+                                                        const sText = formatDelta(s);
+                                                        const fText = formatDelta(f);
+
+                                                        if (sText) outcomeInfo.push(language === 'ko' ? `성공 시: ${sText}` : `Success: ${sText}`);
+                                                        if (fText) outcomeInfo.push(language === 'ko' ? `실패 시: ${fText}` : `Fail: ${fText}`);
+                                                    } else {
+                                                        const d = choice.delta;
+                                                        const parts = [] as string[];
+                                                        if (d.hp !== 0) parts.push(`HP ${d.hp > 0 ? '+' : ''}${d.hp}`);
+                                                        if (d.food !== 0) parts.push(`${language === 'ko' ? '식량' : 'Food'} ${d.food > 0 ? '+' : ''}${d.food}`);
+                                                        if (d.meds !== 0) parts.push(`${language === 'ko' ? '치료제' : 'Meds'} ${d.meds > 0 ? '+' : ''}${d.meds}`);
+                                                        if (d.money !== 0) parts.push(`${language === 'ko' ? '은' : 'Silver'} ${d.money > 0 ? '+' : ''}${d.money}`);
+                                                        const dText = parts.join(', ');
+                                                        if (dText) outcomeInfo.push(language === 'ko' ? `효과: ${dText}` : `Effect: ${dText}`);
                                                     }
+
                                                     return (
-                                                        <button
-                                                            key={choice.id}
-                                                            onClick={() => resolveChoice(choice.id)}
-                                                            className="px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md"
-                                                        >
-                                                            <div className="font-bold">{choice.label}</div>
-                                                            {choice.description && (
-                                                                <div className="text-xs text-white/70 mt-1">{choice.description}</div>
+                                                        <div key={choice.id} className="group relative">
+                                                            <button
+                                                                onClick={() => resolveChoice(choice.id)}
+                                                                className="w-full px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border border-blue-900 shadow-md transition-all h-full flex flex-col items-center justify-center"
+                                                            >
+                                                                <div className="font-bold">{choice.label}</div>
+                                                                {choice.description && (
+                                                                    <div className="text-xs text-white/70 mt-1">{choice.description}</div>
+                                                                )}
+                                                                {chanceText && (
+                                                                    <div className="text-xs text-[#e7c07a] mt-2 font-semibold">{chanceText}</div>
+                                                                )}
+                                                            </button>
+                                                            {outcomeInfo.length > 0 && (
+                                                                <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#0a192f] border border-blue-800 rounded-lg shadow-2xl text-[10px] text-slate-200 pointer-events-none transition-all opacity-0 group-hover:opacity-100">
+                                                                    <div className="font-bold text-[#e7c07a] mb-1 border-b border-blue-800/30 pb-1">
+                                                                        {language === 'ko' ? '예상 결과' : 'Expected Outcome'}
+                                                                    </div>
+                                                                    {outcomeInfo.map((info, idx) => (
+                                                                        <div key={idx} className="mt-0.5 leading-tight">{info}</div>
+                                                                    ))}
+                                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#0a192f]"></div>
+                                                                </div>
                                                             )}
-                                                            {chanceText && (
-                                                                <div className="text-xs text-[#e7c07a] mt-2">{chanceText}</div>
-                                                            )}
-                                                        </button>
+                                                        </div>
                                                     );
                                                 })}
                                             </div>
