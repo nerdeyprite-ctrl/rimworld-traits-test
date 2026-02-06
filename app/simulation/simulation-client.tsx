@@ -807,6 +807,7 @@ export default function SimulationClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const s = searchParams.get('s');
+    const shouldShowSelect = searchParams.get('select');
 
     const [result, setResult] = useState<TestResult | null>(null);
     const [localUserInfo, setLocalUserInfo] = useState<any>(null);
@@ -826,6 +827,9 @@ export default function SimulationClient() {
     const [submittedOnDeath, setSubmittedOnDeath] = useState(false);
     const [submittedOnExit, setSubmittedOnExit] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+    const [showSettlerSelect, setShowSettlerSelect] = useState(false);
+    const [settlers, setSettlers] = useState<any[]>([]);
+    const [loadingSettlers, setLoadingSettlers] = useState(false);
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -897,6 +901,39 @@ export default function SimulationClient() {
         };
         fetchSharedResult();
     }, [s, language, contextTestPhase, calculateFinalTraits]);
+
+    useEffect(() => {
+        const loadSettlers = async () => {
+            if (shouldShowSelect && !s) {
+                setShowSettlerSelect(true);
+                if (!isSupabaseConfigured()) {
+                    return;
+                }
+                const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
+                if (!accountId) {
+                    return;
+                }
+                setLoadingSettlers(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('settler_profiles')
+                        .select('*')
+                        .eq('account_id', accountId)
+                        .order('created_at', { ascending: false });
+                    if (data && !error) {
+                        setSettlers(data);
+                    }
+                } catch (err) {
+                    console.error('Failed to load settlers:', err);
+                } finally {
+                    setLoadingSettlers(false);
+                }
+            } else {
+                setShowSettlerSelect(false);
+            }
+        };
+        loadSettlers();
+    }, [shouldShowSelect, s, language]);
 
     const traitIds = useMemo(() => {
         const ids = new Set<string>();
@@ -1588,6 +1625,115 @@ export default function SimulationClient() {
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
 
+    if (showSettlerSelect) {
+        return (
+            <div className="max-w-4xl mx-auto space-y-6 text-slate-100 pb-10">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[#e7c07a] tracking-tight mb-2">
+                        {language === 'ko' ? '정착민 선택' : 'Select Settler'}
+                    </h1>
+                    <p className="text-sm text-slate-400">
+                        {language === 'ko' ? '시뮬레이션할 정착민을 선택하세요' : 'Choose a settler to simulate'}
+                    </p>
+                </div>
+
+                {loadingSettlers && (
+                    <div className="text-center py-10 text-slate-400">
+                        {language === 'ko' ? '정착민 목록을 불러오는 중...' : 'Loading settlers...'}
+                    </div>
+                )}
+
+                {!loadingSettlers && settlers.length === 0 && (
+                    <div className="bg-[#1a1a1a] border border-[#3b3b3b] rounded-xl p-8 text-center">
+                        <p className="text-slate-400 mb-4">
+                            {language === 'ko' ? '저장된 정착민이 없습니다.' : 'No saved settlers found.'}
+                        </p>
+                        <button
+                            onClick={() => router.push('/')}
+                            className="px-6 py-3 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold rounded-md"
+                        >
+                            {language === 'ko' ? '홈으로 돌아가기' : 'Go Home'}
+                        </button>
+                    </div>
+                )}
+
+                {!loadingSettlers && settlers.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {settlers.map((settler) => (
+                            <div
+                                key={settler.share_id}
+                                className="bg-[#1a1a1a] border border-[#3b3b3b] hover:border-[#9f752a] rounded-xl p-5 cursor-pointer transition-all"
+                                onClick={async () => {
+                                    try {
+                                        const { data, error } = await supabase
+                                            .from('test_results')
+                                            .select('*')
+                                            .eq('id', settler.share_id)
+                                            .single();
+
+                                        if (data && !error) {
+                                            const fetchedResult: TestResult = {
+                                                mbti: data.mbti,
+                                                traits: data.traits,
+                                                backstory: {
+                                                    childhood: data.backstory_childhood,
+                                                    adulthood: data.backstory_adulthood
+                                                },
+                                                skills: data.skills || [],
+                                                incapabilities: data.incapabilities || [],
+                                                scoreLog: {}
+                                            };
+                                            setResult(fetchedResult);
+                                            setLocalUserInfo({
+                                                name: data.name || '정착민',
+                                                age: data.age || 20,
+                                                gender: data.gender || 'Male'
+                                            });
+                                            setIsFullResult(!!data.skills && data.skills.length > 0);
+                                            setShowSettlerSelect(false);
+                                        }
+                                    } catch (err) {
+                                        console.error('Failed to load settler:', err);
+                                    }
+                                }}
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-1">
+                                            {settler.settler_name}
+                                        </h3>
+                                        <p className="text-xs text-slate-400">
+                                            {language === 'ko' ? '생성일' : 'Created'}: {new Date(settler.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    className="w-full mt-3 px-4 py-2 bg-[#1c3d5a] hover:bg-[#2c5282] text-white font-bold text-sm rounded-md border border-[#102a43]"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const btn = e.currentTarget;
+                                        btn.click();
+                                    }}
+                                >
+                                    {language === 'ko' ? '이 정착민으로 시뮬레이션' : 'Simulate with this settler'}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="text-center pt-4">
+                    <button
+                        onClick={() => router.push('/')}
+                        className="px-6 py-3 bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white rounded-md border border-gray-600"
+                    >
+                        {language === 'ko' ? '홈으로 돌아가기' : 'Go Home'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -1621,15 +1767,15 @@ export default function SimulationClient() {
                                                 ? `Day ${currentCard.day} • ${currentCard.season}`
                                                 : (language === 'ko' ? '시뮬레이션 준비' : 'Simulation Ready')}
                                         </div>
-                                    <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
-                                        {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
-                                    </div>
-                                    <div className="mt-4 text-4xl">
-                                        {getEventIcon(currentCard?.event)}
-                                    </div>
-                                    <div className="mt-3 text-base md:text-lg text-slate-300">
-                                        {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
-                                    </div>
+                                        <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
+                                            {currentCard?.event.title || (language === 'ko' ? '시뮬레이션을 시작하세요' : 'Start the simulation')}
+                                        </div>
+                                        <div className="mt-4 text-4xl">
+                                            {getEventIcon(currentCard?.event)}
+                                        </div>
+                                        <div className="mt-3 text-base md:text-lg text-slate-300">
+                                            {currentCard?.event.description || (language === 'ko' ? '오른쪽 넘기기 버튼으로 진행하세요.' : 'Use the right arrow to advance.')}
+                                        </div>
                                     </div>
 
                                     <div className="mt-auto pt-6 space-y-3">
@@ -1683,15 +1829,15 @@ export default function SimulationClient() {
                                             ? `Day ${currentCard.day} • ${currentCard.season}`
                                             : (language === 'ko' ? '결과 대기' : 'Result Pending')}
                                     </div>
-                                <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
-                                    {language === 'ko' ? '결과' : 'Result'}
-                                </div>
-                                <div className="mt-4 text-4xl">
-                                    {getEventIcon(currentCard?.event)}
-                                </div>
-                                <div className="mt-3 text-base md:text-lg text-slate-300">
-                                    {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
-                                </div>
+                                    <div className="mt-4 text-2xl md:text-3xl font-bold text-white">
+                                        {language === 'ko' ? '결과' : 'Result'}
+                                    </div>
+                                    <div className="mt-4 text-4xl">
+                                        {getEventIcon(currentCard?.event)}
+                                    </div>
+                                    <div className="mt-3 text-base md:text-lg text-slate-300">
+                                        {currentCard?.entry?.response || (language === 'ko' ? '결과를 확인하려면 선택을 완료하세요.' : 'Complete a choice to reveal the outcome.')}
+                                    </div>
                                     {currentCard?.entry && (
                                         <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
                                             {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})

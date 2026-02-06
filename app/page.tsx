@@ -159,25 +159,7 @@ export default function Home() {
               ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-wait'
               : 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'}`}
           >
-            {language === 'ko' ? '기존 캐릭터로 시뮬레이션하기' : 'Simulate Existing Character'}
-          </button>
-          <button
-            onClick={async () => {
-              const ok = await requireLoginAndSettlers();
-              if (ok) {
-                router.push('/simulation?select=1');
-                setTimeout(() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/simulation?select=1';
-                  }
-                }, 300);
-              }
-            }}
-            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${checkLoading
-              ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-wait'
-              : 'bg-[#2b2b2b] hover:bg-[#3a3a3a] border-[#1f1f1f]'}`}
-          >
-            {language === 'ko' ? '정착민 조회하기' : 'View Settlers'}
+            {language === 'ko' ? '정착민 관리하기' : 'Manage Settlers'}
           </button>
         </div>
         <div className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
