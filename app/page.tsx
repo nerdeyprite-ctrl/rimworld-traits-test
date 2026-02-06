@@ -17,6 +17,7 @@ export default function Home() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
+  const [checkLoading, setCheckLoading] = useState(false);
 
   // Reset test state whenever Home is mounted (returning from test/result)
   useEffect(() => {
@@ -94,6 +95,36 @@ export default function Home() {
     setLoginMessage(language === 'ko' ? '로그아웃되었습니다.' : 'Logged out.');
   };
 
+  const requireLoginAndSettlers = async () => {
+    if (!accountId) {
+      window.alert(language === 'ko' ? '로그인이 필요합니다.' : 'Please log in first.');
+      return false;
+    }
+    if (!canUseSupabase) {
+      window.alert(language === 'ko' ? 'DB가 설정되어 있지 않습니다.' : 'Database is not configured.');
+      return false;
+    }
+    setCheckLoading(true);
+    try {
+      const { count, error } = await supabase
+        .from('settler_profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('account_id', accountId);
+      if (error) throw error;
+      if (!count || count <= 0) {
+        window.alert(language === 'ko' ? '저장된 캐릭터가 없습니다.' : 'No saved character found.');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Failed to check settlers:', err);
+      window.alert(language === 'ko' ? '정착민 조회에 실패했습니다.' : 'Failed to fetch settlers.');
+      return false;
+    } finally {
+      setCheckLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up">
       <section className="text-center space-y-6">
@@ -114,30 +145,29 @@ export default function Home() {
           </a>
           <button
             onClick={() => {
-              if (lastShareId) {
-                router.push(`/simulation?s=${lastShareId}`);
-              } else {
-                window.alert(language === 'ko' ? '이전 캐릭터 정보가 없습니다.' : 'No previous character found.');
-              }
+              requireLoginAndSettlers().then(ok => {
+                if (ok) router.push('/simulation?select=1');
+              });
             }}
-            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${lastShareId
-              ? 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'
-              : 'bg-[#333] border-[#2a2a2a] text-gray-400'}`}
+            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${checkLoading
+              ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-wait'
+              : 'bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43]'}`}
           >
             {language === 'ko' ? '기존 캐릭터로 시뮬레이션하기' : 'Simulate Existing Character'}
           </button>
           <button
-            onClick={() => router.push('/simulation?select=1')}
-            className="inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border bg-[#2b2b2b] hover:bg-[#3a3a3a] border-[#1f1f1f]"
+            onClick={() => {
+              requireLoginAndSettlers().then(ok => {
+                if (ok) router.push('/simulation?select=1');
+              });
+            }}
+            className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${checkLoading
+              ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-wait'
+              : 'bg-[#2b2b2b] hover:bg-[#3a3a3a] border-[#1f1f1f]'}`}
           >
             {language === 'ko' ? '정착민 조회하기' : 'View Settlers'}
           </button>
         </div>
-        {!lastShareId && (
-          <p className="text-xs text-gray-500">
-            {language === 'ko' ? '저장된 캐릭터가 없습니다.' : 'No saved character found.'}
-          </p>
-        )}
         <div className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
           <div className="text-sm font-bold text-[#9f752a]">
             {language === 'ko' ? '정착민 로그인' : 'Settler Login'}

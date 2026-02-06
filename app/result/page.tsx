@@ -30,6 +30,7 @@ function ResultContent() {
     const [showScrollHint, setShowScrollHint] = useState(false);
     const [shareId, setShareId] = useState<string | null>(s);
     const isSavedRef = useRef(false);
+    const isSettlerSavedRef = useRef(false);
 
     useEffect(() => {
         const id = shareId || s;
@@ -37,6 +38,36 @@ function ResultContent() {
             localStorage.setItem('last_share_id', id);
         }
     }, [shareId, s]);
+
+    useEffect(() => {
+        const saveSettler = async () => {
+            if (!result || !userInfo || !isSupabaseConfigured()) return;
+            if (isSettlerSavedRef.current) return;
+            const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
+            if (!accountId) return;
+
+            try {
+                const payload = {
+                    account_id: accountId,
+                    name: userInfo.name,
+                    age: userInfo.age,
+                    gender: userInfo.gender,
+                    mbti: result.mbti,
+                    traits: result.traits,
+                    backstory_childhood: result.backstory?.childhood ?? null,
+                    backstory_adulthood: result.backstory?.adulthood ?? null,
+                    skills: result.skills,
+                    incapabilities: result.incapabilities
+                };
+                const { error } = await supabase.from('settler_profiles').insert(payload);
+                if (error) throw error;
+                isSettlerSavedRef.current = true;
+            } catch (err) {
+                console.error('Failed to auto-save settler:', err);
+            }
+        };
+        saveSettler();
+    }, [result, userInfo]);
 
     // Fetch result if ID provided or handle legacy link
     useEffect(() => {
