@@ -148,12 +148,7 @@ export default function Home() {
             onClick={async () => {
               const ok = await requireLoginAndSettlers();
               if (ok) {
-                router.push('/simulation?select=1');
-                setTimeout(() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.href = '/simulation?select=1';
-                  }
-                }, 300);
+                router.push('/settlers');
               }
             }}
             className={`inline-block px-8 py-4 text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border ${checkLoading
