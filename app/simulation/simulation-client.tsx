@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTest } from '../../context/TestContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -18,10 +18,10 @@ type SimChoice = {
     id: string;
     label: string;
     description?: string;
-    delta: { hp: number; food: number; money: number };
+    delta: { hp: number; meds: number; money: number };
     response?: string;
     skillGroup?: 'combat' | 'noncombat';
-    skillTargets?: Array<'hp' | 'food' | 'money'>;
+    skillTargets?: Array<'hp' | 'meds' | 'money'>;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'danger';
@@ -32,14 +32,14 @@ type SimEvent = {
     description: string;
     category: SimEventCategory;
     weight: number;
-    base: { hp: number; food: number; money: number };
+    base: { hp: number; meds: number; money: number };
     traitMods?: {
         hp?: TraitMod;
-        food?: TraitMod;
+        meds?: TraitMod;
         money?: TraitMod;
     };
     skillGroup?: 'combat' | 'noncombat';
-    skillTargets?: Array<'hp' | 'food' | 'money'>;
+    skillTargets?: Array<'hp' | 'meds' | 'money'>;
     choices?: SimChoice[];
 };
 
@@ -49,8 +49,8 @@ type SimLogEntry = {
     title: string;
     description: string;
     response: string;
-    delta: { hp: number; food: number; money: number };
-    after: { hp: number; food: number; money: number };
+    delta: { hp: number; meds: number; money: number };
+    after: { hp: number; meds: number; money: number };
     status?: 'good' | 'bad' | 'warn' | 'neutral';
 };
 
@@ -60,13 +60,13 @@ type PendingChoice = {
     day: number;
     season: string;
     event: SimEvent;
-    dayStart: { hp: number; food: number; money: number };
-    baseAfter: { hp: number; food: number; money: number };
+    dayStart: { hp: number; meds: number; money: number };
+    baseAfter: { hp: number; meds: number; money: number };
     responseNotes: string[];
 };
 
 const MAX_DAYS = 60;
-const START_STATS = { hp: 5, food: 5, money: 5 };
+const START_STATS = { hp: 5, meds: 5, money: 5 };
 const AUTO_INTERVAL_MS = 1500;
 
 const COMBAT_SKILLS = ['Shooting', 'Melee', 'Medicine'] as const;
@@ -92,37 +92,37 @@ const buildSupplyEvent = (language: string, money: number): SimEvent => {
         choices.push({
             id: 'buy_large',
             label: isKo ? '대량 구매' : 'Buy Large',
-            description: isKo ? '돈 2 → 식량 4' : 'Money 2 → Food 4',
-            delta: { hp: 0, food: 4, money: -2 },
-            response: isKo ? '돈을 더 지불하고 식량을 대량으로 구매했다.' : 'You buy a large supply of food.'
+            description: isKo ? '돈 2 → 치료제 4' : 'Money 2 → Meds 4',
+            delta: { hp: 0, meds: 4, money: -2 },
+            response: isKo ? '돈을 더 지불하고 치료제를 대량으로 구매했다.' : 'You buy a large supply of meds.'
         });
     }
     if (money >= 1) {
         choices.push({
             id: 'buy_small',
             label: isKo ? '소량 구매' : 'Buy Small',
-            description: isKo ? '돈 1 → 식량 2' : 'Money 1 → Food 2',
-            delta: { hp: 0, food: 2, money: -1 },
-            response: isKo ? '돈을 조금 써서 식량을 구매했다.' : 'You buy a small amount of food.'
+            description: isKo ? '돈 1 → 치료제 2' : 'Money 1 → Meds 2',
+            delta: { hp: 0, meds: 2, money: -1 },
+            response: isKo ? '돈을 조금 써서 치료제를 구매했다.' : 'You buy a small amount of meds.'
         });
     }
     choices.push({
         id: 'skip',
         label: isKo ? '구매하지 않음' : 'Skip',
         description: isKo ? '거래를 포기한다.' : 'You skip the deal.',
-        delta: { hp: 0, food: 0, money: 0 },
+        delta: { hp: 0, meds: 0, money: 0 },
         response: isKo ? '거래를 포기하고 넘어갔다.' : 'You pass on the offer.'
     });
 
     return {
         id: 'supply_buy',
-        title: isKo ? '물자 상인 등장' : 'Supply Trader',
-        description: isKo ? '식량을 살 수 있는 상인이 나타났다.' : 'A trader offers food for money.',
+        title: isKo ? '치료제 상인 등장' : 'Supply Trader',
+        description: isKo ? '치료제를 살 수 있는 상인이 나타났다.' : 'A trader offers meds for money.',
         category: 'noncombat',
         weight: 0,
-        base: { hp: 0, food: 0, money: 0 },
+        base: { hp: 0, meds: 0, money: 0 },
         skillGroup: 'noncombat',
-        skillTargets: ['food', 'money'],
+        skillTargets: ['meds', 'money'],
         choices
     };
 };
@@ -136,7 +136,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '큰 사건 없이 하루가 지나갔다.' : 'The day passes without major incidents.',
             category: 'quiet',
             weight: 40,
-            base: { hp: 0, food: 0, money: 0 }
+            base: { hp: 0, meds: 0, money: 0 }
         },
         {
             id: 'trade',
@@ -144,7 +144,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '상인들이 들러 교역을 제안했다.' : 'A trader caravan offers a deal.',
             category: 'noncombat',
             weight: 7,
-            base: { hp: 0, food: 1, money: 2 },
+            base: { hp: 0, meds: 1, money: 2 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -162,9 +162,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '하늘에서 보급 캡슐이 떨어졌다.' : 'Cargo pods crash nearby.',
             category: 'noncombat',
             weight: 7,
-            base: { hp: 0, food: 2, money: 1 },
+            base: { hp: 0, meds: 2, money: 1 },
             skillGroup: 'noncombat',
-            skillTargets: ['food', 'money']
+            skillTargets: ['meds', 'money']
         },
         {
             id: 'crop_boom',
@@ -172,11 +172,11 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '작물이 급성장해 풍작이 들었다.' : 'Crops surge with unexpected growth.',
             category: 'noncombat',
             weight: 7,
-            base: { hp: 0, food: 2, money: 0 },
+            base: { hp: 0, meds: 2, money: 0 },
             skillGroup: 'noncombat',
-            skillTargets: ['food'],
+            skillTargets: ['meds'],
             traitMods: {
-                food: {
+                meds: {
                     pos: ['industrious', 'hard_worker'],
                     neg: ['lazy', 'slothful'],
                     goodText: isKo ? '풍작을 잘 수확했다.' : 'You harvest the boom efficiently.',
@@ -190,7 +190,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '우주선 잔해가 추락했다.' : 'A ship chunk crashes nearby.',
             category: 'noncombat',
             weight: 7,
-            base: { hp: 0, food: 0, money: 2 },
+            base: { hp: 0, meds: 0, money: 2 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -208,11 +208,11 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '작물이 역병으로 시들었다.' : 'A blight hits the crops.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: -2, money: 0 },
+            base: { hp: 0, meds: -2, money: 0 },
             skillGroup: 'noncombat',
-            skillTargets: ['food'],
+            skillTargets: ['meds'],
             traitMods: {
-                food: {
+                meds: {
                     pos: ['industrious', 'hard_worker', 'fast_learner'],
                     neg: ['lazy', 'slothful', 'sickly'],
                     goodText: isKo ? '신속한 대응으로 피해를 줄였다.' : 'Quick action limits the damage.',
@@ -226,7 +226,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '방랑자가 합류를 요청했다.' : 'A wanderer asks to join.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: -1, money: 1 },
+            base: { hp: 0, meds: -1, money: 1 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -244,7 +244,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '무장한 침입자들이 기지를 습격했다.' : 'Raiders assault the colony.',
             category: 'danger',
             weight: 4,
-            base: { hp: -2, food: -1, money: -1 },
+            base: { hp: -2, meds: -1, money: -1 },
             skillGroup: 'combat',
             skillTargets: ['hp', 'money'],
             traitMods: {
@@ -260,21 +260,21 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     id: 'raid_fight',
                     label: isKo ? '정면전' : 'Full Assault',
                     description: isKo ? '큰 피해를 감수하고 맞선다.' : 'Take heavy damage to repel them.',
-                    delta: { hp: -1, food: 0, money: 1 },
+                    delta: { hp: -1, meds: 0, money: 1 },
                     response: isKo ? '정면으로 맞서 일부 전리품을 확보했다.' : 'You fight head-on and salvage some loot.'
                 },
                 {
                     id: 'raid_defend',
                     label: isKo ? '방어전' : 'Hold Position',
                     description: isKo ? '피해를 줄이지만 비용이 든다.' : 'Reduce damage at a cost.',
-                    delta: { hp: 1, food: 0, money: -1 },
+                    delta: { hp: 1, meds: 0, money: -1 },
                     response: isKo ? '방어선을 구축해 피해를 최소화했다.' : 'You fortify and reduce losses.'
                 },
                 {
                     id: 'raid_retreat',
                     label: isKo ? '후퇴' : 'Retreat',
                     description: isKo ? '물자를 포기하고 빠진다.' : 'Give up supplies and retreat.',
-                    delta: { hp: 0, food: -1, money: -2 },
+                    delta: { hp: 0, meds: -1, money: -2 },
                     response: isKo ? '물자를 포기하고 후퇴했다.' : 'You abandon supplies and retreat.'
                 }
             ]
@@ -285,7 +285,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '광포해진 동물들이 덮쳐왔다.' : 'A pack of enraged animals attacks.',
             category: 'danger',
             weight: 4,
-            base: { hp: -2, food: 1, money: 0 },
+            base: { hp: -2, meds: 1, money: 0 },
             skillGroup: 'combat',
             skillTargets: ['hp'],
             traitMods: {
@@ -295,33 +295,33 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     goodText: isKo ? '몸이 단단해 피해가 줄었다.' : 'Toughness reduces the harm.',
                     badText: isKo ? '연약해 큰 피해를 입었다.' : 'Fragility makes it worse.'
                 },
-                food: {
+                meds: {
                     pos: ['industrious', 'hard_worker'],
                     neg: ['lazy', 'slothful'],
-                    goodText: isKo ? '처치 후 식량을 효율적으로 확보했다.' : 'You process the meat efficiently.',
-                    badText: isKo ? '처치 후 식량 처리에 실패했다.' : 'You waste part of the meat.'
+                    goodText: isKo ? '처치 후 치료제를 효율적으로 확보했다.' : 'You process the meat efficiently.',
+                    badText: isKo ? '처치 후 치료제 처리에 실패했다.' : 'You waste part of the meat.'
                 }
             },
             choices: [
                 {
                     id: 'hunt',
                     label: isKo ? '사냥' : 'Hunt',
-                    description: isKo ? '위험하지만 더 많은 식량을 얻는다.' : 'Risk more for extra food.',
-                    delta: { hp: -1, food: 2, money: 0 },
-                    response: isKo ? '사냥으로 더 많은 식량을 확보했다.' : 'You secure extra food by hunting.'
+                    description: isKo ? '위험하지만 더 많은 치료제를 얻는다.' : 'Risk more for extra meds.',
+                    delta: { hp: -1, meds: 2, money: 0 },
+                    response: isKo ? '사냥으로 더 많은 치료제를 확보했다.' : 'You secure extra meds by hunting.'
                 },
                 {
                     id: 'defend',
                     label: isKo ? '방어' : 'Defend',
                     description: isKo ? '안전하게 방어한다.' : 'Play it safe.',
-                    delta: { hp: 1, food: 0, money: 0 },
+                    delta: { hp: 1, meds: 0, money: 0 },
                     response: isKo ? '방어를 택해 피해를 줄였다.' : 'You defend to reduce damage.'
                 },
                 {
                     id: 'avoid',
                     label: isKo ? '회피' : 'Avoid',
                     description: isKo ? '피해를 피하지만 수확이 없다.' : 'Avoid damage but gain nothing.',
-                    delta: { hp: 2, food: -1, money: 0 },
+                    delta: { hp: 2, meds: -1, money: 0 },
                     response: isKo ? '회피에 성공했지만 수확이 줄었다.' : 'You avoid danger but lose the harvest.'
                 }
             ]
@@ -332,7 +332,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '질병이 퍼져 몸이 약해졌다.' : 'A disease spreads through the camp.',
             category: 'danger',
             weight: 3,
-            base: { hp: -2, food: -1, money: 0 },
+            base: { hp: -2, meds: -1, money: 0 },
             skillGroup: 'combat',
             skillTargets: ['hp'],
             traitMods: {
@@ -350,9 +350,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '갑작스러운 한파가 찾아왔다.' : 'A sudden cold snap hits.',
             category: 'danger',
             weight: 3,
-            base: { hp: -1, food: -1, money: 0 },
+            base: { hp: -1, meds: -1, money: 0 },
             skillGroup: 'noncombat',
-            skillTargets: ['food'],
+            skillTargets: ['meds'],
             traitMods: {
                 hp: {
                     pos: ['iron_willed', 'steadfast', 'sanguine'],
@@ -368,7 +368,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '무더위가 이어졌다.' : 'Relentless heat drains you.',
             category: 'danger',
             weight: 3,
-            base: { hp: -1, food: 0, money: 0 },
+            base: { hp: -1, meds: 0, money: 0 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -386,7 +386,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             description: isKo ? '화재로 돈이 손실됐다.' : 'A fire destroys your funds.',
             category: 'danger',
             weight: 3,
-            base: { hp: -1, food: 0, money: -2 },
+            base: { hp: -1, meds: 0, money: -2 },
             skillGroup: 'noncombat',
             skillTargets: ['money'],
             traitMods: {
@@ -425,18 +425,19 @@ export default function SimulationClient() {
     const [isFullResult, setIsFullResult] = useState(false);
     const [simAuto, setSimAuto] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
+    const autoResumeRef = useRef(false);
     const [simState, setSimState] = useState<{
         status: SimStatus;
         day: number;
         hp: number;
-        food: number;
+        meds: number;
         money: number;
         log: SimLogEntry[];
     }>({
         status: 'idle',
         day: 0,
         hp: START_STATS.hp,
-        food: START_STATS.food,
+        meds: START_STATS.meds,
         money: START_STATS.money,
         log: []
     });
@@ -567,7 +568,7 @@ export default function SimulationClient() {
             status: 'running',
             day: 0,
             hp: START_STATS.hp,
-            food: START_STATS.food,
+            meds: START_STATS.meds,
             money: START_STATS.money,
             log: [{
                 day: 0,
@@ -575,12 +576,13 @@ export default function SimulationClient() {
                 title: language === 'ko' ? '시뮬레이션 시작' : 'Simulation Start',
                 description: introText,
                 response: language === 'ko' ? '생존 준비를 시작했다.' : 'You begin preparing for survival.',
-                delta: { hp: 0, food: 0, money: 0 },
-                after: { hp: START_STATS.hp, food: START_STATS.food, money: START_STATS.money },
+                delta: { hp: 0, meds: 0, money: 0 },
+                after: { hp: START_STATS.hp, meds: START_STATS.meds, money: START_STATS.money },
                 status: 'neutral'
             }]
         });
         setPendingChoice(null);
+        autoResumeRef.current = false;
         setSimAuto(false);
     }, [language]);
 
@@ -595,17 +597,17 @@ export default function SimulationClient() {
 
     const resolveEvent = (
         event: SimEvent,
-        dayStart: { hp: number; food: number; money: number },
-        baseAfter: { hp: number; food: number; money: number },
+        dayStart: { hp: number; meds: number; money: number },
+        baseAfter: { hp: number; meds: number; money: number },
         baseNotes: string[],
         choice?: SimChoice
     ) => {
         let hp = baseAfter.hp;
-        let food = baseAfter.food;
+        let meds = baseAfter.meds;
         let money = baseAfter.money;
 
         let hpDelta = event.base.hp + (choice?.delta.hp || 0);
-        let foodDelta = event.base.food + (choice?.delta.food || 0);
+        let medsDelta = event.base.meds + (choice?.delta.meds || 0);
         let moneyDelta = event.base.money + (choice?.delta.money || 0);
         const traitNotes: string[] = [];
 
@@ -614,9 +616,9 @@ export default function SimulationClient() {
             hpDelta += score;
             if (note) traitNotes.push(note);
         }
-        if (event.traitMods?.food && (event.base.food !== 0 || choice?.delta.food)) {
-            const { score, note } = getTraitScore(event.traitMods.food);
-            foodDelta += score;
+        if (event.traitMods?.meds && (event.base.meds !== 0 || choice?.delta.meds)) {
+            const { score, note } = getTraitScore(event.traitMods.meds);
+            medsDelta += score;
             if (note) traitNotes.push(note);
         }
         if (event.traitMods?.money && (event.base.money !== 0 || choice?.delta.money)) {
@@ -632,30 +634,30 @@ export default function SimulationClient() {
             const { bonus, note } = getSkillBonus(skillGroup);
             skillTargets.forEach(target => {
                 if (target === 'hp') hpDelta += bonus;
-                if (target === 'food') foodDelta += bonus;
+                if (target === 'meds') medsDelta += bonus;
                 if (target === 'money') moneyDelta += bonus;
             });
             skillNote = note;
         }
 
         hp += hpDelta;
-        food += foodDelta;
+        meds += medsDelta;
         money += moneyDelta;
 
         hp = clampStat(hp);
-        food = clampStat(food);
+        meds = clampStat(meds);
         money = clampStat(money);
 
         const delta = {
             hp: hp - dayStart.hp,
-            food: food - dayStart.food,
+            meds: meds - dayStart.meds,
             money: money - dayStart.money
         };
 
         const responseText = buildResponseText(baseNotes, traitNotes, skillNote, choice?.response);
 
         return {
-            after: { hp, food, money },
+            after: { hp, meds, money },
             delta,
             responseText,
             status: hp <= 0 ? 'dead' : 'running'
@@ -665,29 +667,19 @@ export default function SimulationClient() {
     const advanceDay = useCallback(() => {
         if (simState.status !== 'running' || pendingChoice) return;
 
-        const dayStart = { hp: simState.hp, food: simState.food, money: simState.money };
+        const dayStart = { hp: simState.hp, meds: simState.meds, money: simState.money };
         const nextDay = simState.day + 1;
         const season = getSeasonLabel(nextDay, language);
 
         let hp = simState.hp;
-        let food = simState.food;
+        let meds = simState.meds;
         let money = simState.money;
         const responseNotes: string[] = [];
 
-        const plantsLevel = skillMap['Plants'] ?? 0;
-        const production = Math.floor(plantsLevel / 4);
-        if (production > 0) {
-            food += production;
-            responseNotes.push(language === 'ko' ? `원예로 식량 +${production} 생산했다.` : `Plants yield +${production} food.`);
-        }
-
-        food -= 1;
-        responseNotes.push(language === 'ko' ? '하루치 식량을 소비했다.' : 'Consumed daily rations.');
-
-        if (food < 0) {
-            food = 0;
-            hp -= 1;
-            responseNotes.push(language === 'ko' ? '식량이 부족해 체력이 감소했다.' : 'Starvation reduces your HP.');
+        if (hp <= 3 && meds > 0) {
+            meds -= 1;
+            hp += 2;
+            responseNotes.push(language === 'ko' ? '치료제를 사용해 HP +2 회복했다.' : 'Used meds to heal +2 HP.');
         }
         if (money <= 0) {
             hp -= 1;
@@ -695,13 +687,13 @@ export default function SimulationClient() {
         }
 
         hp = clampStat(hp);
-        food = clampStat(food);
+        meds = clampStat(meds);
         money = clampStat(money);
 
         if (hp <= 0) {
             const delta = {
                 hp: hp - dayStart.hp,
-                food: food - dayStart.food,
+                meds: meds - dayStart.meds,
                 money: money - dayStart.money
             };
             const entry: SimLogEntry = {
@@ -711,14 +703,14 @@ export default function SimulationClient() {
                 description: language === 'ko' ? '생존 유지에 실패했다.' : 'You could not sustain your colony.',
                 response: responseNotes.join(' '),
                 delta,
-                after: { hp, food, money },
+                after: { hp, meds, money },
                 status: 'bad'
             };
             setSimState(prev => ({
                 ...prev,
                 day: nextDay,
                 hp,
-                food,
+                meds,
                 money,
                 status: 'dead',
                 log: [entry, ...prev.log].slice(0, 60)
@@ -727,33 +719,34 @@ export default function SimulationClient() {
         }
 
         let event: SimEvent;
-        if (food === 0 && money > 0 && Math.random() < 0.4) {
+        if (meds === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money);
         } else {
             event = pickWeightedEvent(events);
         }
 
         if (event.choices && event.choices.length > 0) {
+            autoResumeRef.current = simAuto;
+            setSimAuto(false);
             setPendingChoice({
                 day: nextDay,
                 season,
                 event,
                 dayStart,
-                baseAfter: { hp, food, money },
+                baseAfter: { hp, meds, money },
                 responseNotes
             });
-            setSimAuto(false);
             setSimState(prev => ({
                 ...prev,
                 day: nextDay,
                 hp,
-                food,
+                meds,
                 money
             }));
             return;
         }
 
-        const resolved = resolveEvent(event, dayStart, { hp, food, money }, responseNotes);
+        const resolved = resolveEvent(event, dayStart, { hp, meds, money }, responseNotes);
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
         const entry: SimLogEntry = {
             day: nextDay,
@@ -779,7 +772,7 @@ export default function SimulationClient() {
                         ? '1년을 버텨 우주선을 만들고 탈출에 성공했다.'
                         : 'You survived a full year and escaped with your ship.',
                     response: language === 'ko' ? '모든 준비를 마쳤다.' : 'You complete all preparations.',
-                    delta: { hp: 0, food: 0, money: 0 },
+                    delta: { hp: 0, meds: 0, money: 0 },
                     after: resolved.after,
                     status: 'good'
                 });
@@ -789,13 +782,13 @@ export default function SimulationClient() {
                 ...prev,
                 day: nextDay,
                 hp: resolved.after.hp,
-                food: resolved.after.food,
+                meds: resolved.after.meds,
                 money: resolved.after.money,
                 status,
                 log
             };
         });
-    }, [simState, pendingChoice, language, events, skillMap, getTraitScore, getSkillBonus]);
+    }, [simState, pendingChoice, simAuto, language, events, skillMap, getTraitScore, getSkillBonus]);
 
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
@@ -835,7 +828,7 @@ export default function SimulationClient() {
                         ? '1년을 버텨 우주선을 만들고 탈출에 성공했다.'
                         : 'You survived a full year and escaped with your ship.',
                     response: language === 'ko' ? '모든 준비를 마쳤다.' : 'You complete all preparations.',
-                    delta: { hp: 0, food: 0, money: 0 },
+                    delta: { hp: 0, meds: 0, money: 0 },
                     after: resolved.after,
                     status: 'good'
                 });
@@ -844,13 +837,16 @@ export default function SimulationClient() {
             return {
                 ...prev,
                 hp: resolved.after.hp,
-                food: resolved.after.food,
+                meds: resolved.after.meds,
                 money: resolved.after.money,
                 status,
                 log
             };
         });
+        const shouldResume = autoResumeRef.current && status === 'running';
+        autoResumeRef.current = false;
         setPendingChoice(null);
+        if (shouldResume) setSimAuto(true);
     };
 
     useEffect(() => {
@@ -947,8 +943,8 @@ export default function SimulationClient() {
                         <div className="text-white font-bold">{simState.hp} / 10</div>
                     </div>
                     <div className="bg-black/40 border border-gray-700 p-2">
-                        <div className="text-gray-500">{language === 'ko' ? '식량' : 'Food'}</div>
-                        <div className="text-white font-bold">{simState.food} / 10</div>
+                        <div className="text-gray-500">{language === 'ko' ? '치료제' : 'Meds'}</div>
+                        <div className="text-white font-bold">{simState.meds} / 10</div>
                     </div>
                     <div className="bg-black/40 border border-gray-700 p-2">
                         <div className="text-gray-500">{language === 'ko' ? '돈' : 'Money'}</div>
@@ -1049,10 +1045,14 @@ export default function SimulationClient() {
                                     {entry.title}
                                 </div>
                             </div>
-                            <div className="text-gray-300 mt-1">A. {entry.description}</div>
-                            <div className="text-[#9f752a] mt-1">B. {entry.response}</div>
+                            <div className="text-gray-300 mt-1">
+                                {language === 'ko' ? '사건' : 'Event'}: {entry.description}
+                            </div>
+                            <div className="text-[#9f752a] mt-1">
+                                {language === 'ko' ? '대처' : 'Response'}: {entry.response}
+                            </div>
                             <div className="text-gray-400 mt-1">
-                                C. HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
+                                {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
                             </div>
                         </div>
                     ))}
