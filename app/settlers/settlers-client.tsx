@@ -67,6 +67,7 @@ export default function SettlersClient() {
 
             console.log('Successfully deleted settler from DB.');
             setSettlers(prev => prev.filter(s => s.id !== settlerId));
+            alert(language === 'ko' ? '정착민이 삭제되었습니다.' : 'Settler deleted.');
         } catch (err) {
             console.error('Delete failed:', err);
             alert(language === 'ko' ? '삭제에 실패했습니다. 네트워크 상태를 확인해주세요.' : 'Delete failed. Please check your network.');
@@ -179,13 +180,22 @@ export default function SettlersClient() {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => handleSelectSettler(settler.id)}
-                                className="w-full py-3 bg-[#6e4e1e] hover:bg-[#856026] text-white font-bold text-sm rounded border border-[#9f752a] transition-colors flex items-center justify-center gap-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                {language === 'ko' ? '이 정착민으로 시뮬레이션 시작' : 'Start Simulation'}
-                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => router.push(`/result?profile=${settler.id}`)}
+                                    className="py-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white font-bold text-sm rounded border border-[#444] transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    {language === 'ko' ? '상세보기' : 'Details'}
+                                </button>
+                                <button
+                                    onClick={() => handleSelectSettler(settler.id)}
+                                    className="py-3 bg-[#6e4e1e] hover:bg-[#856026] text-white font-bold text-sm rounded border border-[#9f752a] transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    {language === 'ko' ? '시뮬레이션' : 'Simulation'}
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>

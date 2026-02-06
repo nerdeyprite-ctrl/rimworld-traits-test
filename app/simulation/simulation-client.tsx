@@ -857,7 +857,10 @@ export default function SimulationClient() {
 
             // 1. 프로필 ID로 정착민 정보 로드 (정착민 보관함에서 온 경우)
             if (profileId) {
-                if (!isSupabaseConfigured()) return;
+                if (!isSupabaseConfigured()) {
+                    setLoading(false);
+                    return;
+                }
                 setLoading(true);
                 try {
                     const { data, error } = await supabase
@@ -885,6 +888,7 @@ export default function SimulationClient() {
                             gender: data.gender || 'Male'
                         });
                         setIsFullResult(!!data.skills && data.skills.length > 0);
+                        selectedSettlerRef.current = true;
                     }
                 } catch (err) {
                     console.error("Failed to fetch profile result:", err);
@@ -898,6 +902,7 @@ export default function SimulationClient() {
             if (s) {
                 if (!isSupabaseConfigured()) {
                     setIsFullResult(false);
+                    setLoading(false);
                     return;
                 }
                 setLoading(true);
@@ -927,6 +932,7 @@ export default function SimulationClient() {
                             gender: data.gender || 'Male'
                         });
                         setIsFullResult(!!data.skills && data.skills.length > 0);
+                        selectedSettlerRef.current = true;
                     }
                 } catch (err) {
                     console.error("Failed to fetch shared result:", err);
@@ -938,6 +944,7 @@ export default function SimulationClient() {
                 const res = calculateFinalTraits();
                 setResult(res);
                 setIsFullResult(contextTestPhase === 'skill');
+                setLoading(false);
             }
         };
         fetchSharedResult();

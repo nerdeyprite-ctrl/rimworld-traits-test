@@ -14,6 +14,7 @@ function ResultContent() {
     const { t, language } = useLanguage();
     const searchParams = useSearchParams();
     const s = searchParams.get('s');
+    const profileId = searchParams.get('profile');
 
     const [result, setResult] = useState<TestResult | null>(null);
     const [selectedTrait, setSelectedTrait] = useState<Trait | null>(null);
@@ -121,6 +122,41 @@ function ResultContent() {
                 } finally {
                     setLoading(false);
                 }
+            } else if (profileId) {
+                if (!isSupabaseConfigured()) return;
+                setLoading(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('settler_profiles')
+                        .select('*')
+                        .eq('id', profileId)
+                        .single();
+
+                    if (data && !error) {
+                        const fetchedResult: TestResult = {
+                            mbti: data.mbti,
+                            traits: data.traits || [],
+                            backstory: {
+                                childhood: data.backstory_childhood,
+                                adulthood: data.backstory_adulthood
+                            },
+                            skills: data.skills || [],
+                            incapabilities: data.incapabilities || [],
+                            scoreLog: {}
+                        };
+                        setResult(fetchedResult);
+                        setLocalUserInfo({
+                            name: data.name || '정착민',
+                            age: data.age || 20,
+                            gender: data.gender || 'Male'
+                        });
+                        isSavedRef.current = true;
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch profile result:", err);
+                } finally {
+                    setLoading(false);
+                }
             } else if (searchParams.get('name')) {
                 // Legacy URL handle (name, mbti, traits)
                 const name = searchParams.get('name') || '정착민';
@@ -224,6 +260,10 @@ function ResultContent() {
         const targetId = shareId || s;
         if (targetId) {
             router.push(`/simulation?s=${targetId}`);
+            return;
+        }
+        if (profileId) {
+            router.push(`/simulation?profile=${profileId}`);
             return;
         }
         router.push('/simulation');
