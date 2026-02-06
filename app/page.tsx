@@ -96,7 +96,9 @@ export default function Home() {
   };
 
   const requireLogin = async () => {
-    if (!accountId) {
+    const currentAccountId = accountId || (typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null);
+
+    if (!currentAccountId) {
       window.alert(language === 'ko' ? '로그인이 필요합니다. 아래에서 로그인해주세요.' : 'Please log in first. Use the login form below.');
       const loginSection = document.getElementById('login-section');
       if (loginSection) {
@@ -130,13 +132,20 @@ export default function Home() {
             {t('start_test')}
           </a>
           <button
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
               const ok = await requireLogin();
               if (ok) {
+                // Next.js router might have issues in some environments, use direct location if needed
                 router.push('/settlers');
+                setTimeout(() => {
+                  if (window.location.pathname !== '/settlers') {
+                    window.location.href = '/settlers';
+                  }
+                }, 100);
               }
             }}
-            className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border"
+            className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
           >
             {language === 'ko' ? '정착민 관리하기' : 'Manage Settlers'}
           </button>

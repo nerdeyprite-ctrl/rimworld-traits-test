@@ -162,9 +162,9 @@ export default function SettlersClient() {
                                     <span className="px-2 py-0.5 bg-[#1c3d5a] text-[#a5d8ff] text-[11px] font-bold rounded uppercase tracking-wider">
                                         {settler.mbti}
                                     </span>
-                                    {(settler.traits || []).slice(0, 4).map((trait: string, idx: number) => (
+                                    {(settler.traits || []).slice(0, 4).map((trait: any, idx: number) => (
                                         <span key={idx} className="px-2 py-0.5 bg-[#2d3748] text-slate-300 text-[11px] rounded">
-                                            {trait}
+                                            {typeof trait === 'string' ? trait : (trait.name || trait.id || JSON.stringify(trait))}
                                         </span>
                                     ))}
                                 </div>
