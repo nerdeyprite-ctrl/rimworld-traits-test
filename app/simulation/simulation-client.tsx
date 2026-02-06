@@ -906,13 +906,11 @@ export default function SimulationClient() {
         const loadSettlers = async () => {
             if (shouldShowSelect && !s) {
                 setShowSettlerSelect(true);
-                if (!isSupabaseConfigured()) {
-                    return;
-                }
+                if (!isSupabaseConfigured()) return;
+
                 const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
-                if (!accountId) {
-                    return;
-                }
+                if (!accountId) return;
+
                 setLoadingSettlers(true);
                 try {
                     const { data, error } = await supabase
@@ -934,6 +932,52 @@ export default function SimulationClient() {
         };
         loadSettlers();
     }, [shouldShowSelect, s, language]);
+
+    const handleDeleteSettler = async (e: React.MouseEvent, settlerId: string) => {
+        e.stopPropagation();
+        if (!confirm(language === 'ko' ? '정말 이 정착민을 삭제하시겠습니까?' : 'Are you sure you want to delete this settler?')) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('settler_profiles')
+                .delete()
+                .eq('id', settlerId);
+
+            if (error) throw error;
+
+            // 목록 업데이트
+            setSettlers(prev => prev.filter((s: any) => s.id !== settlerId));
+            alert(language === 'ko' ? '삭제되었습니다.' : 'Deleted successfully.');
+        } catch (err) {
+            console.error('Delete failed:', err);
+            alert(language === 'ko' ? '삭제에 실패했습니다.' : 'Delete failed.');
+        }
+    };
+
+    const handleSelectSettler = (settler: any) => {
+        const fetchedResult: TestResult = {
+            mbti: settler.mbti,
+            traits: settler.traits || [],
+            backstory: {
+                childhood: settler.backstory_childhood,
+                adulthood: settler.backstory_adulthood
+            },
+            skills: settler.skills || [],
+            incapabilities: settler.incapabilities || [],
+            scoreLog: {}
+        };
+
+        setResult(fetchedResult);
+        setLocalUserInfo({
+            name: settler.name || '정착민',
+            age: settler.age || 20,
+            gender: settler.gender || 'Male'
+        });
+        setIsFullResult(!!settler.skills && settler.skills.length > 0);
+        setShowSettlerSelect(false);
+    };
 
     const traitIds = useMemo(() => {
         const ids = new Set<string>();
@@ -1611,58 +1655,48 @@ export default function SimulationClient() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {settlers.map((settler: any) => (
                             <div
-                                key={settler.share_id || settler.id}
-                                className="bg-[#1a1a1a] border border-[#3b3b3b] hover:border-[#9f752a] rounded-xl p-5 cursor-pointer transition-all"
-                                onClick={async () => {
-                                    try {
-                                        const { data, error } = await supabase
-                                            .from('test_results')
-                                            .select('*')
-                                            .eq('id', settler.share_id)
-                                            .single();
-
-                                        if (data && !error) {
-                                            const fetchedResult: TestResult = {
-                                                mbti: data.mbti,
-                                                traits: data.traits,
-                                                backstory: {
-                                                    childhood: data.backstory_childhood,
-                                                    adulthood: data.backstory_adulthood
-                                                },
-                                                skills: data.skills || [],
-                                                incapabilities: data.incapabilities || [],
-                                                scoreLog: {}
-                                            };
-                                            setResult(fetchedResult);
-                                            setLocalUserInfo({
-                                                name: data.name || '정착민',
-                                                age: data.age || 20,
-                                                gender: data.gender || 'Male'
-                                            });
-                                            setIsFullResult(!!data.skills && data.skills.length > 0);
-                                            setShowSettlerSelect(false);
-                                        }
-                                    } catch (err) {
-                                        console.error('Failed to load settler:', err);
-                                    }
-                                }}
+                                key={settler.id}
+                                className="bg-[#1a1a1a] border border-[#3b3b3b] hover:border-[#9f752a] rounded-xl p-5 cursor-pointer transition-all group relative"
+                                onClick={() => handleSelectSettler(settler)}
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[#e7c07a]">
-                                            {settler.settler_name}
+                                        <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#e7c07a] transition-colors">
+                                            {settler.name}
                                         </h3>
-                                        <span className="text-xs text-slate-400">
-                                            {language === 'ko' ? '생성일' : 'Created'}: {new Date(settler.created_at).toLocaleDateString()}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-slate-400">
+                                                {language === 'ko' ? '나이' : 'Age'}: {settler.age}
+                                            </span>
+                                            <span className="text-slate-600 text-[10px]">|</span>
+                                            <span className="text-xs text-slate-400">
+                                                {new Date(settler.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={(e) => handleDeleteSettler(e, settler.id)}
+                                        className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                        title={language === 'ko' ? '삭제' : 'Delete'}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mb-3">
+                                    <span className="text-[10px] bg-[#2d3748] text-slate-300 px-1.5 py-0.5 rounded">
+                                        {settler.mbti}
+                                    </span>
+                                    {settler.traits?.slice(0, 3).map((trait: string, idx: number) => (
+                                        <span key={idx} className="text-[10px] bg-[#1c3d5a] text-[#a5d8ff] px-1.5 py-0.5 rounded">
+                                            {trait}
+                                        </span>
+                                    ))}
                                 </div>
                                 <button
-                                    className="w-full mt-3 px-4 py-2 bg-[#1c3d5a] hover:bg-[#2c5282] text-white font-bold text-sm rounded-md border border-[#102a43]"
+                                    className="w-full mt-2 px-4 py-2 bg-[#9f752a] hover:bg-[#b08535] text-white font-bold text-sm rounded-md border border-[#7a5a20] transition-colors"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        const btn = e.currentTarget;
-                                        btn.click();
+                                        handleSelectSettler(settler);
                                     }}
                                 >
                                     {language === 'ko' ? '이 정착민으로 시뮬레이션' : 'Simulate with this settler'}
