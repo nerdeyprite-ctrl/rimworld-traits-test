@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { useLanguage } from '../../context/LanguageContext';
+import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
+import { useLanguage } from '../../../context/LanguageContext';
 import Link from 'next/link';
 
 type AccountEntry = {
