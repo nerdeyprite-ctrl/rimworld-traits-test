@@ -1748,6 +1748,20 @@ export default function SimulationClient() {
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
 
+    const getVagueDeltaText = (label: string, delta: number) => {
+        const isKo = language === 'ko';
+        if (delta === 0) return '';
+        const abs = Math.abs(delta);
+        const isLarge = abs >= 3;
+
+        const type = delta > 0
+            ? (isKo ? '증가' : 'Gain')
+            : (isKo ? '감소' : 'Loss');
+        const intensity = isLarge ? (isKo ? ' 대량' : ' Large') : '';
+
+        return `${label}${intensity} ${type}`;
+    };
+
     const renderDeltaItems = (entry: SimLogEntry) => {
         if (!entry) return null;
         const { delta, after } = entry;
@@ -1758,20 +1772,20 @@ export default function SimulationClient() {
         if (delta.money !== 0) items.push({ label: language === 'ko' ? '돈' : 'Money', value: after.money, delta: delta.money, color: 'green' });
 
         if (items.length === 0) return (
-            <div className="mt-6 py-4 px-6 rounded-xl border border-slate-700 bg-slate-800/20 text-slate-400 text-xs font-medium">
+            <div className="mt-6 py-5 px-8 rounded-xl border border-slate-700 bg-slate-800/20 text-slate-400 text-sm font-medium">
                 {language === 'ko' ? '자원 변화 없음' : 'No resource changes'}
             </div>
         );
 
         const colorMap: Record<string, { text: string, bg: string, border: string }> = {
-            red: { text: '#ff5f5f', bg: 'rgba(255, 95, 95, 0.12)', border: '#ff3b3b' },
-            brown: { text: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)', border: '#d97706' },
-            pink: { text: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)', border: '#db2777' },
-            green: { text: '#4ade80', bg: 'rgba(74, 222, 128, 0.12)', border: '#16a34a' }
+            red: { text: '#ff5f5f', bg: 'rgba(255, 95, 95, 0.15)', border: '#ff3b3b' },
+            brown: { text: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)', border: '#d97706' },
+            pink: { text: '#f472b6', bg: 'rgba(244, 114, 182, 0.15)', border: '#db2777' },
+            green: { text: '#4ade80', bg: 'rgba(74, 222, 128, 0.15)', border: '#16a34a' }
         };
 
         return (
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
                 {items.map((item, idx) => {
                     const c = colorMap[item.color];
                     return (
@@ -1781,16 +1795,16 @@ export default function SimulationClient() {
                                 color: c.text,
                                 backgroundColor: c.bg,
                                 borderColor: c.border,
-                                borderWidth: '1.5px',
+                                borderWidth: '2px',
                                 borderStyle: 'solid'
                             }}
-                            className="px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[80px] shadow-lg transition-transform hover:scale-105"
+                            className="px-6 py-4 rounded-2xl flex flex-col items-center justify-center min-w-[120px] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.3)] transition-all hover:scale-105"
                         >
-                            <span className="text-[10px] font-bold opacity-80 uppercase tracking-tight">{item.label}</span>
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-black">{item.value}</span>
-                                <span className="text-sm font-bold opacity-90">
-                                    ({item.delta > 0 ? `+${item.delta}` : item.delta})
+                            <span className="text-[11px] font-black opacity-80 uppercase tracking-widest mb-1">{item.label}</span>
+                            <div className="flex flex-col items-center gap-0.5">
+                                <span className="text-2xl font-black leading-none">{item.value}</span>
+                                <span className="text-[12px] font-bold opacity-90 whitespace-nowrap mt-1">
+                                    {getVagueDeltaText('', item.delta).trim()}
                                 </span>
                             </div>
                         </div>
@@ -1799,7 +1813,6 @@ export default function SimulationClient() {
             </div>
         );
     };
-
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
@@ -1857,39 +1870,56 @@ export default function SimulationClient() {
                                                     let chanceText = '';
                                                     let outcomeInfo = [] as string[];
 
+                                                    const getExpectation = (choiceDelta: SimDelta) => {
+                                                        const eventObj = pendingChoice.event;
+                                                        let hpD = eventObj.base.hp + choiceDelta.hp;
+                                                        let foodD = eventObj.base.food + choiceDelta.food;
+                                                        let medsD = eventObj.base.meds + choiceDelta.meds;
+                                                        let moneyD = eventObj.base.money + choiceDelta.money;
+
+                                                        if (eventObj.traitMods?.hp && (eventObj.base.hp !== 0 || choiceDelta.hp !== 0)) hpD += getTraitScore(eventObj.traitMods.hp).score;
+                                                        if (eventObj.traitMods?.food && (eventObj.base.food !== 0 || choiceDelta.food !== 0)) foodD += getTraitScore(eventObj.traitMods.food).score;
+                                                        if (eventObj.traitMods?.meds && (eventObj.base.meds !== 0 || choiceDelta.meds !== 0)) medsD += getTraitScore(eventObj.traitMods.meds).score;
+                                                        if (eventObj.traitMods?.money && (eventObj.base.money !== 0 || choiceDelta.money !== 0)) moneyD += getTraitScore(eventObj.traitMods.money).score;
+
+                                                        if (!choice.skillCheck && eventObj.skillGroup && eventObj.skillTargets) {
+                                                            const { bonus } = getSkillBonus(eventObj.skillGroup);
+                                                            eventObj.skillTargets.forEach(t => {
+                                                                if (t === 'hp') hpD += bonus;
+                                                                if (t === 'food') foodD += bonus;
+                                                                if (t === 'meds') medsD += bonus;
+                                                                if (t === 'money') moneyD += bonus;
+                                                            });
+                                                        }
+
+                                                        // Camp mitigation
+                                                        if (eventObj.category === 'danger' && simState.campLevel > 0 && hpD < 0) {
+                                                            hpD += Math.min(simState.campLevel, Math.abs(hpD));
+                                                        }
+
+                                                        const res = [] as string[];
+                                                        const l = (key: string) => language === 'ko' ? key : key; // simplified for now
+                                                        if (hpD !== 0) res.push(getVagueDeltaText('HP', hpD));
+                                                        if (foodD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '식량' : 'Food', foodD));
+                                                        if (medsD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '치료제' : 'Meds', medsD));
+                                                        if (moneyD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '돈' : 'Money', moneyD));
+                                                        return res;
+                                                    };
+
                                                     if (choice.skillCheck) {
                                                         const avg = getGroupAverage(choice.skillCheck.group);
                                                         const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
-                                                        chanceText = language === 'ko'
-                                                            ? `성공 확률 ${chance}%`
-                                                            : `Success ${chance}%`;
+                                                        chanceText = language === 'ko' ? `성공 확률 ${chance}%` : `Success ${chance}%`;
 
-                                                        const s = choice.skillCheck.successDelta;
-                                                        const f = choice.skillCheck.failDelta;
+                                                        const sText = getExpectation(choice.skillCheck.successDelta).join(', ');
+                                                        const fText = getExpectation(choice.skillCheck.failDelta).join(', ');
 
-                                                        const formatDelta = (d: SimDelta) => {
-                                                            const parts = [] as string[];
-                                                            if (d.hp !== 0) parts.push(`HP ${d.hp > 0 ? '+' : ''}${d.hp}`);
-                                                            if (d.food !== 0) parts.push(`${language === 'ko' ? '식량' : 'Food'} ${d.food > 0 ? '+' : ''}${d.food}`);
-                                                            if (d.meds !== 0) parts.push(`${language === 'ko' ? '치료제' : 'Meds'} ${d.meds > 0 ? '+' : ''}${d.meds}`);
-                                                            if (d.money !== 0) parts.push(`${language === 'ko' ? '은' : 'Silver'} ${d.money > 0 ? '+' : ''}${d.money}`);
-                                                            return parts.join(', ');
-                                                        };
-
-                                                        const sText = formatDelta(s);
-                                                        const fText = formatDelta(f);
-
-                                                        if (sText) outcomeInfo.push(language === 'ko' ? `성공 시: ${sText}` : `Success: ${sText}`);
-                                                        if (fText) outcomeInfo.push(language === 'ko' ? `실패 시: ${fText}` : `Fail: ${fText}`);
+                                                        if (sText) outcomeInfo.push(language === 'ko' ? `성공 시: ${sText}` : `On Success: ${sText}`);
+                                                        if (fText) outcomeInfo.push(language === 'ko' ? `실패 시: ${fText}` : `On Fail: ${fText}`);
                                                     } else {
-                                                        const d = choice.delta;
-                                                        const parts = [] as string[];
-                                                        if (d.hp !== 0) parts.push(`HP ${d.hp > 0 ? '+' : ''}${d.hp}`);
-                                                        if (d.food !== 0) parts.push(`${language === 'ko' ? '식량' : 'Food'} ${d.food > 0 ? '+' : ''}${d.food}`);
-                                                        if (d.meds !== 0) parts.push(`${language === 'ko' ? '치료제' : 'Meds'} ${d.meds > 0 ? '+' : ''}${d.meds}`);
-                                                        if (d.money !== 0) parts.push(`${language === 'ko' ? '은' : 'Silver'} ${d.money > 0 ? '+' : ''}${d.money}`);
-                                                        const dText = parts.join(', ');
-                                                        if (dText) outcomeInfo.push(language === 'ko' ? `효과: ${dText}` : `Effect: ${dText}`);
+                                                        const info = getExpectation(choice.delta).join(', ');
+                                                        if (info) outcomeInfo.push(language === 'ko' ? `최종 예후: ${info}` : `Final Prediction: ${info}`);
+                                                        else outcomeInfo.push(language === 'ko' ? '특별한 변화 없음' : 'No significant changes');
                                                     }
 
                                                     return (
