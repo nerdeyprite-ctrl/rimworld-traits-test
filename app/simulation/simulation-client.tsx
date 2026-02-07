@@ -2102,3 +2102,5 @@ export default function SimulationClient() {
         </div>
     );
 }
+
+// Build trigger for Vercel deployment update
