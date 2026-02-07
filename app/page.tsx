@@ -68,6 +68,7 @@ export default function Home() {
           .insert({ id: loginId.trim(), password_hash: passwordHash });
         if (insertError) throw insertError;
         localStorage.setItem('settler_account_id', loginId.trim());
+        window.dispatchEvent(new Event('accountIdChanged'));
         setAccountId(loginId.trim());
         setLoginMessage(language === 'ko' ? '계정이 생성되었습니다.' : 'Account created.');
         return;
@@ -79,6 +80,7 @@ export default function Home() {
       }
 
       localStorage.setItem('settler_account_id', data.id);
+      window.dispatchEvent(new Event('accountIdChanged'));
       setAccountId(data.id);
       setLoginMessage(language === 'ko' ? '로그인되었습니다.' : 'Logged in.');
     } catch (err) {
@@ -91,6 +93,7 @@ export default function Home() {
 
   const handleLogout = () => {
     localStorage.removeItem('settler_account_id');
+    window.dispatchEvent(new Event('accountIdChanged'));
     setAccountId(null);
     setLoginMessage(language === 'ko' ? '로그아웃되었습니다.' : 'Logged out.');
   };

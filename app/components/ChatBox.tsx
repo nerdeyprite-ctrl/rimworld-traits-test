@@ -24,10 +24,26 @@ export default function ChatBox() {
 
     useEffect(() => {
         setIsConfigured(isSupabaseConfigured());
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('account_id');
-            setAccountId(stored);
-        }
+
+        // 초기 로드
+        const updateAccountId = () => {
+            if (typeof window !== 'undefined') {
+                const stored = localStorage.getItem('settler_account_id');
+                setAccountId(stored);
+            }
+        };
+
+        updateAccountId();
+
+        // localStorage 변경 감지
+        window.addEventListener('storage', updateAccountId);
+        // 같은 탭에서의 변경 감지를 위한 커스텀 이벤트
+        window.addEventListener('accountIdChanged', updateAccountId);
+
+        return () => {
+            window.removeEventListener('storage', updateAccountId);
+            window.removeEventListener('accountIdChanged', updateAccountId);
+        };
     }, []);
 
     useEffect(() => {
