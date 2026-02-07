@@ -1911,7 +1911,30 @@ export default function SimulationClient() {
         } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
-            event = pickWeightedEvent(events);
+            // Difficulty Curve: Calculate category weights based on day
+            // Day 0: Quiet(50%), NonCombat(40%), Danger(10%)
+            // Day 60: Quiet(15%), NonCombat(35%), Danger(50%)
+            const diffFactor = Math.min(1.0, nextDay / SHIP_BUILD_DAY);
+            const wQuiet = 50 - (35 * diffFactor);
+            const wNonCombat = 40 - (5 * diffFactor);
+            const wDanger = 10 + (40 * diffFactor);
+            const totalSetWeight = wQuiet + wNonCombat + wDanger;
+
+            const roll = Math.random() * totalSetWeight;
+            let selectedCat: SimEventCategory = 'quiet';
+            if (roll <= wQuiet) selectedCat = 'quiet';
+            else if (roll <= wQuiet + wNonCombat) selectedCat = 'noncombat';
+            else selectedCat = 'danger';
+
+            const filteredEvents = events.filter(e => e.category === selectedCat);
+            if (filteredEvents.length > 0) {
+                event = pickWeightedEvent(filteredEvents);
+            } else {
+                event = pickWeightedEvent(events); // Fallback
+            }
+
+            // Debug log for difficulty
+            console.log(`[Sim] Day ${nextDay} Difficulty: ${diffFactor.toFixed(2)}, Roll: ${roll.toFixed(1)}/${totalSetWeight.toFixed(1)}, Cat: ${selectedCat}`);
         }
 
         event = applyTraitChoices(event!, traitIds, skillMap, language);
