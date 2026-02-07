@@ -227,10 +227,10 @@ const getEventIcon = (event?: SimEvent) => {
 };
 
 const getHealAmount = (medicineLevel: number) => {
-    if (medicineLevel <= 3) return 3;
-    if (medicineLevel <= 6) return 4;
-    if (medicineLevel <= 10) return 5;
-    return 6;
+    if (medicineLevel <= 3) return 1;
+    if (medicineLevel <= 6) return 2;
+    if (medicineLevel <= 10) return 3;
+    return 4;
 };
 
 const getSkillChance = (level: number) => {
@@ -1347,6 +1347,204 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
     return { ...event, choices };
 };
 
+interface HelpModalProps {
+    onClose: () => void;
+    language: 'ko' | 'en';
+}
+
+function HelpModal({ onClose, language }: HelpModalProps) {
+    const [activeTab, setActiveTab] = useState<'system' | 'event' | 'trait' | 'skill'>('system');
+
+    const tabs = [
+        { id: 'system', label: language === 'ko' ? '시스템' : 'System', icon: '⚙️' },
+        { id: 'event', label: language === 'ko' ? '이벤트' : 'Event', icon: '📅' },
+        { id: 'trait', label: language === 'ko' ? '특성' : 'Trait', icon: '🧬' },
+        { id: 'skill', label: language === 'ko' ? '기술' : 'Skill', icon: '📊' },
+    ] as const;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]">
+                <div className="bg-[#1c1c1c] p-4 flex justify-between items-center border-b border-[#333]">
+                    <h3 className="text-lg font-black text-[#e7c07a] uppercase tracking-widest flex items-center gap-2">
+                        📖 {language === 'ko' ? '생존 가이드' : 'Survival Guide'}
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">✕</button>
+                </div>
+
+                <div className="flex border-b border-[#333] bg-[#111]">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2
+                                ${activeTab === tab.id
+                                    ? 'bg-[#2a2a2a] text-[#e7c07a] border-b-2 border-[#e7c07a]'
+                                    : 'text-slate-500 hover:text-slate-300 hover:bg-[#222]'
+                                }`}
+                        >
+                            <span>{tab.icon}</span>
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#111]/50">
+                    {activeTab === 'system' && (
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '기지 강화' : 'Base Upgrades'}
+                                </h4>
+                                <p className="text-slate-300 text-xs leading-relaxed">
+                                    {language === 'ko'
+                                        ? '기지 레벨이 오를 때마다 정착지가 더 안전해집니다. 강화된 기지는 외부의 위협으로부터 정착민을 보호합니다.'
+                                        : 'Upgrading your base makes the settlement safer. A fortified base protects settlers from external threats.'}
+                                </p>
+                                <ul className="space-y-1 text-xs text-slate-400 list-disc list-inside bg-black/20 p-3 rounded-lg border border-[#222]">
+                                    <li>{language === 'ko' ? '레벨 0: 기본 상태' : 'Level 0: Basic'}</li>
+                                    <li>{language === 'ko' ? '레벨 1: 받는 피해 -1 감소' : 'Level 1: Incoming Damage -1'}</li>
+                                    <li>{language === 'ko' ? '레벨 2: 받는 피해 -2 감소' : 'Level 2: Incoming Damage -2'}</li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '생존 규칙' : 'Survival Rules'}
+                                </h4>
+                                <ul className="space-y-2 text-xs text-slate-300">
+                                    <li>
+                                        <span className="text-red-400 font-bold">{language === 'ko' ? '식량:' : 'Food:'}</span>
+                                        {language === 'ko'
+                                            ? ' 매 2일마다 식량이 1씩 감소합니다. 식량이 0이 되면 체력이 감소합니다.'
+                                            : ' Food decreases by 1 every 2 days. If food is 0, HP decreases.'}
+                                    </li>
+                                    <li>
+                                        <span className="text-blue-400 font-bold">{language === 'ko' ? '치료:' : 'Healing:'}</span>
+                                        {language === 'ko'
+                                            ? ' 치료제를 사용하여 체력을 회복할 수 있습니다. 회복량은 의학 등급에 따라 달라집니다.'
+                                            : ' Use meds to restore HP. Amount depends on Medicine skill.'}
+                                    </li>
+                                    <li>
+                                        <span className="text-purple-400 font-bold">{language === 'ko' ? '멘탈:' : 'Mental:'}</span>
+                                        {language === 'ko'
+                                            ? ' 특정 특성(철의 의지, 사이코패스 등)은 정신적 충격 이벤트에서 특별한 선택지를 제공합니다.'
+                                            : ' Traits like Iron Will or Psychopath unlock special choices in mental events.'}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'event' && (
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '이벤트 종류' : 'Event Types'}
+                                </h4>
+                                <div className="grid gap-3">
+                                    <div className="bg-red-900/10 border border-red-900/30 p-3 rounded-lg">
+                                        <div className="text-red-400 font-bold text-xs mb-1">⚔️ {language === 'ko' ? '위협 (Danger)' : 'Danger'}</div>
+                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                            {language === 'ko'
+                                                ? '습격, 흑점 폭발, 질병 등 정착지를 위협하는 사건입니다. 전투 기술이나 의학 기술이 중요합니다.'
+                                                : 'Raids, flares, diseases. Combat and Medicine skills are crucial.'}
+                                        </div>
+                                    </div>
+                                    <div className="bg-blue-900/10 border border-blue-900/30 p-3 rounded-lg">
+                                        <div className="text-blue-400 font-bold text-xs mb-1">📦 {language === 'ko' ? '자원 (Resource)' : 'Resource'}</div>
+                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                            {language === 'ko'
+                                                ? '화물 낙하, 여행자 방문 등 자원을 획득할 수 있는 기회입니다. 사교나 거래 능력이 도움이 됩니다.'
+                                                : 'Cargo pods, visitors. Social and trading skills help gain resources.'}
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-800/30 border border-slate-700/30 p-3 rounded-lg">
+                                        <div className="text-slate-300 font-bold text-xs mb-1">☁️ {language === 'ko' ? '일상 (Daily)' : 'Daily'}</div>
+                                        <div className="text-slate-500 text-[10px] leading-relaxed">
+                                            {language === 'ko'
+                                                ? '조용한 하루입니다. 정착민의 주 기술에 따라 자원을 채집하거나 기지를 보수합니다.'
+                                                : 'A quiet day. Settlers use main skills to gather or maintain.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'trait' && (
+                        <div className="space-y-4">
+                            <div className="text-xs text-slate-400 mb-2">
+                                {language === 'ko'
+                                    ? '보유한 특성에 따라 게임 내에서 지속적인 효과를 받거나, 특정 이벤트에서 선택지가 추가됩니다.'
+                                    : 'Traits provide passive effects or unlock special choices in events.'}
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {Object.entries(TRAIT_EFFECTS).map(([id, effect]) => (
+                                    <div key={id} className="bg-black/40 border border-[#222] p-2 rounded flex flex-col justify-center">
+                                        <span className="text-[#e7c07a] font-bold text-xs mb-1 capitalize">{id.replace(/_/g, ' ')}</span>
+                                        <span className="text-[10px] text-slate-400 leading-tight">{language === 'ko' ? effect.ko : effect.en}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'skill' && (
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '의학 기술 (Medicine)' : 'Medicine Skill'}
+                                </h4>
+                                <p className="text-slate-300 text-xs mb-2">
+                                    {language === 'ko'
+                                        ? '의학 레벨이 높을수록 치료제 사용 시 회복량이 증가합니다.'
+                                        : 'Higher Medicine level increases HP restored by meds.'}
+                                </p>
+                                <div className="grid grid-cols-4 gap-2 text-center">
+                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
+                                        <div className="text-[10px] text-slate-500">Lv 0-3</div>
+                                        <div className="text-green-400 font-bold text-sm">+1 HP</div>
+                                    </div>
+                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
+                                        <div className="text-[10px] text-slate-500">Lv 4-6</div>
+                                        <div className="text-green-400 font-bold text-sm">+2 HP</div>
+                                    </div>
+                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
+                                        <div className="text-[10px] text-slate-500">Lv 7-10</div>
+                                        <div className="text-green-400 font-bold text-sm">+3 HP</div>
+                                    </div>
+                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
+                                        <div className="text-[10px] text-slate-500">Lv 11+</div>
+                                        <div className="text-green-400 font-bold text-sm">+4 HP</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '기술 체크' : 'Skill Checks'}
+                                </h4>
+                                <p className="text-slate-300 text-xs">
+                                    {language === 'ko'
+                                        ? '이벤트 발생 시 관련 기술 레벨에 따라 성공 확률이 결정됩니다. 일부 기술(격투, 사격 등)은 전투 상황에서 매우 중요합니다.'
+                                        : 'Event success depends on skill levels. Combat skills are vital for raids.'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 bg-[#111] border-t border-[#333] text-center">
+                    <button onClick={onClose} className="px-8 py-2 bg-[#9f752a] hover:bg-[#b08535] text-white rounded font-bold text-xs transition-colors shadow">
+                        {language === 'ko' ? '닫기' : 'Close'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function SimulationClient() {
     const { calculateFinalTraits, userInfo: contextUserInfo, testPhase: contextTestPhase } = useTest();
     const { language } = useLanguage();
@@ -1374,6 +1572,7 @@ export default function SimulationClient() {
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
     const [showTraitsModal, setShowTraitsModal] = useState(false);
     const [showSkillsModal, setShowSkillsModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [hasTempSave, setHasTempSave] = useState(false);
     const [showBoardConfirm, setShowBoardConfirm] = useState(false);
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
@@ -2801,6 +3000,9 @@ export default function SimulationClient() {
                         <button onClick={() => setShowSkillsModal(true)} className="px-3 py-2 rounded-lg bg-blue-900/30 hover:bg-blue-800/50 text-blue-200 text-[10px] font-bold border border-blue-700/40 transition-all uppercase">
                             {language === 'ko' ? '기술' : 'Skills'}
                         </button>
+                        <button onClick={() => setShowHelpModal(true)} className="px-3 py-2 rounded-lg bg-[#9f752a]/20 hover:bg-[#9f752a]/40 text-[#e7c07a] text-[10px] font-bold border border-[#9f752a]/40 transition-all uppercase flex items-center gap-1">
+                            <span>?</span> {language === 'ko' ? '도움말' : 'Help'}
+                        </button>
                     </div>
                 </div>
 
@@ -2836,6 +3038,10 @@ export default function SimulationClient() {
             )}
 
             {/* Modals are unchanged but kept here for structural integrity or omitted if too long? I'll include them briefly or use simpler versions to fit. */}
+            {showHelpModal && (
+                <HelpModal onClose={() => setShowHelpModal(false)} language={language} />
+            )}
+
             {showTraitsModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">

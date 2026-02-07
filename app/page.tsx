@@ -121,10 +121,10 @@ export default function Home() {
   const updates = [
     {
       date: '2024.02.08',
-      title: language === 'ko' ? '치료제 효율 개선 및 최대 체력 상향' : 'Meds Buff & Max HP Increase',
+      title: language === 'ko' ? '최대 체력 상향 및 도움말 시스템 추가' : 'Max HP Increase & Help System',
       content: language === 'ko'
-        ? '치료제 사용 시 회복량이 2씩 증가하도록 상향 조정되었으며, 기본/최대 체력이 10/20으로 증가했습니다.'
-        : 'Medical supplies now heal +2 more HP. Base/Max HP increased to 10/20.'
+        ? '기본/최대 체력이 10/20으로 증가했으며, 게임의 상세 규칙과 정보를 확인할 수 있는 도움말 시스템이 추가되었습니다.'
+        : 'Base/Max HP increased to 10/20. Added Help system for detailed game rules and info.'
     },
     {
       date: '2024.02.08',
