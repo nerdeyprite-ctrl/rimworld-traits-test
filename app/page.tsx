@@ -146,13 +146,6 @@ export default function Home() {
     },
     {
       date: '2024.02.07',
-      title: language === 'ko' ? '관리자 계정 확인 시스템' : 'Admin Account View',
-      content: language === 'ko'
-        ? '가입된 계정 목록과 가입 일시를 확인할 수 있는 기능이 추가되었습니다.'
-        : 'Admin feature to view registered accounts and timestamps.'
-    },
-    {
-      date: '2024.02.07',
       title: language === 'ko' ? '리더보드 가독성 개선' : 'Leaderboard UI Overhaul',
       content: language === 'ko'
         ? '리더보드 디자인이 더욱 림월드 스타일로 개선되었습니다.'
@@ -163,7 +156,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up relative">
       {/* Update Notification Bell */}
-      <div className="fixed top-6 right-6 z-40">
+      <div className="fixed top-20 right-6 z-40">
         <button
           onClick={() => setShowUpdates(true)}
           className="relative p-3 bg-[#111] border border-[#333] hover:border-[#9f752a] text-[#9f752a] transition-all group overflow-hidden"

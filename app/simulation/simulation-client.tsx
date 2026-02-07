@@ -331,11 +331,11 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'quiet_rest',
                     label: isKo ? '1. 정비' : '1. Maintenance',
-                    description: isKo ? '의학 기술 체크' : 'Medical skill check',
+                    description: isKo ? '건설/제작/의학 기술 체크' : 'Construction/Crafting/Medicine skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     skillCheck: {
                         label: isKo ? '정비' : 'Maintenance',
-                        group: ['의학'],
+                        group: ['Construction', 'Crafting', 'Medicine'],
                         successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '충분한 정비를 하며 기력을 회복했습니다.' : 'You recovered energy through maintenance.',
@@ -345,11 +345,11 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'quiet_farming',
                     label: isKo ? '2. 농사' : '2. Farming',
-                    description: isKo ? '재배 기술 체크' : 'Plants skill check',
+                    description: isKo ? '재배/조련 기술 체크' : 'Plants/Animals skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     skillCheck: {
                         label: isKo ? '농사' : 'Farming',
-                        group: ['재배'],
+                        group: ['Plants', 'Animals'],
                         successDelta: { hp: 0, food: 1, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '밭을 일구어 신선한 식량을 확보했습니다.' : 'You secured fresh food by farming.',
@@ -359,11 +359,11 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'quiet_mining',
                     label: isKo ? '3. 광물 채광' : '3. Mining',
-                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    description: isKo ? '채굴/연구 기술 체크' : 'Mining/Intellectual skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     skillCheck: {
                         label: isKo ? '채광' : 'Mining',
-                        group: ['제작'],
+                        group: ['Mining', 'Intellectual'],
                         successDelta: { hp: 0, food: 0, meds: 0, money: 1 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '근처 암석에서 유용한 광물을 성공적으로 채굴했습니다.' : 'You successfully mined useful minerals.',
