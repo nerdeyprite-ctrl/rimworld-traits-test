@@ -1799,8 +1799,8 @@ export default function SimulationClient() {
                                 <span className="text-3xl font-black leading-none">
                                     {item.delta > 0 ? `+${item.delta}` : item.delta}
                                 </span>
-                                <span className="text-xs font-black opacity-60 mt-1 tracking-widest">
-                                    {item.delta > 0 ? (Math.abs(item.delta) >= 3 ? '++' : '+') : (Math.abs(item.delta) >= 3 ? '--' : '-')}
+                                <span className="text-[10px] font-bold opacity-70 mt-1 whitespace-nowrap">
+                                    {language === 'ko' ? '현재' : 'Total'} {item.value}
                                 </span>
                             </div>
                         </div>
