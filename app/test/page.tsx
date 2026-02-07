@@ -35,9 +35,9 @@ export default function TestPage() {
 
     // Determine Part Title
     let partTitle = '';
-    if (currentQuestionIndex < 40) {
+    if (question.id < 200) {
         partTitle = t('part1_title');
-    } else if (currentQuestionIndex < 45) {
+    } else if (question.id < 1000) {
         partTitle = t('part2_title');
     } else {
         partTitle = t('part3_title');
