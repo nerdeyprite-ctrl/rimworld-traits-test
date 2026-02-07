@@ -1341,6 +1341,13 @@ export default function SimulationClient() {
 
     const advanceDay = useCallback(() => {
         if (simState.status !== 'running' || pendingChoice) return;
+
+        // If showing event face but result is ready, flip to result first
+        if (currentCard?.entry && cardView === 'event') {
+            setCardView('result');
+            return;
+        }
+
         if (currentCard && cardView === 'event') return;
 
         const dayStart = { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money };
@@ -1695,7 +1702,16 @@ export default function SimulationClient() {
 
     useEffect(() => {
         if (!simAuto || simState.status !== 'running' || pendingChoice) return;
-        if (currentCard && cardView === 'event') return;
+        if (currentCard && cardView === 'event') {
+            // If result is ready, flip it automatically
+            if (currentCard.entry) {
+                const timer = setTimeout(() => {
+                    setCardView('result');
+                }, AUTO_RESULT_DELAY_MS);
+                return () => clearTimeout(timer);
+            }
+            return;
+        }
         const timer = setTimeout(() => {
             advanceDay();
         }, AUTO_RESULT_DELAY_MS);
