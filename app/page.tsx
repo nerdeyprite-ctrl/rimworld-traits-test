@@ -113,8 +113,90 @@ export default function Home() {
     return true;
   };
 
+  const [showUpdates, setShowUpdates] = useState(false);
+
+  const updates = [
+    {
+      date: '2024.02.08',
+      title: language === 'ko' ? '60일 난이도 곡선 도입' : '60-Day Difficulty Curve',
+      content: language === 'ko'
+        ? '시뮬레이션 진행도에 따라 습격 및 위험 확률이 최대 5배까지 동적으로 증가합니다.'
+        : 'Raid and danger probabilities increase up to 5x based on progress.'
+    },
+    {
+      date: '2024.02.08',
+      title: language === 'ko' ? '리더보드 상세 스탯 기록' : 'Detailed Leaderboard Stats',
+      content: language === 'ko'
+        ? '리더보드에서 캐릭터의 특성, 기술, MBTI 등 상세 정보를 확인할 수 있습니다.'
+        : 'View trait, skill, and MBTI details for ranked settlers.'
+    },
+    {
+      date: '2024.02.07',
+      title: language === 'ko' ? '관리자 계정 확인 시스템' : 'Admin Account View',
+      content: language === 'ko'
+        ? '가입된 계정 목록과 가입 일시를 확인할 수 있는 기능이 추가되었습니다.'
+        : 'Admin feature to view registered accounts and timestamps.'
+    },
+    {
+      date: '2024.02.07',
+      title: language === 'ko' ? '리더보드 가독성 개선' : 'Leaderboard UI Overhaul',
+      content: language === 'ko'
+        ? '리더보드 디자인이 더욱 림월드 스타일로 개선되었습니다.'
+        : 'Improved leaderboard UI with RimWorld-style aesthetics.'
+    }
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up relative">
+      {/* Update Notification Bell */}
+      <div className="fixed top-6 right-6 z-40">
+        <button
+          onClick={() => setShowUpdates(true)}
+          className="relative p-3 bg-[#111] border border-[#333] hover:border-[#9f752a] text-[#9f752a] transition-all group overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-[#9f752a]/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+          <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 4.36 6 6.92 6 10v5l-2 2v1h16v-1l-2-2z" />
+          </svg>
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-[#111] animate-pulse"></span>
+        </button>
+      </div>
+
+      {/* Updates Modal */}
+      {showUpdates && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#1b1b1b] border border-[#6b6b6b] p-1 shadow-2xl w-full max-w-md">
+            <div className="bg-[#2b2b2b] border-b border-[#6b6b6b] p-4 flex justify-between items-center">
+              <h2 className="text-[#e2c178] font-bold tracking-widest text-sm uppercase">
+                {language === 'ko' ? '업데이트 소식' : 'Latest Updates'}
+              </h2>
+              <button
+                onClick={() => setShowUpdates(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar bg-[#111]/50">
+              {updates.map((up, i) => (
+                <div key={i} className="border-l-2 border-[#9f752a] pl-3 py-1">
+                  <div className="text-[10px] text-slate-500 font-mono mb-1">{up.date}</div>
+                  <div className="text-sm font-bold text-slate-200 mb-1">{up.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{up.content}</div>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 bg-[#111] text-center">
+              <button
+                onClick={() => setShowUpdates(false)}
+                className="px-6 py-2 bg-[#2a2a2a] border border-[#444] text-xs font-bold text-slate-300 hover:bg-[#333] transition-colors"
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <section className="text-center space-y-6">
         <h1 className="text-4xl md:text-6xl font-bold text-[var(--rimworld-highlight)] tracking-wider uppercase drop-shadow-md">
           {t('app_title')}
