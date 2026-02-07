@@ -22,6 +22,7 @@ type SkillCheck = {
     label: string;
     group: string[]; // Changed to string[]
     fixedChance?: number;
+    chanceMultiplier?: number;
     successDelta: SimDelta;
     failDelta: SimDelta;
     successText?: string;
@@ -929,6 +930,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '정진' : 'Hard Work',
                     group: ['제작'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 0, food: 3, meds: 0, money: 3 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
                 }
@@ -946,6 +948,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '휴식' : 'Rest',
                     group: ['의학'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 3, food: 0, meds: 0, money: 0 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
                 }
@@ -978,6 +981,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '호의' : 'Kindness',
                     group: ['사교'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 0, food: 2, meds: 1, money: 1 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
                 }
@@ -995,6 +999,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '협박' : 'Intimidation',
                     group: ['격투', '사격'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 0, food: 2, meds: 0, money: 2 },
                     failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
                 }
@@ -1051,6 +1056,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '돌격' : 'Charge',
                     group: ['격투', '사격'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 2, food: 0, meds: 0, money: 2 },
                     failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
                 }
@@ -1068,6 +1074,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '은신' : 'Stealth',
                     group: ['생존'],
+                    chanceMultiplier: 2,
                     successDelta: { hp: 0, food: -1, meds: 0, money: -1 },
                     failDelta: { hp: -2, food: -1, meds: 0, money: -2 }
                 }
@@ -1112,6 +1119,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             skillCheck: {
                 label: isKo ? '방화' : 'Arson',
                 group: ['제작'],
+                chanceMultiplier: 2,
                 successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
                 failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
             }
@@ -1378,6 +1386,11 @@ export default function SimulationClient() {
         const avg = getGroupAverage(check.group);
         let chance = check.fixedChance ?? getSkillChance(avg);
 
+        // 확률 배율 적용
+        if (check.chanceMultiplier) {
+            chance *= check.chanceMultiplier;
+        }
+
         // 이동속도/회피 관련 특성 보정 (고정 확률인 경우)
         if (check.fixedChance !== undefined) {
             let moveBonus = 0;
@@ -1387,9 +1400,12 @@ export default function SimulationClient() {
             if (traitIds.has('slowpoke')) moveBonus -= 20;
 
             if (moveBonus !== 0) {
-                chance = Math.max(5, Math.min(95, chance + moveBonus));
+                chance += moveBonus;
             }
         }
+
+        // 확률 범위 제한
+        chance = Math.max(5, Math.min(95, chance));
 
         const roll = Math.random() * 100;
         return { success: roll < chance, chance };
