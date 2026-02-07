@@ -87,7 +87,7 @@ type PendingChoice = {
     responseNotes: string[];
 };
 
-type ExitType = 'death' | 'ship';
+type ExitType = 'death' | 'escape' | 'stay';
 
 type CurrentCard = {
     day: number;
@@ -914,9 +914,7 @@ export default function SimulationClient() {
     const [loading, setLoading] = useState(false);
     const [isFullResult, setIsFullResult] = useState(false);
     const selectedSettlerRef = useRef(false);
-    const [simAuto, setSimAuto] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
-    const autoResumeRef = useRef(false);
     const [startQueued, setStartQueued] = useState(false);
     const [cardView, setCardView] = useState<'event' | 'result'>('event');
     const [currentCard, setCurrentCard] = useState<CurrentCard | null>(null);
@@ -1184,8 +1182,6 @@ export default function SimulationClient() {
         setSubmittedOnDeath(false);
         setSubmittedOnExit(false);
         setSubmitMessage(null);
-        autoResumeRef.current = false;
-        setSimAuto(false);
     }, [language]);
 
     const buildResponseText = (baseNotes: string[], traitNotes: string[], skillNote: string, choiceResponse?: string, systemNote?: string) => {
@@ -1394,8 +1390,6 @@ export default function SimulationClient() {
             };
             setHasShipBuilt(true);
             setShowEndingCard(true);
-            autoResumeRef.current = simAuto;
-            setSimAuto(false);
             setPendingChoice({
                 day: nextDay,
                 season,
@@ -1465,10 +1459,6 @@ export default function SimulationClient() {
 
         if (event.choices && event.choices.length > 0) {
             const isSpecial = SPECIAL_EVENT_IDS.includes(event.id);
-            if (isSpecial) {
-                autoResumeRef.current = simAuto;
-                setSimAuto(false);
-            }
             setPendingChoice({
                 day: nextDay,
                 season,
@@ -1528,7 +1518,7 @@ export default function SimulationClient() {
             entry
         });
         setCardView('event');
-    }, [simState, pendingChoice, simAuto, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, hasShipBuilt]);
+    }, [simState, pendingChoice, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, hasShipBuilt]);
 
     useEffect(() => {
         if (!startQueued) return;
@@ -1544,7 +1534,7 @@ export default function SimulationClient() {
 
         if (pendingChoice.event.id === 'ship_built') {
             if (choice.id === 'escape_now') {
-                submitScore('ship', pendingChoice.day, false);
+                submitScore('escape', pendingChoice.day, false);
                 setSubmittedOnExit(true);
                 setSimState(prev => ({
                     ...prev,
@@ -1640,10 +1630,7 @@ export default function SimulationClient() {
         });
         setCardView('event');
 
-        const shouldResume = autoResumeRef.current && status === 'running';
-        autoResumeRef.current = false;
         setPendingChoice(null);
-        if (shouldResume) setSimAuto(true);
     };
 
     const handleUseMeds = () => {
@@ -1701,46 +1688,8 @@ export default function SimulationClient() {
     };
 
     useEffect(() => {
-        if (!simAuto || simState.status !== 'running' || pendingChoice) return;
-        if (currentCard && cardView === 'event') {
-            // If result is ready, flip it automatically
-            if (currentCard.entry) {
-                const timer = setTimeout(() => {
-                    setCardView('result');
-                }, AUTO_RESULT_DELAY_MS);
-                return () => clearTimeout(timer);
-            }
-            return;
-        }
-        const timer = setTimeout(() => {
-            advanceDay();
-        }, AUTO_RESULT_DELAY_MS);
-        return () => clearTimeout(timer);
-    }, [simAuto, simState.status, pendingChoice, cardView, currentCard, advanceDay]);
-
-    // Handle auto-resolving normal events during simAuto
-    useEffect(() => {
-        if (!simAuto || !pendingChoice) return;
-
-        // Pick 'pass' or 'skip' automatically for normal events
-        const available = pendingChoice.event.choices || [];
-        const passChoice = available.find(c => c.id === 'pass' || c.id === 'skip');
-
-        // If it's a normal event with a pass choice, or it's just 'quiet_day' with fallback
-        const isQuietDay = pendingChoice.event.id === 'quiet_day';
-        const autoChoice = passChoice || (isQuietDay ? available[0] : null);
-
-        if (autoChoice) {
-            const timer = setTimeout(() => {
-                resolveChoice(autoChoice.id);
-            }, AUTO_RESULT_DELAY_MS);
-            return () => clearTimeout(timer);
-        }
-    }, [simAuto, pendingChoice, resolveChoice]);
-
-    useEffect(() => {
         if (simState.status === 'dead' || simState.status === 'success') {
-            setSimAuto(false);
+            // No auto-progress to turn off
         }
     }, [simState.status]);
 
@@ -1749,6 +1698,12 @@ export default function SimulationClient() {
         setSubmittedOnDeath(true);
         submitScore('death', simState.day, true);
     }, [simState.status, simState.day, submittedOnDeath, submitScore]);
+
+    useEffect(() => {
+        if (simState.status !== 'success' || submittedOnExit) return;
+        setSubmittedOnExit(true);
+        submitScore('escape', simState.day, false);
+    }, [simState.status, simState.day, submittedOnExit, submitScore]);
 
 
     if (loading) {
@@ -1789,9 +1744,61 @@ export default function SimulationClient() {
     const canUseMeds = simState.meds > 0 && simState.hp < 10 && !pendingChoice;
     const nextCampCost = CAMP_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
-    const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard);
+    const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
+
+    const renderDeltaItems = (entry: SimLogEntry) => {
+        if (!entry) return null;
+        const { delta, after } = entry;
+        const items = [];
+        if (delta.hp !== 0) items.push({ label: 'HP', value: after.hp, delta: delta.hp, color: 'red' });
+        if (delta.food !== 0) items.push({ label: language === 'ko' ? '식량' : 'Food', value: after.food, delta: delta.food, color: 'brown' });
+        if (delta.meds !== 0) items.push({ label: language === 'ko' ? '치료제' : 'Meds', value: after.meds, delta: delta.meds, color: 'pink' });
+        if (delta.money !== 0) items.push({ label: language === 'ko' ? '돈' : 'Money', value: after.money, delta: delta.money, color: 'green' });
+
+        if (items.length === 0) return (
+            <div className="mt-6 py-4 px-6 rounded-xl border border-slate-700 bg-slate-800/20 text-slate-400 text-xs font-medium">
+                {language === 'ko' ? '자원 변화 없음' : 'No resource changes'}
+            </div>
+        );
+
+        const colorMap: Record<string, { text: string, bg: string, border: string }> = {
+            red: { text: '#ff5f5f', bg: 'rgba(255, 95, 95, 0.12)', border: '#ff3b3b' },
+            brown: { text: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)', border: '#d97706' },
+            pink: { text: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)', border: '#db2777' },
+            green: { text: '#4ade80', bg: 'rgba(74, 222, 128, 0.12)', border: '#16a34a' }
+        };
+
+        return (
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {items.map((item, idx) => {
+                    const c = colorMap[item.color];
+                    return (
+                        <div
+                            key={idx}
+                            style={{
+                                color: c.text,
+                                backgroundColor: c.bg,
+                                borderColor: c.border,
+                                borderWidth: '1.5px',
+                                borderStyle: 'solid'
+                            }}
+                            className="px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[80px] shadow-lg transition-transform hover:scale-105"
+                        >
+                            <span className="text-[10px] font-bold opacity-80 uppercase tracking-tight">{item.label}</span>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-black">{item.value}</span>
+                                <span className="text-sm font-bold opacity-90">
+                                    ({item.delta > 0 ? `+${item.delta}` : item.delta})
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
 
 
     return (
@@ -1940,11 +1947,7 @@ export default function SimulationClient() {
                                     <div className="mt-3 text-base md:text-lg text-slate-300">
                                         {currentCard?.entry?.response || (language === 'ko' ? '시뮬레이션 시작 버튼을 누르면 첫 이벤트가 시작됩니다.' : 'Press the start button to begin the first event.')}
                                     </div>
-                                    {currentCard?.entry && (
-                                        <div className="mt-6 rounded-lg border border-[#2a2a2a] bg-black/40 p-3 text-xs text-slate-300">
-                                            {language === 'ko' ? '결과' : 'Result'}: HP {currentCard.entry.after.hp}({currentCard.entry.delta.hp >= 0 ? `+${currentCard.entry.delta.hp}` : currentCard.entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {currentCard.entry.after.food}({currentCard.entry.delta.food >= 0 ? `+${currentCard.entry.delta.food}` : currentCard.entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {currentCard.entry.after.meds}({currentCard.entry.delta.meds >= 0 ? `+${currentCard.entry.delta.meds}` : currentCard.entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {currentCard.entry.after.money}({currentCard.entry.delta.money >= 0 ? `+${currentCard.entry.delta.money}` : currentCard.entry.delta.money})
-                                        </div>
-                                    )}
+                                    {currentCard?.entry && renderDeltaItems(currentCard.entry)}
                                 </div>
                             </div>
                         </div>
@@ -2009,17 +2012,6 @@ export default function SimulationClient() {
                         {language === 'ko' ? '시뮬레이션 시작/재시작' : 'Start/Restart'}
                     </button>
                     <button
-                        onClick={() => setSimAuto(prev => !prev)}
-                        disabled={simState.status !== 'running' || !!pendingChoice}
-                        className={`px-4 py-2 text-sm font-bold border ${simState.status === 'running' && !pendingChoice
-                            ? 'bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white border-gray-600 rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {simAuto
-                            ? (language === 'ko' ? '자동 진행 일시정지' : 'Pause Auto')
-                            : (language === 'ko' ? '자동 진행 시작' : 'Start Auto')}
-                    </button>
-                    <button
                         onClick={handleUseMeds}
                         disabled={!canUseMeds}
                         className={`px-4 py-2 text-sm font-bold border ${canUseMeds
@@ -2042,7 +2034,7 @@ export default function SimulationClient() {
                     <button
                         onClick={() => {
                             if (submittedOnExit) return;
-                            submitScore('ship', simState.day, false);
+                            submitScore('escape', simState.day, false);
                             setSubmittedOnExit(true);
                             setSimState(prev => ({ ...prev, status: 'success' }));
                         }}
@@ -2099,8 +2091,8 @@ export default function SimulationClient() {
                                 <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
                                     {language === 'ko' ? '대처' : 'Response'}: {entry.response}
                                 </div>
-                                <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2 text-slate-300">
-                                    {language === 'ko' ? '결과' : 'Result'}: HP {entry.after.hp}({entry.delta.hp >= 0 ? `+${entry.delta.hp}` : entry.delta.hp}) / {language === 'ko' ? '식량' : 'Food'} {entry.after.food}({entry.delta.food >= 0 ? `+${entry.delta.food}` : entry.delta.food}) / {language === 'ko' ? '치료제' : 'Meds'} {entry.after.meds}({entry.delta.meds >= 0 ? `+${entry.delta.meds}` : entry.delta.meds}) / {language === 'ko' ? '돈' : 'Money'} {entry.after.money}({entry.delta.money >= 0 ? `+${entry.delta.money}` : entry.delta.money})
+                                <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2">
+                                    {renderDeltaItems(entry)}
                                 </div>
                             </div>
                         ))}

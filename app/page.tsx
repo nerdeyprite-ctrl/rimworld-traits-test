@@ -136,7 +136,6 @@ export default function Home() {
               e.preventDefault();
               const ok = await requireLogin();
               if (ok) {
-                // Next.js router might have issues in some environments, use direct location if needed
                 router.push('/settlers');
                 setTimeout(() => {
                   if (window.location.pathname !== '/settlers') {
@@ -147,8 +146,14 @@ export default function Home() {
             }}
             className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
           >
-            {language === 'ko' ? '시뮬레이션 시작하기' : 'Start Simulation'}
+            {language === 'ko' ? '시뮬레이션 시작' : 'Start Simulation'}
           </button>
+          <a
+            href="/leaderboard"
+            className="inline-block px-8 py-4 bg-[#2d6a4f] hover:bg-[#40916c] border-[#1b4332] text-white font-bold text-lg shadow-[0_4px_0_#0d1f17] active:shadow-none active:translate-y-1 transition-all border"
+          >
+            {language === 'ko' ? '리더보드 보기' : 'View Leaderboard'}
+          </a>
         </div>
         <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
           <div className="text-sm font-bold text-[#9f752a]">
