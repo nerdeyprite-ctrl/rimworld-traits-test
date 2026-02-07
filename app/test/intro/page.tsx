@@ -56,13 +56,12 @@ export default function IntroPage() {
                     {/* Name Input */}
                     <div className="space-y-2">
                         <label className="block text-[#bdc3c7] font-bold text-sm uppercase tracking-wider">
-                            호출 부호 (Code Name)
+                            이름 (Name)
                         </label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="예: 럭키, 베로니카, 타이난, 히아신스"
                             className="w-full bg-black/50 border border-gray-600 p-3 text-white focus:border-[#9f752a] outline-none transition-colors text-center font-bold"
                         />
                     </div>
@@ -75,12 +74,17 @@ export default function IntroPage() {
                             </label>
                             <div className="relative">
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
                                     value={age}
-                                    onChange={(e) => setAge(e.target.value)}
-                                    min={1}
-                                    max={150}
-                                    className="w-full bg-black/50 border border-gray-600 p-3 text-white focus:border-[#9f752a] outline-none transition-colors text-center"
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                        if (val === '' || (parseInt(val) <= 99999)) {
+                                            setAge(val);
+                                        }
+                                    }}
+                                    placeholder="20"
+                                    className="w-full bg-black/50 border border-gray-600 p-3 text-white focus:border-[#9f752a] outline-none transition-colors text-center font-mono"
                                 />
                                 <span className="absolute right-3 top-3 text-gray-600 text-sm">세</span>
                             </div>
