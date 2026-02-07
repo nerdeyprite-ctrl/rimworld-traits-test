@@ -101,8 +101,8 @@ type CurrentCard = {
 };
 
 const MAX_DAYS = 60;
-const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
-const CAMP_UPGRADE_COSTS = [3, 5];
+const START_STATS = { hp: 5, food: 5, meds: 2, money: 5 };
+const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
 
 const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'disease', 'wanderer'];
@@ -135,6 +135,37 @@ const getSeasonLabel = (day: number, language: string) => {
     const seasonDay = ((day - 1) % 15) + 1;
     const seasonName = language === 'ko' ? seasonsKo[index] : seasonsEn[index];
     return language === 'ko' ? `${seasonName} ${seasonDay}일차` : `${seasonName} Day ${seasonDay}`;
+};
+
+const ALL_SKILLS = [
+    'Shooting', 'Melee', 'Construction', 'Mining', 'Cooking', 'Plants',
+    'Animals', 'Crafting', 'Artistic', 'Medicine', 'Social', 'Intellectual'
+];
+
+const SKILL_NAMES_KO: Record<string, string> = {
+    Shooting: '사격',
+    Melee: '격투',
+    Construction: '건설',
+    Mining: '채굴',
+    Cooking: '요리',
+    Plants: '재배',
+    Animals: '조련',
+    Crafting: '제작',
+    Artistic: '예술',
+    Medicine: '의학',
+    Social: '사교',
+    Intellectual: '연구'
+};
+
+const TRAIT_EFFECTS: Record<string, { ko: string; en: string }> = {
+    fast_walker: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
+    jogger: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
+    nimble: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
+    slowpoke: { ko: "성공 확률 -20% (이동/회피 관련)", en: "Success chance -20% (Movement/Evasion)" },
+    tough: { ko: "받는 모든 HP 피해량 50% 감소 (반올림)", en: "All HP damage received reduced by 50% (rounded)" },
+    greedy: { ko: "시작 물자: 은 +10 보너스", en: "Starting items: +10 Silver bonus" },
+    ascetic: { ko: "시작 물자: HP +5 보너스, 은 -5 페널티", en: "Starting items: +5 HP bonus, -5 Silver penalty" },
+    wimp: { ko: "시작 물자: 치료제 +3 보너스", en: "Starting items: +3 Meds bonus" },
 };
 
 const getEventIcon = (event?: SimEvent) => {
@@ -1173,6 +1204,8 @@ export default function SimulationClient() {
     const [submittedOnDeath, setSubmittedOnDeath] = useState(false);
     const [submittedOnExit, setSubmittedOnExit] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+    const [showTraitsModal, setShowTraitsModal] = useState(false);
+    const [showSkillsModal, setShowSkillsModal] = useState(false);
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -1433,13 +1466,26 @@ export default function SimulationClient() {
         const introText = language === 'ko'
             ? '당신의 캐릭터는 몇일차까지 살아남을 수 있을까요?'
             : 'How many days can your character survive?';
+
+        let startHp = START_STATS.hp;
+        let startFood = START_STATS.food;
+        let startMeds = START_STATS.meds;
+        let startMoney = START_STATS.money;
+
+        if (traitIds.has('greedy')) startMoney = 15;
+        if (traitIds.has('ascetic')) {
+            startHp = 10;
+            startMoney = 0;
+        }
+        if (traitIds.has('wimp')) startMeds = 5;
+
         setSimState({
             status: 'running',
             day: 0,
-            hp: START_STATS.hp,
-            food: START_STATS.food,
-            meds: START_STATS.meds,
-            money: START_STATS.money,
+            hp: startHp,
+            food: startFood,
+            meds: startMeds,
+            money: startMoney,
             campLevel: 0,
             log: [{
                 day: 0,
@@ -1448,7 +1494,7 @@ export default function SimulationClient() {
                 description: introText,
                 response: language === 'ko' ? '생존 준비를 시작했다.' : 'You begin preparing for survival.',
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                after: { hp: START_STATS.hp, food: START_STATS.food, meds: START_STATS.meds, money: START_STATS.money },
+                after: { hp: startHp, food: startFood, meds: startMeds, money: startMoney },
                 status: 'neutral'
             }],
             hasSerum: false,
@@ -2015,17 +2061,17 @@ export default function SimulationClient() {
         });
     };
 
-    const handleUpgradeCamp = () => {
+    const handleUpgradeBase = () => {
         setSimState(prev => {
-            const cost = CAMP_UPGRADE_COSTS[prev.campLevel];
+            const cost = BASE_UPGRADE_COSTS[prev.campLevel];
             if (cost === undefined || prev.money < cost) return prev;
             const money = prev.money - cost;
             const campLevel = prev.campLevel + 1;
             const entry: SimLogEntry = {
                 day: prev.day,
                 season: getSeasonLabel(prev.day, language),
-                title: language === 'ko' ? '캠프 업그레이드' : 'Camp Upgrade',
-                description: language === 'ko' ? `캠프 방벽을 Lv.${campLevel}로 강화했다.` : `Camp defenses upgraded to Lv.${campLevel}.`,
+                title: language === 'ko' ? '기지 업그레이드' : 'Base Upgrade',
+                description: language === 'ko' ? `기지 방벽을 Lv.${campLevel}로 강화했다.` : `Base defenses upgraded to Lv.${campLevel}.`,
                 response: language === 'ko' ? '방어력이 상승했다.' : 'Defense has improved.',
                 delta: { hp: 0, food: 0, meds: 0, money: -cost },
                 after: { hp: prev.hp, food: prev.food, meds: prev.meds, money },
@@ -2095,8 +2141,8 @@ export default function SimulationClient() {
     const medicineLevel = skillMap['Medicine'] ?? 0;
     const healAmount = getHealAmount(medicineLevel);
     const canUseMeds = simState.meds > 0 && simState.hp < 10 && simState.status === 'running';
-    const nextCampCost = CAMP_UPGRADE_COSTS[simState.campLevel];
-    const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
+    const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
+    const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
@@ -2458,15 +2504,15 @@ export default function SimulationClient() {
                         {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
                     </button>
                     <button
-                        onClick={handleUpgradeCamp}
-                        disabled={!canUpgradeCamp}
-                        className={`px-4 py-2 text-sm font-bold border ${canUpgradeCamp
+                        onClick={handleUpgradeBase}
+                        disabled={!canUpgradeBase}
+                        className={`px-4 py-2 text-sm font-bold border ${canUpgradeBase
                             ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
                             : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
                     >
                         {language === 'ko'
-                            ? `캠프 강화 Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (돈 ${nextCampCost})` : ''}`
-                            : `Camp Upgrade Lv.${simState.campLevel}${nextCampCost !== undefined ? ` (Money ${nextCampCost})` : ''}`}
+                            ? `기지 업그레이드 Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (돈 ${nextBaseCost})` : ''}`
+                            : `Base Upgrade Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (Money ${nextBaseCost})` : ''}`}
                     </button>
                     <button
                         onClick={() => {
@@ -2487,6 +2533,18 @@ export default function SimulationClient() {
                         className="px-4 py-2 rounded-md bg-[#1a1a1a] hover:bg-[#262626] text-slate-200 text-sm border border-[#2a2a2a]"
                     >
                         {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Log') : (language === 'ko' ? '로그 보기' : 'Show Log')}
+                    </button>
+                    <button
+                        onClick={() => setShowTraitsModal(true)}
+                        className="px-4 py-2 rounded-md bg-[#2c1d3f] hover:bg-[#3f2a56] text-purple-200 text-sm border border-[#3f2a56] shadow-sm"
+                    >
+                        {language === 'ko' ? '특성' : 'Traits'}
+                    </button>
+                    <button
+                        onClick={() => setShowSkillsModal(true)}
+                        className="px-4 py-2 rounded-md bg-[#1c3d5a] hover:bg-[#2c5282] text-blue-200 text-sm border border-[#2c5282] shadow-sm"
+                    >
+                        {language === 'ko' ? '기술' : 'Skills'}
                     </button>
                 </div>
                 {submitMessage && (
@@ -2538,6 +2596,106 @@ export default function SimulationClient() {
                     </div>
                 )
             }
+
+            {/* Traits Modal */}
+            {showTraitsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#1a1a1a] border border-[#3b3b3b] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="bg-[#2c1d3f] p-4 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-purple-100 flex items-center gap-2">
+                                <span>🧬</span> {language === 'ko' ? '정착민 특성' : 'Settler Traits'}
+                            </h3>
+                            <button
+                                onClick={() => setShowTraitsModal(false)}
+                                className="text-purple-300 hover:text-white transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-xs text-slate-400 mb-2">
+                                {language === 'ko'
+                                    ? '* 특성에 마우스를 올리면 시뮬레이션 상세 효과를 확인할 수 있습니다.'
+                                    : '* Hover over traits to see simulation effects.'}
+                            </p>
+                            <div className="grid grid-cols-1 gap-3">
+                                {result.traits.map((tr: any) => {
+                                    const trId = typeof tr === 'string' ? tr : tr.id;
+                                    const trName = typeof tr === 'string' ? tr : tr.name;
+                                    const effect = TRAIT_EFFECTS[trId];
+                                    return (
+                                        <div key={trId} className="relative group">
+                                            <div className="p-3 bg-black/40 border border-[#333] rounded-xl flex items-center justify-between cursor-default hover:border-purple-500/50 transition-colors">
+                                                <span className="font-bold text-purple-200">{trName}</span>
+                                                <span className="text-[10px] text-slate-500">Tooltip info available</span>
+                                            </div>
+                                            {effect && (
+                                                <div className="absolute left-0 bottom-full mb-2 w-full hidden group-hover:block z-[60] animate-in slide-in-from-bottom-2 fade-in duration-150">
+                                                    <div className="bg-slate-800 border border-purple-500/50 rounded-lg p-3 shadow-2xl text-xs text-white leading-relaxed">
+                                                        {language === 'ko' ? effect.ko : effect.en}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className="bg-[#121212] p-4 border-t border-[#333] flex justify-end">
+                            <button
+                                onClick={() => setShowTraitsModal(false)}
+                                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-colors"
+                            >
+                                {language === 'ko' ? '닫기' : 'Close'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Skills Modal */}
+            {showSkillsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#1a1a1a] border border-[#3b3b3b] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="bg-[#1c3d5a] p-4 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-blue-100 flex items-center gap-2">
+                                <span>📊</span> {language === 'ko' ? '정착민 기술 수치' : 'Settler Skills'}
+                            </h3>
+                            <button
+                                onClick={() => setShowSkillsModal(false)}
+                                className="text-blue-300 hover:text-white transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {ALL_SKILLS.map(skill => {
+                                const level = skillMap[skill] || 0;
+                                const skillName = language === 'ko' ? (SKILL_NAMES_KO[skill] || skill) : skill;
+                                return (
+                                    <div key={skill} className="bg-black/30 border border-[#333] rounded-xl p-3 flex flex-col items-center justify-center space-y-1">
+                                        <span className="text-[10px] uppercase font-black text-slate-500 tracking-tighter">{skill}</span>
+                                        <span className="text-sm font-bold text-blue-200 leading-none">{skillName}</span>
+                                        <span className="text-2xl font-black text-white leading-none">{level}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="bg-[#121212] p-4 border-t border-[#333] flex justify-end">
+                            <button
+                                onClick={() => setShowSkillsModal(false)}
+                                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-colors"
+                            >
+                                {language === 'ko' ? '닫기' : 'Close'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }
