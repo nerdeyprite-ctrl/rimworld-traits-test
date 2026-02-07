@@ -146,3 +146,45 @@ body {
 .animate-scale-in {
   animation: scale-in 0.5s ease-out forwards;
 }
+
+@keyframes rainbow-glow {
+  0% {
+    border-color: #ff0000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+  }
+
+  17% {
+    border-color: #ff8800;
+    box-shadow: 0 0 20px rgba(255, 136, 0, 0.6);
+  }
+
+  33% {
+    border-color: #ffff00;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
+  }
+
+  50% {
+    border-color: #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+  }
+
+  67% {
+    border-color: #0000ff;
+    box-shadow: 0 0 20px rgba(0, 0, 255, 0.6);
+  }
+
+  83% {
+    border-color: #8800ff;
+    box-shadow: 0 0 20px rgba(136, 0, 255, 0.6);
+  }
+
+  100% {
+    border-color: #ff0000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+  }
+}
+
+.rainbow-glow {
+  animation: rainbow-glow 3s infinite linear !important;
+  border-width: 2px !important;
+}

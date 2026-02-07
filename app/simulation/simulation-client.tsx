@@ -44,6 +44,7 @@ type SimChoice = {
     requirements?: ChoiceRequirements;
     isSpecial?: boolean;
     specialReason?: string;
+    isRainbow?: boolean;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'danger';
@@ -64,6 +65,7 @@ type SimEvent = {
     skillGroup?: string[]; // Multiple skills possible
     skillTargets?: Array<'hp' | 'food' | 'meds' | 'money'>;
     choices?: SimChoice[];
+    isRainbow?: boolean;
 };
 
 type SimLogEntry = {
@@ -115,12 +117,14 @@ const SKILL_GROUPS: Record<string, string[]> = {
     '제작': ['Construction', 'Crafting', 'Mining'],
     '생존': ['Plants', 'Animals'],
     '격투': ['Melee'],
-    '사격': ['Shooting']
+    '사격': ['Shooting'],
+    '연구': ['Intellectual'],
+    '지능': ['Intellectual']
 };
 
-const MOVEMENT_TRAITS = new Set(['fast_walker', 'jogger', 'nimble']);
+const MOVEMENT_TRAITS = new Set(['fast_walker', 'jogger', 'nimble', 'slowpoke']);
 
-const clampStat = (value: number) => Math.max(0, Math.min(10, value));
+const clampStat = (value: number, max: number = 10) => Math.max(0, Math.min(max, value));
 
 const getSeasonLabel = (day: number, language: string) => {
     if (day <= 0) return language === 'ko' ? '시작' : 'Start';
@@ -139,12 +143,20 @@ const getEventIcon = (event?: SimEvent) => {
             return '⚔️';
         case 'manhunter':
             return '🦁';
+        case 'infestation':
+            return '🐜';
         case 'disease':
             return '🩺';
+        case 'toxic_fallout':
+            return '🤢';
+        case 'psychic_drone':
+            return '🧠';
         case 'cold_snap':
             return '❄️';
         case 'heat_wave':
             return '🔥';
+        case 'solar_flare':
+            return '☀️';
         case 'fire':
             return '🔥';
         case 'wanderer':
@@ -155,6 +167,10 @@ const getEventIcon = (event?: SimEvent) => {
             return '📦';
         case 'ship_chunk':
             return '🛰️';
+        case 'meteorite':
+            return '☄️';
+        case 'thrumbo':
+            return '🦄';
         case 'medical_cache':
             return '🧰';
         case 'foraging':
@@ -265,17 +281,31 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'quiet_day',
             title: isKo ? '조용한 날' : 'Quiet Day',
-            description: isKo ? '큰 사건 없이 하루가 지나갔습니다.' : 'The day passes without major incidents.',
+            description: isKo ? '큰 사건 없이 하루가 지나갔습니다. 오늘 무엇에 집중하시겠습니까?' : 'The day passes without major incidents. What will you focus on today?',
             category: 'quiet',
             weight: 40,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
                 {
-                    id: 'quiet_pass',
-                    label: isKo ? '무난하게 보내기' : 'Pass',
-                    description: isKo ? '변화 없음' : 'No changes',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '무난하게 하루를 버텼습니다.' : 'You made it through the day.'
+                    id: 'quiet_rest',
+                    label: isKo ? '1. 정비' : '1. Maintenance',
+                    description: isKo ? '체력 +1' : 'HP +1',
+                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '충분한 정비를 하며 기력을 회복했습니다.' : 'You maintained the base and recovered energy.'
+                },
+                {
+                    id: 'quiet_farming',
+                    label: isKo ? '2. 농사' : '2. Farming',
+                    description: isKo ? '식량 +1' : 'Food +1',
+                    delta: { hp: 0, food: 1, meds: 0, money: 0 },
+                    response: isKo ? '밭을 일구어 보급품을 확보했습니다.' : 'You worked in the fields to secure food.'
+                },
+                {
+                    id: 'quiet_mining',
+                    label: isKo ? '3. 광물 채광' : '3. Mining',
+                    description: isKo ? '돈 +1' : 'Mining',
+                    delta: { hp: 0, food: 0, meds: 0, money: 1 },
+                    response: isKo ? '근처 암석에서 유용한 광물을 채굴했습니다.' : 'You mined useful minerals from nearby rocks.'
                 }
             ]
         },
@@ -290,8 +320,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'buy_food',
                     label: isKo ? '식량 구매' : 'Buy Food',
-                    description: isKo ? '돈 -1 → 식량 +2' : 'Money -1 → Food +2',
-                    delta: { hp: 0, food: 2, meds: 0, money: -1 },
+                    description: isKo ? '돈 -1 → 식량 +3' : 'Money -1 → Food +3',
+                    delta: { hp: 0, food: 3, meds: 0, money: -1 },
                     requirements: { money: 1 },
                     response: isKo ? '상인에게서 신선한 식량을 샀습니다.' : 'You buy food.'
                 },
@@ -315,6 +345,48 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         successDelta: { hp: 0, food: 1, meds: 1, money: 3 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
                     }
+                },
+                {
+                    id: 'trade_pass',
+                    label: isKo ? '그냥 보내기' : 'Pass',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '거래 없이 상단을 돌려보냈습니다.' : 'You let the caravan pass.'
+                },
+                {
+                    id: 'trade_legendary',
+                    label: isKo ? '전설적인 거래' : 'Legendary Trade',
+                    description: isKo ? '사교 15+' : 'Social 15+',
+                    requirements: { social: 15 },
+                    delta: { hp: 0, food: 5, meds: 3, money: 5 },
+                    response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었습니다.' : 'The trader is impressed by your charm.'
+                },
+                {
+                    id: 'trade_kind',
+                    label: isKo ? '호의 베풀기' : 'Kind Offer',
+                    description: isKo ? '다정다감 (특성)' : 'Kind (Trait)',
+                    traitRequirement: 'kind',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '호의로 거래를 시도했습니다.' : 'You attempt a trade with kindness.',
+                    skillCheck: {
+                        label: isKo ? '사교' : 'Social',
+                        group: ['사교'],
+                        successDelta: { hp: 0, food: 2, meds: 1, money: 1 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
+                    }
+                },
+                {
+                    id: 'trade_abrasive',
+                    label: isKo ? '협박' : 'Intimidate',
+                    description: isKo ? '직설적 (특성)' : 'Abrasive (Trait)',
+                    traitRequirement: 'abrasive',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '협박으로 거래를 시도했습니다.' : 'You intimidate the trader.',
+                    skillCheck: {
+                        label: isKo ? '협박' : 'Intimidate',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: 0, food: 2, meds: 0, money: 2 },
+                        failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
+                    }
                 }
             ]
         },
@@ -332,6 +404,12 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     description: isKo ? '식량 +1, 치료제 +1, 돈 +1' : 'Food +1, Meds +1, Money +1',
                     delta: { hp: 0, food: 1, meds: 1, money: 1 },
                     response: isKo ? '추락한 캡슐에서 유용한 물자들을 챙겼습니다.' : 'You collect useful supplies.'
+                },
+                {
+                    id: 'cargo_ignore',
+                    label: isKo ? '무시하기' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '보급품을 포기하고 하던 일에 집중했습니다.' : 'You ignored the pods.'
                 }
             ]
         },
@@ -352,9 +430,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '수확' : 'Harvest',
                         group: ['재배'],
-                        successDelta: { hp: 0, food: 4, meds: 0, money: 0 },
-                        failDelta: { hp: 0, food: 2, meds: 0, money: 0 }
+                        successDelta: { hp: 0, food: 6, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 3, meds: 0, money: 0 }
                     }
+                },
+                {
+                    id: 'crop_ignore',
+                    label: isKo ? '무시하기' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '수확 시기를 놓쳐 작물들이 그대로 밭에서 썩어버렸습니다.' : 'The crops rot in the field.'
                 }
             ]
         },
@@ -378,6 +462,12 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         successDelta: { hp: 0, food: -1, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: -3, meds: 0, money: 0 }
                     }
+                },
+                {
+                    id: 'blight_ignore',
+                    label: isKo ? '방치하기' : 'Ignore',
+                    delta: { hp: 0, food: -5, meds: 0, money: 0 },
+                    response: isKo ? '병충해를 방치한 결과, 거의 모든 작물이 말라 죽었습니다.' : 'The blight wiped out the crops.'
                 }
             ]
         },
@@ -401,6 +491,12 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         successDelta: { hp: 0, food: 0, meds: 0, money: 3 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 1 }
                     }
+                },
+                {
+                    id: 'chunk_ignore',
+                    label: isKo ? '방치' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '우주선 잔해를 무시하고 일과를 계속했습니다.' : 'You ignored the chunk.'
                 }
             ]
         },
@@ -452,9 +548,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'forage_collect',
                     label: isKo ? '채집하기' : 'Forage',
-                    description: isKo ? '식량 +2' : 'Food +2',
-                    delta: { hp: 0, food: 2, meds: 0, money: 0 },
-                    response: isKo ? '신선한 야생 딸기를 채집했습니다.' : 'You forage fresh berries.'
+                    description: isKo ? '식량 +3' : 'Food +3',
+                    delta: { hp: 0, food: 3, meds: 0, money: 0 },
+                    response: isKo ? '신선한 야생 딸기를 대량으로 채집했습니다.' : 'You forage fresh berries.'
+                },
+                {
+                    id: 'forage_ignore',
+                    label: isKo ? '무시' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '채집을 포기하고 하던 일에 집중했습니다.' : 'You ignored the berries.'
                 }
             ]
         },
@@ -472,6 +574,12 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     description: isKo ? '치료제 +2' : 'Meds +2',
                     delta: { hp: 0, food: 0, meds: 2, money: 0 },
                     response: isKo ? '상자 안에서 깨끗한 치료제들을 발견했습니다.' : 'You collect clean medical supplies.'
+                },
+                {
+                    id: 'med_cache_ignore',
+                    label: isKo ? '방치' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무엇이 들었을지 모를 상자를 멀리하기로 했습니다.' : 'You left the cache alone.'
                 }
             ]
         },
@@ -506,15 +614,44 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'raid_retreat',
                     label: isKo ? '후퇴' : 'Retreat',
-                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    description: isKo ? '고정 확률 80%' : 'Fixed 80%',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '후퇴하며 물자를 포기했습니다.' : 'You retreat and abandon supplies.',
                     skillCheck: {
                         label: isKo ? '후퇴' : 'Retreat',
                         group: ['생존'],
-                        fixedChance: 60,
-                        successDelta: { hp: -2, food: -2, meds: 0, money: -3 },
-                        failDelta: { hp: -4, food: -2, meds: 0, money: -4 }
+                        fixedChance: 80,
+                        successDelta: { hp: 0, food: -1, meds: 0, money: -2 },
+                        failDelta: { hp: -3, food: -2, meds: 0, money: -3 }
+                    }
+                },
+                {
+                    id: 'raid_stealth',
+                    label: isKo ? '은신' : 'Stealth',
+                    description: isKo ? '겁쟁이 (특성)' : 'Wimp (Trait)',
+                    traitRequirement: 'wimp',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다.' : 'You hide in fear.',
+                    skillCheck: {
+                        label: isKo ? '은신' : 'Stealth',
+                        group: ['생존'],
+                        fixedChance: 70,
+                        successDelta: { hp: 0, food: -1, meds: 0, money: -1 },
+                        failDelta: { hp: -2, food: -1, meds: 0, money: -2 }
+                    }
+                },
+                {
+                    id: 'raid_tough',
+                    label: isKo ? '강인한 돌격' : 'Tough Charge',
+                    description: isKo ? '강인함 (특성)' : 'Tough (Trait)',
+                    traitRequirement: 'tough',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '강인함을 믿고 적진으로 돌격합니다!' : 'You charge with toughness!',
+                    skillCheck: {
+                        label: isKo ? '돌격' : 'Charge',
+                        group: ['격투'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: 4 },
+                        failDelta: { hp: -3, food: 0, meds: 0, money: 1 }
                     }
                 }
             ]
@@ -536,8 +673,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '사냥' : 'Hunting',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -3, food: 5, meds: 0, money: 0 },
-                        failDelta: { hp: -5, food: 3, meds: 0, money: 0 }
+                        successDelta: { hp: -3, food: 8, meds: 0, money: 0 },
+                        failDelta: { hp: -5, food: 4, meds: 0, money: 0 }
                     }
                 },
                 {
@@ -644,7 +781,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             choices: [
                 {
                     id: 'fire_extinguish',
-                    label: isKo ? '불길 진압' : 'Extinguish',
+                    label: isKo ? '화재 진압' : 'Extinguish',
                     description: isKo ? '제작 기술 체크' : 'Crafting skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '목숨을 걸고 불길을 진압했습니다.' : 'You extinguish the fire.',
@@ -654,6 +791,156 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
                         failDelta: { hp: -2, food: 0, meds: 0, money: -3 }
                     }
+                }
+            ]
+        },
+        {
+            id: 'infestation',
+            title: isKo ? '곤충 군락 습격' : 'Infestation',
+            description: isKo ? '드릴 작업 중 땅속에서 거대한 곤충들이 쏟아져 나옵니다!' : 'Insects emerge from the ground!',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'infest_fight',
+                    label: isKo ? '군락 소탕' : 'Fight',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무기를 들고 곤충들과 맞서 싸워 군락을 파괴했습니다.' : 'You fought back the infestation.',
+                    skillCheck: {
+                        label: isKo ? '교전' : 'Engagement',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -2, food: 1, meds: 0, money: 0 },
+                        failDelta: { hp: -6, food: -3, meds: 0, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'toxic_fallout',
+            title: isKo ? '독성 낙진' : 'Toxic Fallout',
+            description: isKo ? '하늘에서 정체 모를 독성 가루가 내립니다.' : 'Toxic dust falls from the sky.',
+            category: 'danger',
+            weight: 2,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'fallout_stay',
+                    label: isKo ? '실내 대피' : 'Stay Inside',
+                    description: isKo ? '식량 -3' : 'Food -3',
+                    delta: { hp: 0, food: -3, meds: 0, money: 0 },
+                    response: isKo ? '실내에서 버티며 낙진이 끝나기를 기다립니다.' : 'You wait out the fallout indoors.'
+                }
+            ]
+        },
+        {
+            id: 'psychic_drone',
+            title: isKo ? '심리적 파동' : 'Psychic Drone',
+            description: isKo ? '머릿속을 울리는 기분 나쁜 파동이 기지에 퍼집니다.' : 'A psychic wave distresses everyone.',
+            category: 'danger',
+            weight: 2,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'drone_resist',
+                    label: isKo ? '정신 집중' : 'Resist',
+                    description: isKo ? '사교 기술 체크' : 'Social skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '강한 정신력으로 파동을 이겨내려 노력합니다.' : 'You focus your mind to resist.',
+                    skillCheck: {
+                        label: isKo ? '집중' : 'Focus',
+                        group: ['사교'],
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -3, food: 0, meds: 0, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'solar_flare',
+            title: isKo ? '태양 흑점 폭발' : 'Solar Flare',
+            description: isKo ? '강력한 자기장 폭풍이 몰아쳐 모든 전자기기가 마비되었습니다!' : 'A solar flare disables all electronics.',
+            category: 'noncombat',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'flare_check',
+                    label: isKo ? '장비 점검' : 'Check Gear',
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '기기들을 보호하려 노력했지만 일부 부품이 타버렸습니다.' : 'You tried to save the gear.',
+                    skillCheck: {
+                        label: isKo ? '점검' : 'Check',
+                        group: ['제작'],
+                        successDelta: { hp: 0, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: -3 }
+                    }
+                },
+                {
+                    id: 'solar_ignore',
+                    label: isKo ? '방치' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: -4 },
+                    response: isKo ? '전자기기 보호를 포기했습니다. 상당량의 장비가 과부하로 타버렸습니다.' : 'You let the devices burn out.'
+                }
+            ]
+        },
+        {
+            id: 'meteorite',
+            title: isKo ? '운석 낙하' : 'Meteorite',
+            description: isKo ? '거대한 운석이 기지 근처에 추락했습니다!' : 'A meteorite crashes nearby.',
+            category: 'noncombat',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'meteor_mine',
+                    label: isKo ? '채굴하기' : 'Mine',
+                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '힘들게 운석을 채굴하여 귀중한 은을 확보했습니다.' : 'You mined the meteorite for silver.',
+                    skillCheck: {
+                        label: isKo ? '채굴' : 'Mining',
+                        group: ['제작'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: 5 },
+                        failDelta: { hp: -3, food: 0, meds: 0, money: 2 }
+                    }
+                },
+                {
+                    id: 'meteor_ignore',
+                    label: isKo ? '방치' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '위험을 피해 운석을 방치했습니다.' : 'You left the meteorite alone.'
+                }
+            ]
+        },
+        {
+            id: 'thrumbo',
+            title: isKo ? '트럼보 출현' : 'Thrumbo Passes',
+            description: isKo ? '전설적인 생물, 트럼보가 기지 근처를 배회합니다.' : 'A mythical Thrumbo is wandering nearby.',
+            category: 'noncombat',
+            weight: 2,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'thrumbo_observe',
+                    label: isKo ? '조심히 관찰' : 'Observe',
+                    description: isKo ? '사교 기술 체크' : 'Social skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '먼발치에서 트럼보를 관찰하며 생태 정보를 얻었습니다.' : 'You gained data by observing the Thrumbo.',
+                    skillCheck: {
+                        label: isKo ? '관찰' : 'Observation',
+                        group: ['사교'],
+                        successDelta: { hp: 0, food: 2, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
+                    }
+                },
+                {
+                    id: 'thrumbo_ignore',
+                    label: isKo ? '무시한다' : 'Ignore',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '전설적인 생물이 기지 근처를 배회하지만, 관심을 끄기로 했습니다.' : 'You ignore the Thrumbo.'
                 }
             ]
         }
@@ -690,12 +977,12 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             choices.push({
                 id: 'work_day',
                 label: isKo ? '일한다' : 'Work',
-                description: isKo ? '돈 +1' : 'Money +1',
-                delta: { hp: 0, food: 0, meds: 0, money: 1 },
-                response: isKo ? '열심히 일해 은을 조금 벌었습니다.' : 'You worked hard and earned some silver.'
+                description: isKo ? '돈 +3' : 'Money +3',
+                delta: { hp: 0, food: 0, meds: 0, money: 3 },
+                response: isKo ? '열심히 일해 은을 꽤 벌었습니다.' : 'You worked hard and earned quite a bit of silver.'
             });
         }
-        if (traitIds.has('industrious') && Math.random() < 0.15) {
+        if (traitIds.has('industrious') && Math.random() < 0.10) {
             choices.push({
                 id: 'work_overtime',
                 label: isKo ? '야근' : 'Overtime',
@@ -707,7 +994,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '정진' : 'Hard Work',
                     group: ['제작'],
-                    successDelta: { hp: 0, food: 1, meds: 0, money: 1 },
+                    successDelta: { hp: 0, food: 3, meds: 0, money: 3 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
                 }
             });
@@ -724,7 +1011,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '휴식' : 'Rest',
                     group: ['의학'],
-                    successDelta: { hp: 2, food: 0, meds: 0, money: 0 },
+                    successDelta: { hp: 3, food: 0, meds: 0, money: 0 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
                 }
             });
@@ -736,9 +1023,9 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         if (social >= 15) {
             choices.push({
                 id: 'master_trade',
-                label: isKo ? '전설적인 거래' : 'Legendary Deal',
-                description: isKo ? '식량 +3, 치료제 +3, 돈 +5' : 'Food +3, Meds +3, Money +5',
-                delta: { hp: 0, food: 3, meds: 3, money: 5 },
+                label: isKo ? '전설적인 거래' : 'Legendary Trade',
+                description: isKo ? '식량 +5, 치료제 +3, 돈 +5' : 'Food +5, Meds +3, Money +5',
+                delta: { hp: 0, food: 5, meds: 3, money: 5 },
                 response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었습니다.' : 'The trader was charmed by your words and gave you a legendary deal.',
                 isSpecial: true,
                 specialReason: isKo ? '사교 15+' : 'Social 15+'
@@ -747,7 +1034,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         if (traitIds.has('kind')) {
             choices.push({
                 id: 'kind_help',
-                label: isKo ? '호의 베풀기' : 'Show Kindness',
+                label: isKo ? '호의 베풀기' : 'Kind Offer',
                 description: isKo ? '사교 기술 체크' : 'Social skill check',
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
                 response: isKo ? '호의로 거래를 시도했습니다.' : 'You offer kindness in the deal.',
@@ -756,7 +1043,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '호의' : 'Kindness',
                     group: ['사교'],
-                    successDelta: { hp: 0, food: 1, meds: 1, money: 1 },
+                    successDelta: { hp: 0, food: 2, meds: 1, money: 1 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
                 }
             });
@@ -764,7 +1051,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         if (traitIds.has('abrasive')) {
             choices.push({
                 id: 'abrasive_threat',
-                label: isKo ? '협박' : 'Threaten',
+                label: isKo ? '협박' : 'Intimidate',
                 description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
                 response: isKo ? '협박으로 거래를 시도했습니다.' : 'You attempt to threaten the trader.',
@@ -773,7 +1060,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '협박' : 'Intimidation',
                     group: ['격투', '사격'],
-                    successDelta: { hp: 0, food: 1, meds: 0, money: 2 },
+                    successDelta: { hp: 0, food: 2, meds: 0, money: 2 },
                     failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
                 }
             });
@@ -837,17 +1124,17 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         if (traitIds.has('wimp')) {
             choices.push({
                 id: 'wimp_hide',
-                label: isKo ? '은신' : 'Hide',
+                label: isKo ? '은신' : 'Stealth',
                 description: isKo ? '생존 기술 체크' : 'Survival skill check',
-                delta: { hp: 1, food: 0, meds: 0, money: -1 },
-                response: isKo ? '숨어서 상황을 피하려 했습니다.' : 'You try to hide from the raid.',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다.' : 'You hide in fear.',
                 isSpecial: true,
                 specialReason: isKo ? '심약자' : 'Wimp',
                 skillCheck: {
                     label: isKo ? '은신' : 'Stealth',
                     group: ['생존'],
-                    successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                    failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
+                    successDelta: { hp: 0, food: -1, meds: 0, money: -1 },
+                    failDelta: { hp: -2, food: -1, meds: 0, money: -2 }
                 }
             });
         }
@@ -935,6 +1222,8 @@ export default function SimulationClient() {
         money: number;
         campLevel: number;
         log: SimLogEntry[];
+        hasSerum?: boolean;
+        serumTraderShown?: boolean;
     }>({
         status: 'idle',
         day: 0,
@@ -943,7 +1232,9 @@ export default function SimulationClient() {
         meds: START_STATS.meds,
         money: START_STATS.money,
         campLevel: 0,
-        log: []
+        log: [],
+        hasSerum: false,
+        serumTraderShown: false
     });
 
     const userInfo = localUserInfo || contextUserInfo;
@@ -1150,10 +1441,24 @@ export default function SimulationClient() {
 
     const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
-        const chance = check.fixedChance ?? getSkillChance(avg);
+        let chance = check.fixedChance ?? getSkillChance(avg);
+
+        // 이동속도/회피 관련 특성 보정 (고정 확률인 경우)
+        if (check.fixedChance !== undefined) {
+            let moveBonus = 0;
+            if (traitIds.has('fast_walker')) moveBonus += 10;
+            if (traitIds.has('jogger')) moveBonus += 10;
+            if (traitIds.has('nimble')) moveBonus += 10;
+            if (traitIds.has('slowpoke')) moveBonus -= 20;
+
+            if (moveBonus !== 0) {
+                chance = Math.max(5, Math.min(95, chance + moveBonus));
+            }
+        }
+
         const roll = Math.random() * 100;
         return { success: roll < chance, chance };
-    }, [getGroupAverage]);
+    }, [getGroupAverage, traitIds]);
 
     const startSimulation = useCallback(() => {
         const introText = language === 'ko'
@@ -1176,7 +1481,9 @@ export default function SimulationClient() {
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
                 after: { hp: START_STATS.hp, food: START_STATS.food, meds: START_STATS.meds, money: START_STATS.money },
                 status: 'neutral'
-            }]
+            }],
+            hasSerum: false,
+            serumTraderShown: false
         });
         setPendingChoice(null);
         setCurrentCard(null);
@@ -1280,15 +1587,26 @@ export default function SimulationClient() {
             }
         }
 
+        if (traitIds.has('tough') && hpDelta < 0) {
+            const original = hpDelta;
+            // 피해 절반 (소숫점 5 이상 반올림)
+            hpDelta = Math.round(Math.abs(hpDelta) * 0.5) * -1;
+            if (hpDelta !== original) {
+                traitNotes.push(language === 'ko'
+                    ? `강인함: 피해가 감소했습니다. (${original} → ${hpDelta})`
+                    : `Tough: Damage mitigated. (${original} → ${hpDelta})`);
+            }
+        }
+
         hp += hpDelta;
         food += foodDelta;
         meds += medsDelta;
         money += moneyDelta;
 
         hp = clampStat(hp);
-        food = clampStat(food);
+        food = clampStat(food, 30);
         meds = clampStat(meds);
-        money = clampStat(money);
+        money = clampStat(money, 30);
 
         const delta = {
             hp: hp - dayStart.hp,
@@ -1364,6 +1682,14 @@ export default function SimulationClient() {
         let money = simState.money;
         const responseNotes: string[] = [];
 
+        // 매일 식량 -1 소모
+        food -= 1;
+        if (food < 0) {
+            food = 0;
+            hp -= 1; // 식량 없으면 체력 -1
+            responseNotes.push(language === 'ko' ? '식량이 부족하여 체력이 저하되었습니다.' : 'Lack of food decreased your HP.');
+        }
+
         if (hp <= 0) {
             return;
         }
@@ -1423,7 +1749,37 @@ export default function SimulationClient() {
             return;
         }
 
-        if (food === 0 && money > 0 && Math.random() < 0.4) {
+        if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
+            const serumEvent: SimEvent = {
+                id: 'resurrector_trader',
+                title: language === 'ko' ? '부활 혈청 상인' : 'Resurrector Serum Trader',
+                description: language === 'ko'
+                    ? '특별한 물건을 취급하는 정체불명의 상인이 기지에 머무르기를 요청합니다. 그는 죽음조차 되돌릴 수 있다는 전설의 부활 혈청을 가지고 있다고 주장합니다.'
+                    : 'A mysterious trader with rare artifacts visits. He claims to possess a legendary resurrector serum.',
+                category: 'noncombat',
+                weight: 0,
+                base: { hp: 0, food: 0, meds: 0, money: 0 },
+                isRainbow: true,
+                choices: [
+                    {
+                        id: 'buy_serum',
+                        label: language === 'ko' ? '구매한다 (돈 15)' : 'Buy (Money 15)',
+                        description: language === 'ko' ? '전설적인 혈청을 구매합니다.' : 'Purchase the serum.',
+                        delta: { hp: 0, food: 0, meds: 0, money: -15 },
+                        response: language === 'ko' ? '부활 혈청을 구매했습니다! 기묘한 무지개빛 광채가 혈청병에서 뿜어져 나옵니다.' : 'You purchased the serum! A strange rainbow glow emits from the vial.',
+                        isRainbow: true
+                    },
+                    {
+                        id: 'pass_serum',
+                        label: language === 'ko' ? '보낸다' : 'Dismiss',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        response: language === 'ko' ? '상인을 돌려보냈습니다. 상인은 기분 나쁜 웃음을 지으며 사라졌습니다.' : 'You dismissed the trader.'
+                    }
+                ]
+            };
+            event = serumEvent;
+            setSimState(prev => ({ ...prev, serumTraderShown: true }));
+        } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
             event = pickWeightedEvent(events);
@@ -1446,18 +1802,6 @@ export default function SimulationClient() {
                     return choice;
                 })
                 .filter(choice => meetsRequirements(choice, { food, meds, money }));
-            const isSpecialEvent = SPECIAL_EVENT_IDS.includes(event.id);
-            const hasPass = available.some(choice => choice.id === 'skip' || choice.id === 'pass');
-
-            if (!hasPass && !isSpecialEvent) {
-                available.push({
-                    id: 'pass',
-                    label: language === 'ko' ? '넘어간다' : 'Pass',
-                    description: language === 'ko' ? '굳이 개입하지 않는다.' : 'Let it pass without meddling.',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: language === 'ko' ? '상황을 지켜보며 넘어갔다.' : 'You let the situation pass.'
-                });
-            }
             if (available.length === 0) {
                 event = { ...event, choices: undefined };
             } else {
@@ -1493,29 +1837,44 @@ export default function SimulationClient() {
         }
 
         const resolved = resolveEvent(event, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
+
+        let finalHp = resolved.after.hp;
+        let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
+        let finalResponse = resolved.responseText;
+        let finalHasSerum = simState.hasSerum;
+
+        if (finalHp <= 0 && finalHasSerum) {
+            finalHp = 5;
+            finalStatus = 'running';
+            finalHasSerum = false;
+            finalResponse += language === 'ko'
+                ? ' 하지만 부활 혈청이 작동하여 당신을 죽음에서 다시 일으켜 세웠습니다!'
+                : ' However, the Resurrector Serum activated and brought you back to life!';
+        }
+
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
         const entry: SimLogEntry = {
             day: nextDay,
             season,
             title: event.title,
             description: event.description,
-            response: resolved.responseText,
+            response: finalResponse,
             delta: resolved.delta,
-            after: resolved.after,
+            after: { ...resolved.after, hp: finalHp },
             status: entryStatus
         };
 
-        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : 'running';
         setSimState(prev => {
             const log = [entry, ...prev.log].slice(0, 60);
             return {
                 ...prev,
                 day: nextDay,
-                hp: resolved.after.hp,
+                hp: finalHp,
                 food: resolved.after.food,
                 meds: resolved.after.meds,
                 money: resolved.after.money,
-                status,
+                status: finalStatus,
+                hasSerum: finalHasSerum,
                 log
             };
         });
@@ -1604,29 +1963,46 @@ export default function SimulationClient() {
             choice
         );
 
+        let finalHp = resolved.after.hp;
+        let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
+        let finalResponse = resolved.responseText;
+        let finalHasSerum = simState.hasSerum;
+
+        if (finalHp <= 0 && finalHasSerum) {
+            finalHp = 5;
+            finalStatus = 'running';
+            finalHasSerum = false;
+            finalResponse += language === 'ko'
+                ? ' 하지만 부활 혈청이 작동하여 당신을 죽음에서 다시 일으켜 세웠습니다!'
+                : ' However, the Resurrector Serum activated and brought you back to life!';
+        }
+
+        if (pendingChoice.event.id === 'resurrector_trader' && choice.id === 'buy_serum') {
+            finalHasSerum = true;
+        }
+
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
         const entry: SimLogEntry = {
             day: pendingChoice.day,
             season: pendingChoice.season,
             title: pendingChoice.event.title,
             description: pendingChoice.event.description,
-            response: resolved.responseText,
+            response: finalResponse,
             delta: resolved.delta,
-            after: resolved.after,
+            after: { ...resolved.after, hp: finalHp },
             status: entryStatus
         };
-
-        const status: SimStatus = resolved.after.hp <= 0 ? 'dead' : 'running';
 
         setSimState(prev => {
             const log = [entry, ...prev.log].slice(0, 60);
             return {
                 ...prev,
-                hp: resolved.after.hp,
+                hp: finalHp,
                 food: resolved.after.food,
                 meds: resolved.after.meds,
                 money: resolved.after.money,
-                status,
+                status: finalStatus,
+                hasSerum: finalHasSerum,
                 log
             };
         });
@@ -1844,7 +2220,7 @@ export default function SimulationClient() {
                             className={`reigns-card reigns-card-enter ${cardView === 'result' ? 'reigns-card--flipped' : ''}`}
                         >
                             <div className="reigns-card-inner">
-                                <div className="reigns-card-face reigns-card-front flex flex-col text-center">
+                                <div className={`reigns-card-face reigns-card-front flex flex-col text-center ${currentCard?.event.isRainbow ? 'rainbow-glow' : ''}`}>
                                     <div>
                                         <div className="text-xs text-slate-400">
                                             {currentCard
@@ -1858,8 +2234,18 @@ export default function SimulationClient() {
                                             {getEventIcon(currentCard?.event)}
                                         </div>
                                         <div className="mt-3 text-base md:text-lg text-slate-300">
-                                            {currentCard?.event.description || (language === 'ko' ? '하단의 [시뮬레이션 시작] 버튼을 눌러주세요.' : 'Please press the [Start Simulation] button below.')}
+                                            {currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game')}
                                         </div>
+                                        {!currentCard && (
+                                            <div className="mt-8">
+                                                <button
+                                                    onClick={startSimulation}
+                                                    className="px-10 py-4 rounded-2xl bg-[#9f752a] hover:bg-[#b08535] text-white text-lg font-black border-4 border-[#7a5a20] shadow-[0_10px_30px_-10px_rgba(159,117,42,0.5)] transition-all hover:scale-105 active:scale-95"
+                                                >
+                                                    {language === 'ko' ? '시작하기' : 'Start Game'}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="mt-auto pt-6 space-y-3">
@@ -1929,9 +2315,9 @@ export default function SimulationClient() {
                                                         <div key={choice.id} className="group relative">
                                                             <button
                                                                 onClick={() => resolveChoice(choice.id)}
-                                                                className={`w-full px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border ${choice.isSpecial ? 'border-[#e7c07a] shadow-[0_0_10px_rgba(231,192,122,0.3)]' : 'border-blue-900'} shadow-md transition-all h-full flex flex-col items-center justify-center`}
+                                                                className={`w-full px-4 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm border ${choice.isRainbow ? 'rainbow-glow' : (choice.isSpecial ? 'border-[#e7c07a] shadow-[0_0_10px_rgba(231,192,122,0.3)]' : 'border-blue-900')} shadow-md transition-all h-full flex flex-col items-center justify-center`}
                                                             >
-                                                                <div className={`font-bold ${choice.isSpecial ? 'text-[#e7c07a]' : ''}`}>{choice.label}</div>
+                                                                <div className={`font-bold ${choice.isRainbow ? 'text-white' : (choice.isSpecial ? 'text-[#e7c07a]' : '')}`}>{choice.label}</div>
                                                                 {choice.description && (
                                                                     <div className="text-xs text-white/70 mt-1">{choice.description}</div>
                                                                 )}
@@ -1993,13 +2379,73 @@ export default function SimulationClient() {
                 </div>
 
                 {simState.status === 'dead' && (
-                    <div className="text-red-400 text-sm font-bold">
-                        {language === 'ko' ? `${simState.day}일차에 사망했습니다.` : `You died on day ${simState.day}.`}
+                    <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
+                        <div className="bg-red-950/40 border-2 border-red-900/50 p-6 rounded-3xl text-center backdrop-blur-md shadow-2xl max-w-sm">
+                            <div className="text-red-400 text-xl font-black mb-1">GAME OVER</div>
+                            <div className="text-red-200 text-sm font-bold mb-4">
+                                {language === 'ko' ? `${simState.day}일차에 사망했습니다.` : `You died on day ${simState.day}.`}
+                            </div>
+                            <div className="text-slate-300 text-xs mb-6 leading-relaxed">
+                                {language === 'ko' ? '기존 스코어가 리더보드에 저장되었습니다.' : 'Your score has been saved to the leaderboard.'}
+                                <br />
+                                {language === 'ko' ? '다시 시작하겠습니까?' : 'Would you like to try again?'}
+                            </div>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={startSimulation}
+                                    className="px-6 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '다시하기' : 'Restart'}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/leaderboard')}
+                                    className="px-6 py-2.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '리더보드 보기' : 'Leaderboard'}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/')}
+                                    className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '처음으로' : 'Home'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
                 {simState.status === 'success' && (
-                    <div className="text-green-400 text-sm font-bold">
-                        {language === 'ko' ? '60일 생존! 우주선 탈출 성공.' : 'Survived 60 days! Escape successful.'}
+                    <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
+                        <div className="bg-green-950/40 border-2 border-green-900/50 p-6 rounded-3xl text-center backdrop-blur-md shadow-2xl max-w-sm">
+                            <div className="text-green-400 text-xl font-black mb-1">VICTORY</div>
+                            <div className="text-green-200 text-sm font-bold mb-4">
+                                {language === 'ko' ? '60일 생존! 우주선 탈출 성공.' : 'Survived 60 days! Escape successful.'}
+                            </div>
+                            <div className="text-slate-300 text-xs mb-6 leading-relaxed">
+                                {language === 'ko' ? '기존 스코어가 리더보드에 저장되었습니다.' : 'Your score has been saved to the leaderboard.'}
+                                <br />
+                                {language === 'ko' ? '새로운 생존을 시작하겠습니까?' : 'Would you like to start a new survival?'}
+                            </div>
+                            <div className="flex flex-wrap gap-3 justify-center">
+                                <button
+                                    onClick={startSimulation}
+                                    className="px-6 py-2.5 rounded-xl bg-green-800 hover:bg-green-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '다시하기' : 'Restart'}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/leaderboard')}
+                                    className="px-6 py-2.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '리더보드 보기' : 'Leaderboard'}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/')}
+                                    className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                                >
+                                    {language === 'ko' ? '처음으로' : 'Home'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -2028,17 +2474,11 @@ export default function SimulationClient() {
                     </div>
                     <div className="bg-[#171717] border border-[#2a2a2a] rounded-md p-3">
                         <div className="text-slate-400">{language === 'ko' ? '돈' : 'Money'}</div>
-                        <div className="text-white font-bold text-sm">{simState.money} / 10</div>
+                        <div className="text-white font-bold text-sm">{simState.money} / 30</div>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={startSimulation}
-                        className="px-4 py-2 rounded-md bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border border-[#7a5a20] shadow-sm"
-                    >
-                        {language === 'ko' ? '시뮬레이션 시작/재시작' : 'Start/Restart'}
-                    </button>
                     <button
                         onClick={handleUseMeds}
                         disabled={!canUseMeds}
