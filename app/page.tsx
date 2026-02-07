@@ -118,6 +118,20 @@ export default function Home() {
   const updates = [
     {
       date: '2024.02.08',
+      title: language === 'ko' ? '난이도 곡선 조절 (Danger 30%)' : 'Difficulty Adjusted (Danger 30%)',
+      content: language === 'ko'
+        ? '후반부 위협 발생 확률을 최대 50%에서 30%로 하향 조정하여 생존 가능성을 높였습니다.'
+        : 'Reduced late-game danger probability from 50% to 30% for better survival.'
+    },
+    {
+      date: '2024.02.08',
+      title: language === 'ko' ? '조용한 날 기술 체크 도입' : 'Quiet Day Skill Checks',
+      content: language === 'ko'
+        ? '조용한 날의 자원 획득이 확정에서 기술 레벨 기반 확률(성공 시 +1)로 변경되었습니다.'
+        : 'Guaranteed resource gain on quiet days replaced by skill-based success chances.'
+    },
+    {
+      date: '2024.02.08',
       title: language === 'ko' ? '60일 난이도 곡선 도입' : '60-Day Difficulty Curve',
       content: language === 'ko'
         ? '시뮬레이션 진행도에 따라 습격 및 위험 확률이 최대 5배까지 동적으로 증가합니다.'

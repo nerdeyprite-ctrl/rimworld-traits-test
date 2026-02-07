@@ -331,23 +331,44 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'quiet_rest',
                     label: isKo ? '1. 정비' : '1. Maintenance',
-                    description: isKo ? '체력 +1' : 'HP +1',
-                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '충분한 정비를 하며 기력을 회복했습니다.' : 'You maintained the base and recovered energy.'
+                    description: isKo ? '의학 기술 체크' : 'Medical skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    skillCheck: {
+                        label: isKo ? '정비' : 'Maintenance',
+                        group: ['의학'],
+                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        successText: isKo ? '충분한 정비를 하며 기력을 회복했습니다.' : 'You recovered energy through maintenance.',
+                        failText: isKo ? '정비를 시도했으나 별다른 성과가 없었습니다.' : 'You tried to maintain the base, but failed to recover.'
+                    }
                 },
                 {
                     id: 'quiet_farming',
                     label: isKo ? '2. 농사' : '2. Farming',
-                    description: isKo ? '식량 +1' : 'Food +1',
-                    delta: { hp: 0, food: 1, meds: 0, money: 0 },
-                    response: isKo ? '밭을 일구어 보급품을 확보했습니다.' : 'You worked in the fields to secure food.'
+                    description: isKo ? '재배 기술 체크' : 'Plants skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    skillCheck: {
+                        label: isKo ? '농사' : 'Farming',
+                        group: ['재배'],
+                        successDelta: { hp: 0, food: 1, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        successText: isKo ? '밭을 일구어 신선한 식량을 확보했습니다.' : 'You secured fresh food by farming.',
+                        failText: isKo ? '열심히 일했으나 이번 수확은 허탕이었습니다.' : 'You worked hard, but the harvest was poor.'
+                    }
                 },
                 {
                     id: 'quiet_mining',
                     label: isKo ? '3. 광물 채광' : '3. Mining',
-                    description: isKo ? '돈 +1' : 'Mining',
-                    delta: { hp: 0, food: 0, meds: 0, money: 1 },
-                    response: isKo ? '근처 암석에서 유용한 광물을 채굴했습니다.' : 'You mined useful minerals from nearby rocks.'
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    skillCheck: {
+                        label: isKo ? '채광' : 'Mining',
+                        group: ['제작'],
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 1 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        successText: isKo ? '근처 암석에서 유용한 광물을 성공적으로 채굴했습니다.' : 'You successfully mined useful minerals.',
+                        failText: isKo ? '하루 종일 곡갱이질을 했으나 소득이 없었습니다.' : 'You spent all day mining with no gain.'
+                    }
                 }
             ]
         },
@@ -1913,11 +1934,11 @@ export default function SimulationClient() {
         } else {
             // Difficulty Curve: Calculate category weights based on day
             // Day 0: Quiet(50%), NonCombat(40%), Danger(10%)
-            // Day 60: Quiet(15%), NonCombat(35%), Danger(50%)
+            // Day 60: Quiet(30%), NonCombat(40%), Danger(30%)
             const diffFactor = Math.min(1.0, nextDay / SHIP_BUILD_DAY);
-            const wQuiet = 50 - (35 * diffFactor);
-            const wNonCombat = 40 - (5 * diffFactor);
-            const wDanger = 10 + (40 * diffFactor);
+            const wQuiet = 50 - (20 * diffFactor);
+            const wNonCombat = 40;
+            const wDanger = 10 + (20 * diffFactor);
             const totalSetWeight = wQuiet + wNonCombat + wDanger;
 
             const roll = Math.random() * totalSetWeight;
