@@ -43,6 +43,7 @@ type SimChoice = {
     skillCheck?: SkillCheck;
     requirements?: ChoiceRequirements;
     isSpecial?: boolean;
+    specialReason?: string;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'danger';
@@ -701,7 +702,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             description: isKo ? '압도적인 무력으로 적을 소탕하고 기지를 턴다.' : 'Crush the raiders and loot their camp.',
             delta: { hp: 0, food: 1, meds: 1, money: 5 },
             response: isKo ? '적들을 전멸시키고 그들의 물자를 역으로 약탈했다.' : 'You annihilated the raiders and looted their supplies.',
-            isSpecial: true
+            isSpecial: true,
+            specialReason: isKo ? '격투/사격 15+' : 'Melee/Shooting 15+'
         });
     }
 
@@ -712,7 +714,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             description: isKo ? '상인을 완전히 설득하여 최고의 이득을 챙긴다.' : 'Persuade the trader for ultimate gain.',
             delta: { hp: 0, food: 3, meds: 3, money: 5 },
             response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었다.' : 'The trader, charmed by your words, gave everything.',
-            isSpecial: true
+            isSpecial: true,
+            specialReason: isKo ? '사교 15+' : 'Social 15+'
         });
     }
 
@@ -723,7 +726,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             description: isKo ? '동물들을 모두 사격해 대량의 고기를 얻는다.' : 'Kill all animals for a massive meat harvest.',
             delta: { hp: 1, food: 6, meds: 0, money: 0 },
             response: isKo ? '달려드는 동물들을 모두 사냥해 축제를 열었다.' : 'You hunted all the attackers and held a feast.',
-            isSpecial: true
+            isSpecial: true,
+            specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+'
         });
     }
 
@@ -735,6 +739,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 4, food: 0, meds: -1, money: 0 },
             response: isKo ? '당신의 신의에 가까운 의술로 질병을 완전히 극복했다.' : 'Your god-like medical skill completely cured the disease.',
             isSpecial: true,
+            specialReason: isKo ? '의학 15+' : 'Medical 15+',
             requirements: { meds: 1 }
         });
     }
@@ -746,7 +751,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             description: isKo ? '해충의 생태를 이용해 피해를 완전히 막는다.' : 'Use expert knowledge to stop the blight.',
             delta: { hp: 0, food: 2, meds: 0, money: 0 },
             response: isKo ? '해충 전문가인 당신에게 이 정도 병충해는 아무것도 아니었다.' : 'As a pest specialist, you saved the crops with ease.',
-            isSpecial: true
+            isSpecial: true,
+            specialReason: isKo ? '재배 12+' : 'Plants 12+'
         });
     }
 
@@ -757,7 +763,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             description: isKo ? '잔해에서 모든 유용한 부품을 추출한다.' : 'Extract every useful component.',
             delta: { hp: 0, food: 0, meds: 0, money: 6 },
             response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 은을 챙겼다.' : 'Your precision salvage earned you a fortune in silver.',
-            isSpecial: true
+            isSpecial: true,
+            specialReason: isKo ? '제작 12+' : 'Crafting 12+'
         });
     }
 
@@ -769,6 +776,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: -1, food: 0, meds: 0, money: 1 },
             response: isKo ? '강인함을 믿고 돌격했다.' : 'You charge with confidence.',
             isSpecial: true,
+            specialReason: isKo ? '강인함' : 'Tough',
             skillCheck: {
                 label: isKo ? '돌격' : 'Charge',
                 group: 'combat',
@@ -788,6 +796,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 1, food: 0, meds: 0, money: -1 },
             response: isKo ? '숨어서 상황을 피하려 했다.' : 'You try to hide from the raid.',
             isSpecial: true,
+            specialReason: isKo ? '심약자' : 'Wimp',
             skillCheck: {
                 label: isKo ? '은신' : 'Stealth',
                 group: 'survival',
@@ -807,6 +816,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '호의로 거래를 시도했다.' : 'You offer kindness in the deal.',
             isSpecial: true,
+            specialReason: isKo ? '다정다감' : 'Kind',
             skillCheck: {
                 label: isKo ? '호의' : 'Kindness',
                 group: 'social',
@@ -826,6 +836,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '협박으로 거래를 시도했다.' : 'You attempt to threaten the trader.',
             isSpecial: true,
+            specialReason: isKo ? '직설적' : 'Abrasive',
             skillCheck: {
                 label: isKo ? '협박' : 'Intimidation',
                 group: 'combat',
@@ -845,6 +856,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: -1, food: 0, meds: 0, money: 1 },
             response: isKo ? '불길을 확장하려 했다.' : 'You feed the fire.',
             isSpecial: true,
+            specialReason: isKo ? '방화광' : 'Pyromaniac',
             skillCheck: {
                 label: isKo ? '방화' : 'Arson',
                 group: 'craft',
@@ -866,6 +878,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 delta: { hp: -1, food: 1, meds: 0, money: 2 },
                 response: isKo ? '야근으로 추가 물자를 확보했다.' : 'You work overtime for extra supplies.',
                 isSpecial: true,
+                specialReason: isKo ? '근면성실' : 'Industrious',
                 skillCheck: {
                     label: isKo ? '노동' : 'Labor',
                     group: 'craft',
@@ -886,6 +899,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 0, food: 0, meds: 0, money: 0 },
             response: isKo ? '휴식을 택해 체력을 회복했다.' : 'You rest and recover.',
             isSpecial: true,
+            specialReason: isKo ? '게으름' : 'Lazy',
             skillCheck: {
                 label: isKo ? '휴식' : 'Rest',
                 group: 'medical',
@@ -1753,7 +1767,7 @@ export default function SimulationClient() {
         const abs = Math.abs(delta);
         const isLarge = abs >= 3;
         const symbol = delta > 0 ? (isLarge ? '++' : '+') : (isLarge ? '--' : '-');
-        return `${label} ${symbol}${abs}`;
+        return `${label} ${symbol}`;
     };
 
     const renderDeltaItems = (entry: SimLogEntry) => {
@@ -1934,8 +1948,11 @@ export default function SimulationClient() {
                                                             </button>
                                                             {outcomeInfo.length > 0 && (
                                                                 <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#0a192f] border border-blue-800 rounded-lg shadow-2xl text-[10px] text-slate-200 pointer-events-none transition-all opacity-0 group-hover:opacity-100">
-                                                                    <div className="font-bold text-[#e7c07a] mb-1 border-b border-blue-800/30 pb-1">
-                                                                        {language === 'ko' ? '예상 결과' : 'Expected Outcome'}
+                                                                    <div className="font-bold text-[#e7c07a] mb-1 border-b border-blue-800/30 pb-1 flex justify-between items-center">
+                                                                        <span>{language === 'ko' ? '예상 결과' : 'Expected Outcome'}</span>
+                                                                        {choice.specialReason && (
+                                                                            <span className="text-[9px] text-blue-300 ml-1">({choice.specialReason})</span>
+                                                                        )}
                                                                     </div>
                                                                     {outcomeInfo.map((info, idx) => (
                                                                         <div key={idx} className="mt-0.5 leading-tight">{info}</div>
