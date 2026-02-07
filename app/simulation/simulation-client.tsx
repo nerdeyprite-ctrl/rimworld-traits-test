@@ -101,6 +101,8 @@ type CurrentCard = {
 };
 
 const MAX_DAYS = 60;
+const TEMP_SAVE_KEY = 'rimworld_sim_temp_save';
+
 const START_STATS = { hp: 5, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
@@ -1212,6 +1214,8 @@ export default function SimulationClient() {
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
     const [showTraitsModal, setShowTraitsModal] = useState(false);
     const [showSkillsModal, setShowSkillsModal] = useState(false);
+    const [hasTempSave, setHasTempSave] = useState(false);
+
 
     const [simState, setSimState] = useState<{
         status: SimStatus;
@@ -1236,6 +1240,74 @@ export default function SimulationClient() {
         hasSerum: false,
         serumTraderShown: false
     });
+
+    // 임시저장 데이터 로드 체크
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(TEMP_SAVE_KEY);
+            if (saved) {
+                setHasTempSave(true);
+            }
+        }
+    }, []);
+
+    // 시뮬레이션 상태가 변경될 때마다 자동 저장
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        if (simState.status === 'running') {
+            const saveData = {
+                simState,
+                pendingChoice,
+                currentCard,
+                cardView,
+                hasShipBuilt,
+                showEndingCard,
+                allowContinue,
+                canBoardShip,
+                localUserInfo,
+                result,
+                isFullResult,
+                submittedOnDeath,
+                submittedOnExit
+            };
+            localStorage.setItem(TEMP_SAVE_KEY, JSON.stringify(saveData));
+        } else if (simState.status === 'dead' || simState.status === 'success') {
+            localStorage.removeItem(TEMP_SAVE_KEY);
+            setHasTempSave(false);
+        }
+    }, [
+        simState, pendingChoice, currentCard, cardView,
+        hasShipBuilt, showEndingCard, allowContinue, canBoardShip,
+        localUserInfo, result, isFullResult, submittedOnDeath, submittedOnExit
+    ]);
+
+    const resumeSimulation = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        const saved = localStorage.getItem(TEMP_SAVE_KEY);
+        if (!saved) return;
+        try {
+            const data = JSON.parse(saved);
+            setSimState(data.simState);
+            setPendingChoice(data.pendingChoice);
+            setCurrentCard(data.currentCard);
+            setCardView(data.cardView);
+            setHasShipBuilt(data.hasShipBuilt);
+            setShowEndingCard(data.showEndingCard);
+            setAllowContinue(data.allowContinue);
+            setCanBoardShip(data.canBoardShip);
+            setLocalUserInfo(data.localUserInfo);
+            setResult(data.result);
+            setIsFullResult(data.isFullResult);
+            if (data.submittedOnDeath !== undefined) setSubmittedOnDeath(data.submittedOnDeath);
+            if (data.submittedOnExit !== undefined) setSubmittedOnExit(data.submittedOnExit);
+            selectedSettlerRef.current = true;
+            setHasTempSave(false);
+        } catch (e) {
+            console.error("Failed to parse temp save:", e);
+        }
+    }, []);
+
 
     const userInfo = localUserInfo || contextUserInfo;
 
@@ -2261,15 +2333,24 @@ export default function SimulationClient() {
                                             {currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game')}
                                         </div>
                                         {!currentCard && (
-                                            <div className="mt-8">
+                                            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                                                 <button
                                                     onClick={startSimulation}
                                                     className="px-10 py-4 rounded-2xl bg-[#9f752a] hover:bg-[#b08535] text-white text-lg font-black border-4 border-[#7a5a20] shadow-[0_10px_30px_-10px_rgba(159,117,42,0.5)] transition-all hover:scale-105 active:scale-95"
                                                 >
-                                                    {language === 'ko' ? '시작하기' : 'Start Game'}
+                                                    {language === 'ko' ? (hasTempSave ? '새로 시작하기' : '시작하기') : (hasTempSave ? 'New Game' : 'Start Game')}
                                                 </button>
+                                                {hasTempSave && (
+                                                    <button
+                                                        onClick={resumeSimulation}
+                                                        className="px-10 py-4 rounded-2xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-lg font-black border-4 border-[#102a43] shadow-[0_10px_30px_-10px_rgba(28,61,90,0.5)] transition-all hover:scale-105 active:scale-95"
+                                                    >
+                                                        {language === 'ko' ? '이어하기' : 'Resume'}
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
+
                                     </div>
 
                                     <div className="mt-auto pt-6 space-y-3">
