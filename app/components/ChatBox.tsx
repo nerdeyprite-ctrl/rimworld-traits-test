@@ -19,7 +19,6 @@ export default function ChatBox() {
     const [inputMessage, setInputMessage] = useState('');
     const [accountId, setAccountId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isConfigured, setIsConfigured] = useState(false);
 
     useEffect(() => {
@@ -91,10 +90,6 @@ export default function ChatBox() {
             supabase.removeChannel(channel);
         };
     }, [isConfigured]);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
     const handleSendMessage = async () => {
         if (!inputMessage.trim() || !accountId || loading) return;
@@ -176,7 +171,6 @@ export default function ChatBox() {
                         </div>
                     ))
                 )}
-                <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
