@@ -2402,8 +2402,13 @@ export default function SimulationClient() {
 
                                                     if (choice.skillCheck) {
                                                         const avg = getGroupAverage(choice.skillCheck.group);
-                                                        const chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
+                                                        let chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
+                                                        if (choice.skillCheck.chanceMultiplier) {
+                                                            chance *= choice.skillCheck.chanceMultiplier;
+                                                        }
+                                                        chance = Math.max(5, Math.min(95, chance));
                                                         chanceText = language === 'ko' ? `성공 확률 ${chance}%` : `Success ${chance}%`;
+
 
                                                         const sText = getExpectation(choice.skillCheck.successDelta).join(', ');
                                                         const fText = getExpectation(choice.skillCheck.failDelta).join(', ');
