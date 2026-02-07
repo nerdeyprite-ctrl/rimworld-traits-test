@@ -1749,15 +1749,11 @@ export default function SimulationClient() {
     const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
 
     const getVagueDeltaText = (label: string, delta: number) => {
-        const isKo = language === 'ko';
         if (delta === 0) return '';
         const abs = Math.abs(delta);
         const isLarge = abs >= 3;
-
-        const sign = delta > 0 ? '+' : '-';
-        const intensity = isLarge ? (isKo ? ' 대량' : ' Large') : '';
-
-        return `${label}${intensity} ${sign}${abs}`;
+        const symbol = delta > 0 ? (isLarge ? '++' : '+') : (isLarge ? '--' : '-');
+        return `${label} ${symbol}${abs}`;
     };
 
     const renderDeltaItems = (entry: SimLogEntry) => {
@@ -1803,11 +1799,9 @@ export default function SimulationClient() {
                                 <span className="text-3xl font-black leading-none">
                                     {item.delta > 0 ? `+${item.delta}` : item.delta}
                                 </span>
-                                {Math.abs(item.delta) >= 3 && (
-                                    <span className="text-[10px] font-bold opacity-80 mt-1">
-                                        {language === 'ko' ? '대량 변화' : 'Large Change'}
-                                    </span>
-                                )}
+                                <span className="text-xs font-black opacity-60 mt-1 tracking-widest">
+                                    {item.delta > 0 ? (Math.abs(item.delta) >= 3 ? '++' : '+') : (Math.abs(item.delta) >= 3 ? '--' : '-')}
+                                </span>
                             </div>
                         </div>
                     );
