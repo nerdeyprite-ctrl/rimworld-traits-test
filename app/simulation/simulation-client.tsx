@@ -1741,7 +1741,7 @@ export default function SimulationClient() {
 
     const medicineLevel = skillMap['Medicine'] ?? 0;
     const healAmount = getHealAmount(medicineLevel);
-    const canUseMeds = simState.meds > 0 && simState.hp < 10 && !pendingChoice;
+    const canUseMeds = simState.meds > 0 && simState.hp < 10 && simState.status === 'running';
     const nextCampCost = CAMP_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeCamp = nextCampCost !== undefined && simState.money >= nextCampCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
@@ -1754,12 +1754,10 @@ export default function SimulationClient() {
         const abs = Math.abs(delta);
         const isLarge = abs >= 3;
 
-        const type = delta > 0
-            ? (isKo ? '증가' : 'Gain')
-            : (isKo ? '감소' : 'Loss');
+        const sign = delta > 0 ? '+' : '-';
         const intensity = isLarge ? (isKo ? ' 대량' : ' Large') : '';
 
-        return `${label}${intensity} ${type}`;
+        return `${label}${intensity} ${sign}${abs}`;
     };
 
     const renderDeltaItems = (entry: SimLogEntry) => {
@@ -1802,10 +1800,14 @@ export default function SimulationClient() {
                         >
                             <span className="text-[11px] font-black opacity-80 uppercase tracking-widest mb-1">{item.label}</span>
                             <div className="flex flex-col items-center gap-0.5">
-                                <span className="text-2xl font-black leading-none">{item.value}</span>
-                                <span className="text-[12px] font-bold opacity-90 whitespace-nowrap mt-1">
-                                    {getVagueDeltaText('', item.delta).trim()}
+                                <span className="text-3xl font-black leading-none">
+                                    {item.delta > 0 ? `+${item.delta}` : item.delta}
                                 </span>
+                                {Math.abs(item.delta) >= 3 && (
+                                    <span className="text-[10px] font-bold opacity-80 mt-1">
+                                        {language === 'ko' ? '대량 변화' : 'Large Change'}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     );
