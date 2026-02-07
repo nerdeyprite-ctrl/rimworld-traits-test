@@ -194,115 +194,139 @@ export default function LeaderboardPage() {
             {selectedEntry && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
                     <div className="bg-[#1b1b1b] border border-[#6b6b6b] p-1 shadow-2xl flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                        <div className="flex justify-between items-center bg-[#2b2b2b] border-b border-[#6b6b6b] p-4">
-                            <h2 className="text-[#e2c178] font-bold tracking-widest flex items-center gap-2">
-                                <span className="text-xs text-slate-500">COLONIST_PROFILE:</span>
-                                {selectedEntry.settler_name}
-                            </h2>
+                        {/* Header: Settler basic info */}
+                        <div className="bg-[#2a2a2a] p-4 flex justify-between items-start border-b border-[#444]">
+                            <div className="flex gap-4 items-center">
+                                <div className="w-16 h-16 bg-[#111] border border-[#444] flex items-center justify-center text-4xl">
+                                    {selectedEntry.gender === 'Female' ? '👩' : '👨'}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-[#e2c178] leading-tight">{selectedEntry.settler_name}</h2>
+                                    <div className="text-xs text-slate-400 mt-1 uppercase font-mono tracking-wider">
+                                        {selectedEntry.gender === 'Female' ? 'Female' : 'Male'}, {selectedEntry.age || 20} {language === 'ko' ? '세' : 'years old'} • {selectedEntry.mbti || 'Unknown'}
+                                    </div>
+                                    <div className="mt-1">
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase ${getExitTypeColor(selectedEntry.exit_type)}`}>
+                                            {getExitTypeLabel(selectedEntry.exit_type)} - {selectedEntry.day_count} DAYS
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => setSelectedEntry(null)}
-                                className="w-8 h-8 flex items-center justify-center bg-[#111] border border-[#555] text-white hover:bg-red-900 transition-colors"
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
                             >
-                                ✕
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
 
-                        <div className="overflow-y-auto p-4 md:p-6 bg-[#111]/50 space-y-6">
-                            {selectedEntry.traits && selectedEntry.traits.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {/* Left: Info & Backstory */}
-                                    <div className="space-y-4">
-                                        <div className="bg-[#111] border border-[#6b6b6b] p-3 text-center">
-                                            <div className="text-[10px] text-gray-500 mb-1 uppercase tracking-widest">{t('gender')} / {t('age')}</div>
-                                            <div className="text-lg text-white font-bold">
-                                                {selectedEntry.gender === 'Male' ? '♂ ' + t('male') : '♀ ' + t('female')} / {selectedEntry.age}
-                                            </div>
-                                            {selectedEntry.mbti && (
-                                                <div className="mt-2 inline-block bg-[#333] border border-[#555] px-3 py-1 rounded text-[10px] text-[#9f752a] font-bold tracking-widest shadow-sm">
-                                                    {selectedEntry.mbti}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="bg-[#111] border border-[#6b6b6b] p-3 space-y-4">
-                                            {selectedEntry.backstory_childhood && (
-                                                <div>
-                                                    <h4 className="text-[#a2a2a2] font-semibold mb-1 text-xs uppercase">{t('childhood')}</h4>
-                                                    <div className="text-[#e2c178] font-bold text-sm">{selectedEntry.backstory_childhood.title}</div>
-                                                    <p className="text-gray-400 text-[10px] italic leading-tight mt-1">{selectedEntry.backstory_childhood.description}</p>
-                                                </div>
-                                            )}
-                                            {selectedEntry.backstory_adulthood && (
-                                                <div>
-                                                    <h4 className="text-[#a2a2a2] font-semibold mb-1 text-xs uppercase">{t('adulthood')}</h4>
-                                                    <div className="text-[#e2c178] font-bold text-sm">{selectedEntry.backstory_adulthood.title}</div>
-                                                    <p className="text-gray-400 text-[10px] italic leading-tight mt-1">{selectedEntry.backstory_adulthood.description}</p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="bg-[#111] border border-[#6b6b6b] p-3">
-                                            <h4 className="text-[#ff4d4d] font-bold text-xs mb-2 border-b border-gray-700 pb-1 uppercase">{t('incapable')}</h4>
-                                            {selectedEntry.incapabilities && selectedEntry.incapabilities.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {selectedEntry.incapabilities.map(skill => (
-                                                        <span key={skill} className="px-1.5 py-0.5 bg-[#3a1a1a] border border-[#ff4d4d] text-[#ff4d4d] text-[9px] font-bold rounded uppercase">
-                                                            {getSkillName(skill)}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="text-gray-500 text-[10px] italic">{t('none')}</div>
-                                            )}
-                                        </div>
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                            {(!selectedEntry.traits || selectedEntry.traits.length === 0) && (!selectedEntry.skills || selectedEntry.skills.length === 0) ? (
+                                <div className="py-20 text-center space-y-4 bg-[#111] border border-[#333] rounded-lg">
+                                    <div className="text-4xl opacity-30">📜</div>
+                                    <div className="text-slate-400">
+                                        {language === 'ko'
+                                            ? '이 정착민은 상세 정보 기록 기능 도입 전에 등록되었습니다.'
+                                            : 'This settler was registered before detailed stats were added.'}
                                     </div>
-
-                                    {/* Middle: Traits */}
-                                    <div className="space-y-3">
-                                        <h3 className="text-[#9f752a] font-bold text-sm border-b border-gray-600 pb-1 uppercase">{t('traits')}</h3>
-                                        <div className="space-y-2">
-                                            {selectedEntry.traits.map(trait => (
-                                                <div key={trait.id} className="bg-[#222] border border-[#333] p-2 hover:border-[#555] transition-colors">
-                                                    <div className="text-[#ffc45d] font-bold text-xs">{trait.name}</div>
-                                                    <p className="text-gray-400 text-[9px] mt-1 leading-relaxed">{trait.description}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Right: Skills */}
-                                    <div className="space-y-3">
-                                        <h3 className="text-[#9f752a] font-bold text-sm border-b border-gray-600 pb-1 uppercase">{t('skills')}</h3>
-                                        <div className="space-y-1.5">
-                                            {selectedEntry.skills?.map((skill, idx) => {
-                                                const isIncapable = selectedEntry.incapabilities?.includes(skill.name);
-                                                const level = skill.level;
-                                                const fire = skill.passion === 'Major' ? '🔥🔥' : (skill.passion === 'Minor' ? '🔥' : '');
-                                                return (
-                                                    <div key={idx} className="flex flex-col opacity-90">
-                                                        <div className="flex justify-between items-end text-[10px] mb-0.5">
-                                                            <span className={isIncapable ? 'text-gray-500 line-through' : 'text-gray-300 font-bold'}>
-                                                                {getSkillName(skill.name)}
-                                                            </span>
-                                                            <div className="flex items-center">
-                                                                {!isIncapable && <span className="text-[#ffb000] text-[8px] mr-1">{fire}</span>}
-                                                                <span className="text-white font-mono">{isIncapable ? '-' : level}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="w-full h-1.5 bg-[#111] border border-gray-800 relative">
-                                                            {!isIncapable && (
-                                                                <div className="h-full bg-[#5b5b5b]" style={{ width: `${(level / 20) * 100}%` }}></div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                    <div className="text-xs text-slate-600 italic">
+                                        {language === 'ko'
+                                            ? '(상세 스탯을 보려면 새로 시뮬레이션을 완료해야 합니다)'
+                                            : '(New simulation needs to be completed to see detailed stats)'}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-20 text-slate-500 italic">
-                                    {language === 'ko' ? '이 정착민의 상세 능력치 정보가 없습니다.' : 'Detailed stats for this colonist are unavailable.'}
+                                <div className="flex flex-col md:flex-row gap-8">
+                                    {/* Left Column: Backstory & Traits */}
+                                    <div className="flex-1 space-y-8">
+                                        {/* Backstory */}
+                                        <section>
+                                            <h3 className="text-xs font-bold text-[#e2c178] uppercase border-b border-[#444] pb-1 mb-4">{language === 'ko' ? '배경 정보' : 'Background'}</h3>
+                                            <div className="space-y-4">
+                                                {selectedEntry.backstory_childhood && (
+                                                    <div className="bg-[#222] p-3 border border-[#333]">
+                                                        <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">{language === 'ko' ? '유년기' : 'Childhood'}</div>
+                                                        <div className="text-sm font-bold text-slate-200 mb-1">{selectedEntry.backstory_childhood.title}</div>
+                                                        <div className="text-xs text-slate-400 leading-relaxed italic">"{selectedEntry.backstory_childhood.description}"</div>
+                                                    </div>
+                                                )}
+                                                {selectedEntry.backstory_adulthood && (
+                                                    <div className="bg-[#222] p-3 border border-[#333]">
+                                                        <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">{language === 'ko' ? '성인기' : 'Adulthood'}</div>
+                                                        <div className="text-sm font-bold text-slate-200 mb-1">{selectedEntry.backstory_adulthood.title}</div>
+                                                        <div className="text-xs text-slate-400 leading-relaxed italic">"{selectedEntry.backstory_adulthood.description}"</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </section>
+
+                                        {/* Trait List */}
+                                        <section>
+                                            <h3 className="text-xs font-bold text-[#e2c178] uppercase border-b border-[#444] pb-1 mb-4">{language === 'ko' ? '보유 특성' : 'Traits'}</h3>
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {selectedEntry.traits?.map((trait: Trait, i: number) => (
+                                                    <div key={i} className="bg-[#222] p-3 border border-[#333] hover:border-[#555] transition-colors">
+                                                        <div className="text-sm font-bold text-white mb-1">{trait.name}</div>
+                                                        <div className="text-[10px] text-slate-400 leading-tight line-clamp-2">{trait.description}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
+
+                                        {/* Incapabilities */}
+                                        {selectedEntry.incapabilities && selectedEntry.incapabilities.length > 0 && (
+                                            <section>
+                                                <h3 className="text-xs font-bold text-red-500 uppercase border-b border-[#444] pb-1 mb-4">{language === 'ko' ? '결격 사항' : 'Incapacities'}</h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedEntry.incapabilities.map((incap: string, i: number) => (
+                                                        <span key={i} className="px-2 py-1 bg-red-900/20 border border-red-900/50 text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                                                            {getSkillName(incap)}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+                                    </div>
+
+                                    {/* Right Column: Skills */}
+                                    <div className="flex-1">
+                                        <section>
+                                            <h3 className="text-xs font-bold text-[#e2c178] uppercase border-b border-[#444] pb-1 mb-4">{language === 'ko' ? '보유 기술' : 'Skills'}</h3>
+                                            <div className="space-y-3 bg-[#111] p-4 border border-[#333]">
+                                                {selectedEntry.skills?.map((skill: Skill, i: number) => {
+                                                    const levelRatio = (skill.level / 20) * 100;
+                                                    const passionIcon = skill.passion === 'Major' ? '🔥🔥' : skill.passion === 'Minor' ? '🔥' : '';
+
+                                                    return (
+                                                        <div key={i} className="space-y-1">
+                                                            <div className="flex justify-between items-end">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="text-[11px] font-bold text-slate-300">{getSkillName(skill.name)}</span>
+                                                                    <span className="text-[10px] leading-none mb-0.5">{passionIcon}</span>
+                                                                </div>
+                                                                <span className="text-[11px] font-mono font-bold text-white">{skill.level}</span>
+                                                            </div>
+                                                            <div className="h-2 bg-[#222] border border-[#333] relative overflow-hidden">
+                                                                <div
+                                                                    className="h-full bg-slate-500 transition-all duration-1000"
+                                                                    style={{ width: `${levelRatio}%` }}
+                                                                />
+                                                                {/* Ticks */}
+                                                                <div className="absolute inset-0 flex justify-between px-[10%] pointer-events-none">
+                                                                    <div className="border-l border-black/30 h-full" />
+                                                                    <div className="border-l border-black/30 h-full" />
+                                                                    <div className="border-l border-black/30 h-full" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </section>
+                                    </div>
                                 </div>
                             )}
                         </div>
