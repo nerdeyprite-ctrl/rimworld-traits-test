@@ -351,42 +351,6 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '그냥 보내기' : 'Pass',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '거래 없이 상단을 돌려보냈습니다.' : 'You let the caravan pass.'
-                },
-                {
-                    id: 'trade_legendary',
-                    label: isKo ? '전설적인 거래' : 'Legendary Trade',
-                    description: isKo ? '사교 15+' : 'Social 15+',
-                    requirements: { social: 15 },
-                    delta: { hp: 0, food: 5, meds: 3, money: 5 },
-                    response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었습니다.' : 'The trader is impressed by your charm.'
-                },
-                {
-                    id: 'trade_kind',
-                    label: isKo ? '호의 베풀기' : 'Kind Offer',
-                    description: isKo ? '다정다감 (특성)' : 'Kind (Trait)',
-                    traitRequirement: 'kind',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '호의로 거래를 시도했습니다.' : 'You attempt a trade with kindness.',
-                    skillCheck: {
-                        label: isKo ? '사교' : 'Social',
-                        group: ['사교'],
-                        successDelta: { hp: 0, food: 2, meds: 1, money: 1 },
-                        failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
-                    }
-                },
-                {
-                    id: 'trade_abrasive',
-                    label: isKo ? '협박' : 'Intimidate',
-                    description: isKo ? '직설적 (특성)' : 'Abrasive (Trait)',
-                    traitRequirement: 'abrasive',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '협박으로 거래를 시도했습니다.' : 'You intimidate the trader.',
-                    skillCheck: {
-                        label: isKo ? '협박' : 'Intimidate',
-                        group: ['격투', '사격'],
-                        successDelta: { hp: 0, food: 2, meds: 0, money: 2 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
-                    }
                 }
             ]
         },
@@ -623,35 +587,6 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         fixedChance: 80,
                         successDelta: { hp: 0, food: -1, meds: 0, money: -2 },
                         failDelta: { hp: -3, food: -2, meds: 0, money: -3 }
-                    }
-                },
-                {
-                    id: 'raid_stealth',
-                    label: isKo ? '은신' : 'Stealth',
-                    description: isKo ? '겁쟁이 (특성)' : 'Wimp (Trait)',
-                    traitRequirement: 'wimp',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다.' : 'You hide in fear.',
-                    skillCheck: {
-                        label: isKo ? '은신' : 'Stealth',
-                        group: ['생존'],
-                        fixedChance: 70,
-                        successDelta: { hp: 0, food: -1, meds: 0, money: -1 },
-                        failDelta: { hp: -2, food: -1, meds: 0, money: -2 }
-                    }
-                },
-                {
-                    id: 'raid_tough',
-                    label: isKo ? '강인한 돌격' : 'Tough Charge',
-                    description: isKo ? '강인함 (특성)' : 'Tough (Trait)',
-                    traitRequirement: 'tough',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '강인함을 믿고 적진으로 돌격합니다!' : 'You charge with toughness!',
-                    skillCheck: {
-                        label: isKo ? '돌격' : 'Charge',
-                        group: ['격투'],
-                        successDelta: { hp: -1, food: 0, meds: 0, money: 4 },
-                        failDelta: { hp: -3, food: 0, meds: 0, money: 1 }
                     }
                 }
             ]
