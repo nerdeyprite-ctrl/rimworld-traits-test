@@ -1266,21 +1266,21 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
     }
 
     if (event.id === 'fire' && traitIds.has('pyromaniac')) {
+        // Remove existing 'Extinguish' choice
+        const extIndex = choices.findIndex(c => c.id === 'fire_extinguish');
+        if (extIndex !== -1) {
+            choices.splice(extIndex, 1);
+        }
+
+        // Add 'Watch the Fire' choice
         choices.push({
-            id: 'pyro_fuel',
-            label: isKo ? '불길 확장' : 'Fuel the Fire',
-            description: isKo ? '제작 기술 체크' : 'Crafting skill check',
-            delta: { hp: -1, food: 0, meds: 0, money: 1 },
-            response: isKo ? '불길이 번지는 것을 지켜보며 즐거움을 느꼈습니다.' : 'You feed the fire.',
+            id: 'pyro_watch',
+            label: isKo ? '불길 감상' : 'Watch the Fire',
+            description: isKo ? '체력 -2, 돈 -3' : 'HP -2, Money -3',
+            delta: { hp: -2, food: 0, meds: 0, money: -3 },
+            response: isKo ? '불길이 타오르는 것을 넋을 잃고 바라보았습니다.' : 'You stared at the flames in a trance.',
             isSpecial: true,
-            specialReason: isKo ? '방화광' : 'Pyromaniac',
-            skillCheck: {
-                label: isKo ? '방화' : 'Arson',
-                group: ['제작'],
-                chanceMultiplier: 2,
-                successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
-                failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
-            }
+            specialReason: isKo ? '방화광' : 'Pyromaniac'
         });
     }
     if (event.id === 'psychic_drone' && traitIds.has('iron_willed')) {
@@ -1375,6 +1375,8 @@ export default function SimulationClient() {
     const [showTraitsModal, setShowTraitsModal] = useState(false);
     const [showSkillsModal, setShowSkillsModal] = useState(false);
     const [hasTempSave, setHasTempSave] = useState(false);
+    const [showBoardConfirm, setShowBoardConfirm] = useState(false);
+    const [showEndingConfirm, setShowEndingConfirm] = useState(false);
 
 
     const [simState, setSimState] = useState<{
@@ -1753,6 +1755,11 @@ export default function SimulationClient() {
         setSubmittedOnDeath(false);
         setSubmittedOnExit(false);
         setSubmitMessage(null);
+        setSubmittedOnDeath(false);
+        setSubmittedOnExit(false);
+        setSubmitMessage(null);
+        setShowBoardConfirm(false);
+        setShowEndingConfirm(false);
     }, [language]);
 
     const buildResponseText = (baseNotes: string[], traitNotes: string[], skillNote: string, choiceResponse?: string, systemNote?: string) => {
@@ -2199,32 +2206,7 @@ export default function SimulationClient() {
 
         if (pendingChoice.event.id === 'ship_built') {
             if (choice.id === 'escape_now') {
-                submitScore('escape', pendingChoice.day, false);
-                setSubmittedOnExit(true);
-                setSimState(prev => ({
-                    ...prev,
-                    status: 'success'
-                }));
-                setPendingChoice(null);
-                setShowEndingCard(false);
-                setAllowContinue(false);
-                setCanBoardShip(false);
-                setCurrentCard({
-                    day: pendingChoice.day,
-                    season: pendingChoice.season,
-                    event: pendingChoice.event,
-                    entry: {
-                        day: pendingChoice.day,
-                        season: pendingChoice.season,
-                        title: pendingChoice.event.title,
-                        description: pendingChoice.event.description,
-                        response: choice.response || '',
-                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                        after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
-                        status: 'good'
-                    }
-                });
-                setCardView('result');
+                setShowEndingConfirm(true);
                 return;
             }
             if (choice.id === 'stay_longer') {
@@ -2316,7 +2298,7 @@ export default function SimulationClient() {
     };
 
     const handleUseMeds = () => {
-        if (pendingChoice) return;
+        // if (pendingChoice) return; // 선택지 중에도 사용 가능하도록 변경
         const medicineLevel = skillMap['Medicine'] ?? 0;
         const healAmount = getHealAmount(medicineLevel);
         setSimState(prev => {
@@ -2421,6 +2403,7 @@ export default function SimulationClient() {
         );
     }
 
+
     const medicineLevel = skillMap['Medicine'] ?? 0;
     const healAmount = getHealAmount(medicineLevel);
     const canUseMeds = simState.meds > 0 && simState.hp < 10 && simState.status === 'running';
@@ -2428,7 +2411,7 @@ export default function SimulationClient() {
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
-    const canBoardNow = canBoardShip && simState.status === 'running' && !pendingChoice;
+    const canBoardNow = hasShipBuilt && simState.status === 'running';
 
     const getVagueDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
@@ -2795,9 +2778,7 @@ export default function SimulationClient() {
                         <button
                             onClick={() => {
                                 if (submittedOnExit) return;
-                                submitScore('escape', simState.day, false);
-                                setSubmittedOnExit(true);
-                                setSimState(prev => ({ ...prev, status: 'success' }));
+                                setShowBoardConfirm(true);
                             }}
                             disabled={!canBoardNow}
                             className={`px-4 py-2 text-xs font-black rounded-lg border-2 transition-all ${canBoardNow
@@ -2902,6 +2883,56 @@ export default function SimulationClient() {
                         </div>
                         <div className="p-4 bg-black/60 flex justify-end">
                             <button onClick={() => setShowSkillsModal(false)} className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black transition-all">{language === 'ko' ? '확인' : 'OK'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modals */}
+            {(showBoardConfirm || showEndingConfirm) && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+                    <div className="bg-[#1a1a1a] border-2 border-[#e7c07a] rounded-2xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(231,192,122,0.3)] animate-in zoom-in-95 duration-200">
+                        <div className="bg-[#e7c07a]/10 p-6 text-center border-b border-[#e7c07a]/30">
+                            <div className="text-3xl mb-2">🚀</div>
+                            <h3 className="text-xl font-black text-[#e7c07a] uppercase tracking-widest">
+                                {language === 'ko' ? '우주선 탑승' : 'Board Spaceship'}
+                            </h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-slate-300 text-sm leading-relaxed text-center font-medium">
+                                {showEndingConfirm
+                                    ? (language === 'ko'
+                                        ? '정말 떠나시겠습니까? 계속 생존하여 더 높은 기록을 세울 수 있습니다.'
+                                        : 'Do you really want to leave? You can continue to survive for a higher record.')
+                                    : (language === 'ko'
+                                        ? '정말 우주선에 탑승하시겠습니까? 돌이킬 수 없습니다.'
+                                        : 'Are you sure you want to board the ship? There is no turning back.')
+                                }
+                            </p>
+                        </div>
+                        <div className="p-4 bg-black/40 flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowBoardConfirm(false);
+                                    setShowEndingConfirm(false);
+                                }}
+                                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all"
+                            >
+                                {showEndingConfirm ? (language === 'ko' ? '계속 도전하기' : 'Continue Challenge') : (language === 'ko' ? '취소' : 'Cancel')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    submitScore('escape', simState.day, false);
+                                    setSubmittedOnExit(true);
+                                    setSimState(prev => ({ ...prev, status: 'success' }));
+                                    setShowBoardConfirm(false);
+                                    setShowEndingConfirm(false);
+                                    setPendingChoice(null); // Ensure pending choice is cleared if any
+                                }}
+                                className="flex-1 py-3 bg-[#9f752a] hover:bg-[#b08535] text-white rounded-xl text-sm font-bold border-2 border-[#7a5a20] transition-all"
+                            >
+                                {showEndingConfirm ? (language === 'ko' ? '지금 탈출하기' : 'Escape Now') : (language === 'ko' ? '탑승하기' : 'Board Now')}
+                            </button>
                         </div>
                     </div>
                 </div>
