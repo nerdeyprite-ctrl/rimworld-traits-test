@@ -1759,7 +1759,15 @@ export default function SimulationClient() {
                 account_id: accountId,
                 settler_name: userInfo?.name || '정착민',
                 day_count: finalDay,
-                exit_type: exitType
+                exit_type: exitType,
+                traits: result?.traits || [],
+                skills: result?.skills || [],
+                mbti: result?.mbti || '',
+                backstory_childhood: result?.backstory?.childhood || null,
+                backstory_adulthood: result?.backstory?.adulthood || null,
+                incapabilities: result?.incapabilities || [],
+                age: userInfo?.age || 20,
+                gender: userInfo?.gender || 'Male'
             });
             if (error) throw error;
             setSubmitMessage(language === 'ko'
@@ -1769,7 +1777,7 @@ export default function SimulationClient() {
             console.error('Failed to submit leaderboard score:', err);
             setSubmitMessage(language === 'ko' ? '리더보드 제출에 실패했습니다.' : 'Leaderboard submission failed.');
         }
-    }, [language, userInfo]);
+    }, [language, userInfo, result]);
 
     const advanceDay = useCallback(() => {
         if (simState.status !== 'running' || pendingChoice) return;
