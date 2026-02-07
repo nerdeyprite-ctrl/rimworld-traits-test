@@ -2436,8 +2436,9 @@ export default function SimulationClient() {
 
         const resolved = resolveEvent(
             pendingChoice.event,
-            pendingChoice.dayStart,
-            pendingChoice.baseAfter,
+            // Use current state as baseline to include any changes made while pending (e.g. using meds)
+            { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
+            { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
             pendingChoice.responseNotes,
             simState.campLevel,
             choice
