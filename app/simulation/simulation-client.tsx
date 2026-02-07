@@ -167,6 +167,7 @@ const TRAIT_EFFECTS: Record<string, { ko: string; en: string }> = {
     ascetic: { ko: "시작 물자: HP +5 보너스, 은 -5 페널티", en: "Starting items: +5 HP bonus, -5 Silver penalty" },
     wimp: { ko: "시작 물자: 치료제 +3 보너스, [전용 선택지 추가]", en: "Starting items: +3 Meds bonus, [Special choice added]" },
     industrious: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
+    hard_worker: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
     lazy: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
     kind: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
     abrasive: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
@@ -954,7 +955,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 response: isKo ? '열심히 일해 은을 꽤 벌었습니다.' : 'You worked hard and earned quite a bit of silver.'
             });
         }
-        if (traitIds.has('industrious') && Math.random() < 0.10) {
+        if ((traitIds.has('industrious') || traitIds.has('hard_worker')) && Math.random() < 0.10) {
             choices.push({
                 id: 'work_overtime',
                 label: isKo ? '야근' : 'Overtime',
@@ -962,7 +963,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
                 response: isKo ? '야근으로 추가 물자를 확보했습니다.' : 'You work overtime for extra supplies.',
                 isSpecial: true,
-                specialReason: isKo ? '근면성실' : 'Industrious',
+                specialReason: isKo ? (traitIds.has('hard_worker') ? '근면성실' : '일벌레') : 'Work Ethic',
                 skillCheck: {
                     label: isKo ? '정진' : 'Hard Work',
                     group: ['제작'],
@@ -1106,7 +1107,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
                 response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다.' : 'You hide in fear.',
                 isSpecial: true,
-                specialReason: isKo ? '심약자' : 'Wimp',
+                specialReason: isKo ? '엄살쟁이' : 'Wimp',
                 skillCheck: {
                     label: isKo ? '은신' : 'Stealth',
                     group: ['생존'],
@@ -1483,6 +1484,9 @@ export default function SimulationClient() {
             startMoney = 0;
         }
         if (traitIds.has('wimp')) startMeds = 5;
+        if (traitIds.has('hard_worker') || traitIds.has('industrious')) {
+            // Additional check or starting bonus could be added here later
+        }
 
         setSimState({
             status: 'running',
