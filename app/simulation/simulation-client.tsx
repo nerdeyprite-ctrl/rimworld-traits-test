@@ -103,7 +103,7 @@ type CurrentCard = {
 const MAX_DAYS = 60;
 const TEMP_SAVE_KEY = 'rimworld_sim_temp_save';
 
-const START_STATS = { hp: 5, food: 5, meds: 2, money: 5 };
+const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
 
@@ -127,7 +127,7 @@ const SKILL_GROUPS: Record<string, string[]> = {
 
 const MOVEMENT_TRAITS = new Set(['fast_walker', 'jogger', 'nimble', 'slowpoke']);
 
-const clampStat = (value: number, max: number = 10) => Math.max(0, Math.min(max, value));
+const clampStat = (value: number, max: number = 20) => Math.max(0, Math.min(max, value));
 
 const getSeasonLabel = (day: number, language: string) => {
     if (day <= 0) return language === 'ko' ? '시작' : 'Start';
@@ -1714,7 +1714,7 @@ export default function SimulationClient() {
 
         if (traitIds.has('greedy')) startMoney = 15;
         if (traitIds.has('ascetic')) {
-            startHp = 10;
+            startHp = 15;
             startMoney = 0;
         }
         if (traitIds.has('wimp')) startMeds = 5;
@@ -1959,9 +1959,10 @@ export default function SimulationClient() {
                 food = 0;
                 hp -= 1; // 식량 없으면 체력 -1
                 responseNotes.push(language === 'ko' ? '식량이 부족하여 체력이 저하되었습니다.' : 'Lack of food decreased your HP.');
-            } else {
-                responseNotes.push(language === 'ko' ? '식량을 소비했습니다.' : 'Consumed food.');
             }
+            // else {
+            //     responseNotes.push(language === 'ko' ? '식량을 소비했습니다.' : 'Consumed food.');
+            // }
         }
 
         hp = clampStat(hp);
@@ -2149,7 +2150,7 @@ export default function SimulationClient() {
         let finalHasSerum = simState.hasSerum;
 
         if (finalHp <= 0 && finalHasSerum) {
-            finalHp = 5;
+            finalHp = 10;
             finalStatus = 'running';
             finalHasSerum = false;
             finalResponse += language === 'ko'
@@ -2249,7 +2250,7 @@ export default function SimulationClient() {
         let finalHasSerum = simState.hasSerum;
 
         if (finalHp <= 0 && finalHasSerum) {
-            finalHp = 5;
+            finalHp = 10;
             finalStatus = 'running';
             finalHasSerum = false;
             finalResponse += language === 'ko'
@@ -2302,7 +2303,7 @@ export default function SimulationClient() {
         const medicineLevel = skillMap['Medicine'] ?? 0;
         const healAmount = getHealAmount(medicineLevel);
         setSimState(prev => {
-            if (prev.meds <= 0 || prev.hp >= 10) return prev;
+            if (prev.meds <= 0 || prev.hp >= 20) return prev;
             const hp = clampStat(prev.hp + healAmount);
             const meds = prev.meds - 1;
             const entry: SimLogEntry = {
@@ -2406,7 +2407,7 @@ export default function SimulationClient() {
 
     const medicineLevel = skillMap['Medicine'] ?? 0;
     const healAmount = getHealAmount(medicineLevel);
-    const canUseMeds = simState.meds > 0 && simState.hp < 10 && simState.status === 'running';
+    const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
     const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
@@ -2735,7 +2736,7 @@ export default function SimulationClient() {
                     </div>
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
                         <div className="text-[10px] text-red-500/80 font-bold uppercase leading-none mb-1">HP</div>
-                        <div className="text-white font-black text-base">{simState.hp} / 10</div>
+                        <div className="text-white font-black text-base">{simState.hp} / 20</div>
                     </div>
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
                         <div className="text-[10px] text-amber-600 font-bold uppercase leading-none mb-1">{language === 'ko' ? '식량' : 'Food'}</div>
