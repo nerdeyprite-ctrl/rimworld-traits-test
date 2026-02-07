@@ -1080,6 +1080,24 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 }
             });
         }
+        if (traitIds.has('pyromaniac')) {
+            choices.push({
+                id: 'raid_fire',
+                label: isKo ? '화염병 투척' : 'Throw Molotov',
+                description: isKo ? '사격 기술 체크' : 'Shooting skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '화염병을 던져 적들을 혼란에 빠뜨립니다!' : 'You throw molotovs to confuse enemies.',
+                isSpecial: true,
+                specialReason: isKo ? '방화광' : 'Pyromaniac',
+                skillCheck: {
+                    label: isKo ? '방화' : 'Arson',
+                    group: ['사격'],
+                    chanceMultiplier: 2,
+                    successDelta: { hp: -1, food: 0, meds: 0, money: 3 },
+                    failDelta: { hp: -3, food: 0, meds: 0, money: -1 }
+                }
+            });
+        }
     }
 
     if (event.id === 'manhunter' && (shooting >= 12 || melee >= 12)) {
