@@ -845,15 +845,81 @@ const buildSimEvents = (language: string): SimEvent[] => {
                 {
                     id: 'drone_resist',
                     label: isKo ? '정신 집중' : 'Resist',
-                    description: isKo ? '사교 기술 체크' : 'Social skill check',
+                    description: isKo ? '연구 기술 체크' : 'Intellectual skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '강한 정신력으로 파동을 이겨내려 노력합니다.' : 'You focus your mind to resist.',
                     skillCheck: {
                         label: isKo ? '집중' : 'Focus',
-                        group: ['사교'],
+                        group: ['Intellectual'],
                         successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -3, food: 0, meds: 0, money: 0 }
                     }
+                }
+            ]
+        },
+        {
+            id: 'breakup',
+            title: isKo ? '이별' : 'Breakup',
+            description: isKo ? '사랑하던 연인이 당신을 떠났습니다. 마음이 찢어지는 듯한 고통을 느낍니다.' : 'Your lover has left you. You feel a heart-wrenching pain.',
+            category: 'noncombat',
+            weight: 2,
+            base: { hp: -2, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'breakup_accept',
+                    label: isKo ? '받아들이기' : 'Accept',
+                    description: isKo ? '슬픔을 견딥니다.' : 'Endure the sadness.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '시간이 약일 것입니다...' : 'Time will heal...'
+                }
+            ]
+        },
+        {
+            id: 'pet_death',
+            title: isKo ? '반려동물의 죽음' : 'Death of a Pet',
+            description: isKo ? '기지에서 오랫동안 함께한 애정하는 반려동물이 세상을 떠났습니다.' : 'Your beloved bonded pet has passed away.',
+            category: 'danger',
+            weight: 2,
+            base: { hp: -3, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'pet_mourn',
+                    label: isKo ? '애도하기' : 'Mourn',
+                    description: isKo ? '슬픔에 잠깁니다.' : 'Mourn the loss.',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무지개 다리를 건넌 그 아이를 추억합니다.' : 'You remember the pet fondly.'
+                }
+            ]
+        },
+        {
+            id: 'psychic_soother',
+            title: isKo ? '정신 안정기' : 'Psychic Soother',
+            description: isKo ? '기분 좋은 파동이 정착지에 퍼지며 마음이 평온해집니다.' : 'A pleasant psychic wave spreads, bringing peace of mind.',
+            category: 'noncombat',
+            weight: 3,
+            base: { hp: 2, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'soother_enjoy',
+                    label: isKo ? '평온 즐기기' : 'Enjoy the Peace',
+                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '몸과 마음이 회복되는 것을 느낍니다.' : 'You feel your body and mind recovering.'
+                }
+            ]
+        },
+        {
+            id: 'party',
+            title: isKo ? '파티' : 'Party',
+            description: isKo ? '정착민들이 모여 즐거운 파티를 엽니다! 기분이 최고조에 달합니다.' : 'Everyone gathers for a party! Spirits are high.',
+            category: 'quiet',
+            weight: 5,
+            base: { hp: 2, food: -1, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'party_dance',
+                    label: isKo ? '춤추고 즐기기' : 'Dance and Enjoy',
+                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '오랜만의 즐거운 시간에 활력이 샘솟습니다.' : 'The fun time rejuvenates you.'
                 }
             ]
         },
@@ -1215,6 +1281,65 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
                 failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
             }
+        });
+    }
+    if (event.id === 'psychic_drone' && traitIds.has('iron_willed')) {
+        choices.push({
+            id: 'iron_will_ignore',
+            label: isKo ? '철의 의지' : 'Iron Will',
+            description: isKo ? '아무런 영향을 받지 않습니다.' : 'Completely unaffected.',
+            delta: { hp: 3, food: 0, meds: 0, money: 0 },
+            response: isKo ? '당신의 의지는 강철과 같아서 이 정도 파동은 간지럽지도 않습니다.' : 'Your will is like iron; this drone is nothing to you.',
+            isSpecial: true,
+            specialReason: isKo ? '철의 의지' : 'Iron Will'
+        });
+    }
+
+    if (event.id === 'breakup' && traitIds.has('psychopath')) {
+        choices.push({
+            id: 'psychopath_breakup',
+            label: isKo ? '냉담함' : 'Apathy',
+            description: isKo ? '아무런 감정도 느끼지 않습니다.' : 'Feel absolutely nothing.',
+            delta: { hp: 2, food: 0, meds: 0, money: 0 },
+            response: isKo ? '연인이 떠났습니까? 그래서요? 당신에겐 아무런 상관이 없습니다.' : 'So they left. So what? It means nothing to you.',
+            isSpecial: true,
+            specialReason: isKo ? '사이코패스' : 'Psychopath'
+        });
+    }
+
+    if (event.id === 'pet_death' && traitIds.has('psychopath')) {
+        choices.push({
+            id: 'psychopath_pet',
+            label: isKo ? '효율적 사고' : 'Efficient Thinking',
+            description: isKo ? '도축하여 고기로 사용합니다.' : 'Butcher for meat.',
+            delta: { hp: 3, food: 5, meds: 0, money: 0 },
+            response: isKo ? '죽은 동물은 좋은 단백질 공급원일 뿐입니다.' : 'Dead animals are just good protein sources.',
+            isSpecial: true,
+            specialReason: isKo ? '사이코패스' : 'Psychopath'
+        });
+    }
+
+    if (event.id === 'psychic_soother' && traitIds.has('iron_willed')) {
+        choices.push({
+            id: 'iron_will_soother',
+            label: isKo ? '철의 의지' : 'Iron Will',
+            description: isKo ? '정신적 고통에 면역입니다.' : 'Immune to psychic distress.',
+            delta: { hp: 1, food: 0, meds: 0, money: 0 },
+            response: isKo ? '당신의 강철 같은 의지는 그 어떤 정신적 파동에도 흔들리지 않습니다.' : 'Your iron will is unaffected by any psychic wave.',
+            isSpecial: true,
+            specialReason: isKo ? '철의 의지' : 'Iron Will'
+        });
+    }
+
+    if (event.id === 'party' && traitIds.has('psychopath')) {
+        choices.push({
+            id: 'psychopath_party',
+            label: isKo ? '이용' : 'Exploit',
+            description: isKo ? '파티 분위기를 이용해 이득을 취합니다.' : 'Exploit the party atmosphere for personal gain.',
+            delta: { hp: 0, food: 0, meds: 0, money: 5 },
+            response: isKo ? '당신은 파티의 혼란 속에서 교묘하게 이득을 취했습니다.' : 'You subtly gained an advantage amidst the party chaos.',
+            isSpecial: true,
+            specialReason: isKo ? '사이코패스' : 'Psychopath'
         });
     }
 
@@ -1961,6 +2086,7 @@ export default function SimulationClient() {
         event = applyTraitChoices(event!, traitIds, skillMap, language);
         if (event.choices && event.choices.length > 0) {
             const available = event.choices
+                .filter(choice => meetsRequirements(choice, { food, meds, money }))
                 .map(choice => {
                     if (choice.skillCheck && (choice.id === 'avoid' || choice.id === 'raid_retreat')) {
                         const hasMoveTrait = Array.from(MOVEMENT_TRAITS).some(id => traitIds.has(id));
@@ -1973,8 +2099,7 @@ export default function SimulationClient() {
                         };
                     }
                     return choice;
-                })
-                .filter(choice => meetsRequirements(choice, { food, meds, money }));
+                });
             if (available.length === 0) {
                 event = { ...event, choices: undefined };
             } else {

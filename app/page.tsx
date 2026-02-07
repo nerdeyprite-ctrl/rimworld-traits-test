@@ -118,6 +118,20 @@ export default function Home() {
   const updates = [
     {
       date: '2024.02.08',
+      title: language === 'ko' ? '실시간 채팅 기능 추가' : 'Real-time Chat Added',
+      content: language === 'ko'
+        ? '리더보드에서 다른 정착민들과 실시간으로 대화할 수 있습니다. 최근 30개 메시지만 표시됩니다.'
+        : 'Chat with other settlers in real-time on the leaderboard. Only the last 30 messages are shown.'
+    },
+    {
+      date: '2024.02.08',
+      title: language === 'ko' ? '멘탈 관련 이벤트 및 전용 선택지' : 'Mental Events & Special Choices',
+      content: language === 'ko'
+        ? '이별, 반려동물의 죽음 등 멘탈 관련 이벤트가 추가되었으며, 철의 의지나 사이코패스 특성 보유 시 전용 선택지가 나타납니다.'
+        : 'Added mental-state events like breakups and pet deaths, with special choices for Iron Willed and Psychopath traits.'
+    },
+    {
+      date: '2024.02.08',
       title: language === 'ko' ? '난이도 곡선 조절 (Danger 30%)' : 'Difficulty Adjusted (Danger 30%)',
       content: language === 'ko'
         ? '후반부 위협 발생 확률을 최대 50%에서 30%로 하향 조정하여 생존 가능성을 높였습니다.'
