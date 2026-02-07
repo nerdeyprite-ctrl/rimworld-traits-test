@@ -62,7 +62,6 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
     // Unified test constants
     const TRAITS_COUNT = 40;
-    const SKILLS_COUNT = 15;
 
     const initializeTest = React.useCallback(() => {
         try {
@@ -93,7 +92,7 @@ export const TestProvider = ({ children }: { children: ReactNode }) => {
 
             // --- Part 3: Skills (15 Questions) ---
             const skillQuestions = allQuestions.filter(q => q.id >= 1000);
-            const selectedPart3 = shuffleArray(skillQuestions).slice(0, SKILLS_COUNT);
+            const selectedPart3 = shuffleArray(skillQuestions); // All 15 skill questions must appear
 
             // Combine All (Total ~60 questions)
             const combinedQuestions = [

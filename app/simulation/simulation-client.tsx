@@ -20,7 +20,7 @@ type SkillCheckGroup = 'combat' | 'social' | 'medical' | 'survival' | 'craft';
 
 type SkillCheck = {
     label: string;
-    group: SkillCheckGroup;
+    group: string[]; // Changed to string[]
     fixedChance?: number;
     successDelta: SimDelta;
     failDelta: SimDelta;
@@ -61,7 +61,7 @@ type SimEvent = {
         meds?: TraitMod;
         money?: TraitMod;
     };
-    skillGroup?: 'combat' | 'noncombat';
+    skillGroup?: string[]; // Multiple skills possible
     skillTargets?: Array<'hp' | 'food' | 'meds' | 'money'>;
     choices?: SimChoice[];
 };
@@ -100,7 +100,6 @@ type CurrentCard = {
 const MAX_DAYS = 60;
 const START_STATS = { hp: 5, food: 5, meds: 5, money: 5 };
 const CAMP_UPGRADE_COSTS = [3, 5];
-const AUTO_RESULT_DELAY_MS = 900;
 const SHIP_BUILD_DAY = 60;
 
 const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'disease', 'wanderer'];
@@ -108,12 +107,15 @@ const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'disea
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
 const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
 
-const SKILL_GROUPS: Record<SkillCheckGroup, string[]> = {
-    combat: ['Shooting', 'Melee'],
-    social: ['Social'],
-    medical: ['Medicine'],
-    survival: ['Plants', 'Animals'],
-    craft: ['Construction', 'Crafting', 'Mining']
+const SKILL_GROUPS: Record<string, string[]> = {
+    '전투': ['Shooting', 'Melee'],
+    '사교': ['Social'],
+    '의학': ['Medicine'],
+    '재배': ['Plants'],
+    '제작': ['Construction', 'Crafting', 'Mining'],
+    '생존': ['Plants', 'Animals'],
+    '격투': ['Melee'],
+    '사격': ['Shooting']
 };
 
 const MOVEMENT_TRAITS = new Set(['fast_walker', 'jogger', 'nimble']);
@@ -175,10 +177,10 @@ const getHealAmount = (medicineLevel: number) => {
     return 4;
 };
 
-const getSkillChance = (avg: number) => {
-    if (avg <= 3) return 30;
-    if (avg <= 6) return 60;
-    if (avg <= 10) return 80;
+const getSkillChance = (level: number) => {
+    if (level <= 3) return 30;
+    if (level <= 6) return 60;
+    if (level <= 10) return 80;
     return 95;
 };
 
@@ -192,14 +194,14 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
             label: isKo ? '식량 대량 구매' : 'Buy Food (Large)',
             description: isKo ? '돈 2 → 식량 4' : 'Money 2 → Food 4',
             delta: { hp: 0, food: 4, meds: 0, money: -2 },
-            response: isKo ? '식량을 대량으로 구매했다.' : 'You buy a large food supply.'
+            response: isKo ? '식량을 대량으로 구매했습니다.' : 'You buy a large food supply.'
         });
         choices.push({
             id: 'buy_meds_large',
             label: isKo ? '치료제 대량 구매' : 'Buy Meds (Large)',
             description: isKo ? '돈 2 → 치료제 3' : 'Money 2 → Meds 3',
             delta: { hp: 0, food: 0, meds: 3, money: -2 },
-            response: isKo ? '치료제를 대량으로 구매했다.' : 'You buy a large med supply.'
+            response: isKo ? '치료제를 대량으로 구매했습니다.' : 'You buy a large med supply.'
         });
     }
     if (money >= 1) {
@@ -208,14 +210,14 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
             label: isKo ? '식량 소량 구매' : 'Buy Food (Small)',
             description: isKo ? '돈 1 → 식량 2' : 'Money 1 → Food 2',
             delta: { hp: 0, food: 2, meds: 0, money: -1 },
-            response: isKo ? '식량을 소량 구매했다.' : 'You buy a small food supply.'
+            response: isKo ? '식량을 소량 구매했습니다.' : 'You buy a small food supply.'
         });
         choices.push({
             id: 'buy_meds_small',
             label: isKo ? '치료제 소량 구매' : 'Buy Meds (Small)',
             description: isKo ? '돈 1 → 치료제 2' : 'Money 1 → Meds 2',
             delta: { hp: 0, food: 0, meds: 2, money: -1 },
-            response: isKo ? '치료제를 소량 구매했다.' : 'You buy a small med supply.'
+            response: isKo ? '치료제를 소량 구매했습니다.' : 'You buy a small med supply.'
         });
     }
 
@@ -225,7 +227,7 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
             label: isKo ? '식량 판매' : 'Sell Food',
             description: isKo ? '식량 2 → 돈 1' : 'Food 2 → Money 1',
             delta: { hp: 0, food: -2, meds: 0, money: 1 },
-            response: isKo ? '식량을 팔아 돈을 확보했다.' : 'You sell food for money.'
+            response: isKo ? '식량을 팔아 은을 확보했습니다.' : 'You sell food for money.'
         });
     }
     if (meds >= 1) {
@@ -234,7 +236,7 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
             label: isKo ? '치료제 판매' : 'Sell Meds',
             description: isKo ? '치료제 1 → 돈 1' : 'Meds 1 → Money 1',
             delta: { hp: 0, food: 0, meds: -1, money: 1 },
-            response: isKo ? '치료제를 팔아 돈을 확보했다.' : 'You sell meds for money.'
+            response: isKo ? '치료제를 팔아 은을 확보했습니다.' : 'You sell meds for money.'
         });
     }
 
@@ -243,13 +245,13 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
         label: isKo ? '거래하지 않음' : 'Skip',
         description: isKo ? '거래를 포기한다.' : 'You skip the deal.',
         delta: { hp: 0, food: 0, meds: 0, money: 0 },
-        response: isKo ? '거래를 포기하고 넘어갔다.' : 'You pass on the offer.'
+        response: isKo ? '거래를 포기하고 넘어갔습니다.' : 'You pass on the offer.'
     });
 
     return {
         id: 'supply_trader',
         title: isKo ? '물자 상인 등장' : 'Supply Trader',
-        description: isKo ? '식량과 치료제를 구매할 수 있다.' : 'A trader offers food and meds.',
+        description: isKo ? '식량과 치료제를 구매할 수 있는 상인이 도착했습니다.' : 'A trader offers food and meds.',
         category: 'noncombat',
         weight: 0,
         base: { hp: 0, food: 0, meds: 0, money: 0 },
@@ -263,58 +265,55 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'quiet_day',
             title: isKo ? '조용한 날' : 'Quiet Day',
-            description: isKo ? '큰 사건 없이 하루가 지나갔다.' : 'The day passes without major incidents.',
+            description: isKo ? '큰 사건 없이 하루가 지나갔습니다.' : 'The day passes without major incidents.',
             category: 'quiet',
             weight: 40,
-            base: { hp: 0, food: 0, meds: 0, money: 0 }
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'quiet_pass',
+                    label: isKo ? '무난하게 보내기' : 'Pass',
+                    description: isKo ? '변화 없음' : 'No changes',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무난하게 하루를 버텼습니다.' : 'You made it through the day.'
+                }
+            ]
         },
         {
             id: 'trade',
-            title: isKo ? '상인 방문' : 'Trader Caravan',
-            description: isKo ? '상인들이 들러 교역을 제안했다.' : 'A trader caravan offers a deal.',
+            title: isKo ? '상단 방문' : 'Trader Caravan',
+            description: isKo ? '상인들이 들러 교역을 제안했습니다.' : 'A trader caravan offers a deal.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: 0, meds: 0, money: 1 },
-            skillGroup: 'noncombat',
-            skillTargets: ['money'],
-            traitMods: {
-                money: {
-                    pos: ['kind', 'beautiful', 'pretty'],
-                    neg: ['abrasive', 'ugly', 'staggeringly_ugly'],
-                    goodText: isKo ? '호의적인 태도로 더 좋은 거래를 얻었다.' : 'Friendly manners improve the deal.',
-                    badText: isKo ? '거친 태도로 손해를 봤다.' : 'Abrasive manners worsen the deal.'
-                }
-            },
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
                 {
                     id: 'buy_food',
                     label: isKo ? '식량 구매' : 'Buy Food',
-                    description: isKo ? '돈 1 → 식량 2' : 'Money 1 → Food 2',
+                    description: isKo ? '돈 -1 → 식량 +2' : 'Money -1 → Food +2',
                     delta: { hp: 0, food: 2, meds: 0, money: -1 },
-                    response: isKo ? '식량을 구매했다.' : 'You buy food.',
-                    requirements: { money: 1 }
+                    requirements: { money: 1 },
+                    response: isKo ? '상인에게서 신선한 식량을 샀습니다.' : 'You buy food.'
                 },
                 {
                     id: 'buy_meds',
                     label: isKo ? '치료제 구매' : 'Buy Meds',
-                    description: isKo ? '돈 1 → 치료제 2' : 'Money 1 → Meds 2',
+                    description: isKo ? '돈 -1 → 치료제 +2' : 'Money -1 → Meds +2',
                     delta: { hp: 0, food: 0, meds: 2, money: -1 },
-                    response: isKo ? '치료제를 구매했다.' : 'You buy meds.',
-                    requirements: { money: 1 }
+                    requirements: { money: 1 },
+                    response: isKo ? '상인에게서 치료제를 샀습니다.' : 'You buy meds.'
                 },
                 {
                     id: 'negotiate',
                     label: isKo ? '협상' : 'Negotiate',
-                    description: isKo ? '사교로 좋은 거래를 노린다.' : 'Use social skills for a better deal.',
+                    description: isKo ? '사교 기술 체크' : 'Social skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '협상을 시도했다.' : 'You attempt to negotiate.',
+                    response: isKo ? '협상을 시도했습니다.' : 'You attempt to negotiate.',
                     skillCheck: {
                         label: isKo ? '협상' : 'Negotiation',
-                        group: 'social',
-                        successDelta: { hp: 0, food: 1, meds: 1, money: 2 },
-                        failDelta: { hp: 0, food: 0, meds: 0, money: -2 },
-                        successText: isKo ? '협상에 성공해 더 좋은 거래를 얻었다.' : 'You negotiate a better deal.',
-                        failText: isKo ? '협상에 실패해 손해를 봤다.' : 'Negotiations fail and you lose out.'
+                        group: ['사교'],
+                        successDelta: { hp: 0, food: 1, meds: 1, money: 3 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
                     }
                 }
             ]
@@ -322,188 +321,200 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'cargo_pods',
             title: isKo ? '보급 캡슐 추락' : 'Cargo Pods',
-            description: isKo ? '하늘에서 보급 캡슐이 떨어졌다.' : 'Cargo pods crash nearby.',
+            description: isKo ? '하늘에서 보급 캡슐이 떨어졌습니다.' : 'Cargo pods crash nearby.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: 1, meds: 1, money: 1 },
-            skillGroup: 'noncombat',
-            skillTargets: ['food', 'meds', 'money']
-        },
-        {
-            id: 'foraging',
-            title: isKo ? '채집 성공' : 'Foraging',
-            description: isKo ? '근처에서 먹을거리를 찾아냈다.' : 'You forage for supplies nearby.',
-            category: 'noncombat',
-            weight: 4,
-            base: { hp: 0, food: 2, meds: 0, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['food']
-        },
-        {
-            id: 'medical_cache',
-            title: isKo ? '의료 상자 발견' : 'Medical Cache',
-            description: isKo ? '버려진 의료 상자를 발견했다.' : 'You discover a medical cache.',
-            category: 'noncombat',
-            weight: 4,
-            base: { hp: 0, food: 0, meds: 2, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['meds']
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'cargo_collect',
+                    label: isKo ? '물자 챙기기' : 'Collect',
+                    description: isKo ? '식량 +1, 치료제 +1, 돈 +1' : 'Food +1, Meds +1, Money +1',
+                    delta: { hp: 0, food: 1, meds: 1, money: 1 },
+                    response: isKo ? '추락한 캡슐에서 유용한 물자들을 챙겼습니다.' : 'You collect useful supplies.'
+                }
+            ]
         },
         {
             id: 'crop_boom',
             title: isKo ? '풍작' : 'Crop Boom',
-            description: isKo ? '작물이 급성장해 풍작이 들었다.' : 'Crops surge with unexpected growth.',
+            description: isKo ? '작물이 급성장해 풍작이 들었습니다.' : 'Crops surge with unexpected growth.',
             category: 'noncombat',
             weight: 6,
-            base: { hp: 0, food: 3, meds: 0, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['food'],
-            traitMods: {
-                food: {
-                    pos: ['industrious', 'hard_worker'],
-                    neg: ['lazy', 'slothful'],
-                    goodText: isKo ? '풍작을 잘 수확했다.' : 'You harvest the boom efficiently.',
-                    badText: isKo ? '수확이 늦어 손실이 생겼다.' : 'You fail to capitalize on the boom.'
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'crop_harvest',
+                    label: isKo ? '수확하기' : 'Harvest',
+                    description: isKo ? '재배 기술 체크' : 'Plants skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '풍작을 맞이해 식량을 수확했습니다.' : 'You harvest the crops.',
+                    skillCheck: {
+                        label: isKo ? '수확' : 'Harvest',
+                        group: ['재배'],
+                        successDelta: { hp: 0, food: 4, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 2, meds: 0, money: 0 }
+                    }
                 }
-            }
-        },
-        {
-            id: 'ship_chunk',
-            title: isKo ? '우주선 잔해' : 'Ship Chunk',
-            description: isKo ? '우주선 잔해가 추락했다.' : 'A ship chunk crashes nearby.',
-            category: 'noncombat',
-            weight: 5,
-            base: { hp: 0, food: 0, meds: 0, money: 2 },
-            skillGroup: 'noncombat',
-            skillTargets: ['money'],
-            traitMods: {
-                money: {
-                    pos: ['industrious', 'hard_worker'],
-                    neg: ['lazy', 'slothful'],
-                    goodText: isKo ? '잔해를 빠르게 회수했다.' : 'You salvage quickly.',
-                    badText: isKo ? '회수에 실패해 손실이 생겼다.' : 'Salvage is inefficient.'
-                }
-            }
+            ]
         },
         {
             id: 'blight',
             title: isKo ? '병충해' : 'Blight',
-            description: isKo ? '작물이 병충해로 시들었다.' : 'A blight hits the crops.',
+            description: isKo ? '작물이 병충해로 시들고 있습니다.' : 'A blight hits the crops.',
             category: 'noncombat',
             weight: 5,
-            base: { hp: 0, food: -2, meds: 0, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['food'],
-            traitMods: {
-                food: {
-                    pos: ['industrious', 'hard_worker', 'fast_learner'],
-                    neg: ['lazy', 'slothful', 'sickly'],
-                    goodText: isKo ? '신속한 대응으로 피해를 줄였다.' : 'Quick action limits the damage.',
-                    badText: isKo ? '대응이 늦어 피해가 커졌다.' : 'Slow response worsens the loss.'
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'blight_remove',
+                    label: isKo ? '병든 작물 제거' : 'Remove Blight',
+                    description: isKo ? '재배 기술 체크' : 'Plants skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '병충해 확산을 막기 위해 병든 작물을 도려냈습니다.' : 'You remove the blighted crops.',
+                    skillCheck: {
+                        label: isKo ? '대응' : 'Response',
+                        group: ['재배'],
+                        successDelta: { hp: 0, food: -1, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: -3, meds: 0, money: 0 }
+                    }
                 }
-            }
+            ]
+        },
+        {
+            id: 'ship_chunk',
+            title: isKo ? '우주선 잔해' : 'Ship Chunk',
+            description: isKo ? '우주선 잔해가 추락했습니다.' : 'A ship chunk crashes nearby.',
+            category: 'noncombat',
+            weight: 5,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'chunk_salvage',
+                    label: isKo ? '잔해 분해' : 'Salvage',
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '잔해를 분해해 고철과 부품을 회수했습니다.' : 'You salvage components from the chunk.',
+                    skillCheck: {
+                        label: isKo ? '분해' : 'Salvage',
+                        group: ['제작'],
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 3 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 1 }
+                    }
+                }
+            ]
         },
         {
             id: 'wanderer',
             title: isKo ? '방랑자 합류' : 'Wanderer Joins',
-            description: isKo ? '방랑자가 합류를 요청했다.' : 'A wanderer asks to join.',
+            description: isKo ? '방랑자가 합류를 요청했습니다.' : 'A wanderer asks to join.',
             category: 'noncombat',
             weight: 4,
-            base: { hp: 0, food: -1, meds: 0, money: 1 },
-            skillGroup: 'noncombat',
-            skillTargets: ['money'],
-            traitMods: {
-                money: {
-                    pos: ['kind', 'sanguine'],
-                    neg: ['abrasive', 'pessimist'],
-                    goodText: isKo ? '협력 덕에 돈이 늘었다.' : 'Cooperation boosts your money.',
-                    badText: isKo ? '갈등으로 효율이 떨어졌다.' : 'Friction reduces efficiency.'
-                }
-            },
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
                 {
                     id: 'wanderer_accept',
                     label: isKo ? '합류 수락' : 'Accept',
-                    description: isKo ? '인력을 얻지만 식량이 든다.' : 'Gain manpower but spend food.',
-                    delta: { hp: 0, food: -1, meds: 0, money: 1 },
-                    response: isKo ? '방랑자를 받아들였다.' : 'You accept the wanderer.'
+                    description: isKo ? '식량 -2 → 돈 +2' : 'Food -2 → Money +2',
+                    delta: { hp: 0, food: -2, meds: 0, money: 2 },
+                    response: isKo ? '방랑자를 받아들였습니다.' : 'You accept the wanderer.'
                 },
                 {
                     id: 'wanderer_decline',
                     label: isKo ? '정중히 거절' : 'Decline',
-                    description: isKo ? '리스크를 피한다.' : 'Avoid the risk.',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '정중히 거절했다.' : 'You decline politely.'
+                    description: isKo ? '식량 -1 → 돈 +1' : 'Food -1 → Money +1',
+                    delta: { hp: 0, food: -1, meds: 0, money: 1 },
+                    response: isKo ? '정중히 거절했습니다.' : 'You decline politely.'
                 },
                 {
                     id: 'wanderer_interview',
                     label: isKo ? '평판 확인' : 'Interview',
-                    description: isKo ? '사교로 합류 조건을 조율한다.' : 'Use social skills to negotiate terms.',
+                    description: isKo ? '사교 기술 체크' : 'Social skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '합류 조건을 조율했다.' : 'You negotiate conditions.',
+                    response: isKo ? '합류 조건을 조율했습니다.' : 'You negotiate conditions.',
                     skillCheck: {
                         label: isKo ? '협상' : 'Negotiation',
-                        group: 'social',
-                        successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
-                        failDelta: { hp: 0, food: -1, meds: 0, money: 0 },
-                        successText: isKo ? '좋은 조건으로 합류를 이끌었다.' : 'You secure favorable terms.',
-                        failText: isKo ? '조건 조율에 실패했다.' : 'Negotiation fails.'
+                        group: ['사교'],
+                        successDelta: { hp: 0, food: -1, meds: 0, money: 3 },
+                        failDelta: { hp: 0, food: -2, meds: 0, money: 1 }
                     }
+                }
+            ]
+        },
+        {
+            id: 'foraging',
+            title: isKo ? '채집 성공' : 'Foraging',
+            description: isKo ? '근처에서 먹을거리를 찾아냈습니다.' : 'You forage for supplies nearby.',
+            category: 'noncombat',
+            weight: 4,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'forage_collect',
+                    label: isKo ? '채집하기' : 'Forage',
+                    description: isKo ? '식량 +2' : 'Food +2',
+                    delta: { hp: 0, food: 2, meds: 0, money: 0 },
+                    response: isKo ? '신선한 야생 딸기를 채집했습니다.' : 'You forage fresh berries.'
+                }
+            ]
+        },
+        {
+            id: 'medical_cache',
+            title: isKo ? '의료 상자 발견' : 'Medical Cache',
+            description: isKo ? '버려진 의료 상자를 발견했습니다.' : 'You discover a medical cache.',
+            category: 'noncombat',
+            weight: 4,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'med_cache_collect',
+                    label: isKo ? '의료품 챙기기' : 'Collect',
+                    description: isKo ? '치료제 +2' : 'Meds +2',
+                    delta: { hp: 0, food: 0, meds: 2, money: 0 },
+                    response: isKo ? '상자 안에서 깨끗한 치료제들을 발견했습니다.' : 'You collect clean medical supplies.'
                 }
             ]
         },
         {
             id: 'raiders',
             title: isKo ? '레이더 습격' : 'Raider Attack',
-            description: isKo ? '무장한 침입자들이 기지를 습격했다.' : 'Raiders assault the colony.',
+            description: isKo ? '무장한 침입자들이 기지를 습격했습니다!' : 'Raiders assault the colony.',
             category: 'danger',
             weight: 6,
-            base: { hp: -3, food: -1, meds: 0, money: -1 },
-            traitMods: {
-                hp: {
-                    pos: ['tough', 'brawler', 'nimble', 'careful_shooter', 'iron_willed'],
-                    neg: ['wimp', 'delicate', 'slowpoke', 'nervous', 'volatile'],
-                    goodText: isKo ? '전투 경험으로 피해를 줄였다.' : 'Combat instincts reduce the damage.',
-                    badText: isKo ? '주저함으로 피해가 커졌다.' : 'Hesitation makes the damage worse.'
-                }
-            },
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
                 {
                     id: 'raid_assault',
-                    label: isKo ? '정면전' : 'Full Assault',
-                    description: isKo ? '위험하지만 전리품을 노린다.' : 'Risky but high reward.',
-                    delta: { hp: -1, food: 0, meds: 0, money: 1 },
-                    response: isKo ? '정면 돌격을 선택했다.' : 'You charge head-on.',
+                    label: isKo ? '정면전' : 'Counter Attack',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무기를 들고 습격자들과 맞서 싸웁니다.' : 'You fight back against the raiders.',
                     skillCheck: {
                         label: isKo ? '전투' : 'Combat',
-                        group: 'combat',
-                        successDelta: { hp: 1, food: 0, meds: 0, money: 2 },
-                        failDelta: { hp: -2, food: 0, meds: 0, money: -1 },
-                        successText: isKo ? '공격이 성공해 전리품을 챙겼다.' : 'You win and secure loot.',
-                        failText: isKo ? '공격이 실패해 피해가 커졌다.' : 'The assault fails and you suffer.'
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -3, food: -1, meds: 0, money: 2 },
+                        failDelta: { hp: -6, food: -1, meds: -1, money: -1 }
                     }
                 },
                 {
                     id: 'raid_defend',
                     label: isKo ? '방어전' : 'Hold Position',
-                    description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
-                    delta: { hp: 1, food: 0, meds: 0, money: -1 },
-                    response: isKo ? '방어선을 구축해 피해를 줄였다.' : 'You fortify and take controlled damage.'
+                    description: isKo ? '체력 -2, 식량 -1, 돈 -2' : 'HP -2, Food -1, Money -2',
+                    delta: { hp: -2, food: -1, meds: 0, money: -2 },
+                    response: isKo ? '방어선을 구축해 피해를 줄였습니다.' : 'You fortify and take controlled damage.'
                 },
                 {
                     id: 'raid_retreat',
                     label: isKo ? '후퇴' : 'Retreat',
-                    description: isKo ? '피해를 피하지만 물자를 잃는다.' : 'Avoid damage but lose supplies.',
-                    delta: { hp: 0, food: -1, meds: 0, money: -2 },
-                    response: isKo ? '후퇴하며 물자를 포기했다.' : 'You retreat and abandon supplies.',
+                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '후퇴하며 물자를 포기했습니다.' : 'You retreat and abandon supplies.',
                     skillCheck: {
-                        label: isKo ? '회피' : 'Escape',
-                        group: 'survival',
+                        label: isKo ? '후퇴' : 'Retreat',
+                        group: ['생존'],
                         fixedChance: 60,
-                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: -1 },
-                        successText: isKo ? '무사히 후퇴했다.' : 'You retreat safely.',
-                        failText: isKo ? '후퇴 중 피해를 입었다.' : 'Retreat goes badly.'
+                        successDelta: { hp: -2, food: -2, meds: 0, money: -3 },
+                        failDelta: { hp: -4, food: -2, meds: 0, money: -4 }
                     }
                 }
             ]
@@ -511,55 +522,43 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'manhunter',
             title: isKo ? '광포한 동물 무리' : 'Manhunter Pack',
-            description: isKo ? '광포해진 동물들이 덮쳐왔다.' : 'A pack of enraged animals attacks.',
+            description: isKo ? '광포해진 동물들이 기지를 덮쳐왔습니다!' : 'A pack of enraged animals attacks.',
             category: 'danger',
             weight: 5,
-            base: { hp: -3, food: 1, meds: 0, money: 0 },
-            traitMods: {
-                hp: {
-                    pos: ['tough', 'nimble', 'brawler'],
-                    neg: ['wimp', 'delicate'],
-                    goodText: isKo ? '몸이 단단해 피해가 줄었다.' : 'Toughness reduces the harm.',
-                    badText: isKo ? '연약해 큰 피해를 입었다.' : 'Fragility makes it worse.'
-                }
-            },
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
                 {
                     id: 'hunt',
                     label: isKo ? '사냥' : 'Hunt',
-                    description: isKo ? '위험하지만 더 많은 식량을 얻는다.' : 'Risk more for extra food.',
-                    delta: { hp: -1, food: 2, meds: 0, money: 0 },
-                    response: isKo ? '사냥으로 더 많은 식량을 확보했다.' : 'You secure extra food by hunting.',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '동물들을 사냥해 식량을 확보하려 합니다.' : 'You secure extra food by hunting.',
                     skillCheck: {
                         label: isKo ? '사냥' : 'Hunting',
-                        group: 'survival',
-                        successDelta: { hp: 1, food: 2, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '사냥이 대성공했다.' : 'The hunt is a success.',
-                        failText: isKo ? '사냥이 실패했다.' : 'The hunt fails.'
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -3, food: 5, meds: 0, money: 0 },
+                        failDelta: { hp: -5, food: 3, meds: 0, money: 0 }
                     }
                 },
                 {
                     id: 'defend',
                     label: isKo ? '방어' : 'Defend',
-                    description: isKo ? '안정적으로 피해를 줄인다.' : 'A steady defense reduces damage.',
-                    delta: { hp: 1, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '방어를 택해 피해를 줄였다.' : 'You defend to reduce damage.'
+                    description: isKo ? '체력 -2, 식량 +1' : 'HP -2, Food +1',
+                    delta: { hp: -2, food: 1, meds: 0, money: 0 },
+                    response: isKo ? '방어를 택해 피해를 줄였습니다.' : 'You defend to reduce damage.'
                 },
                 {
                     id: 'avoid',
                     label: isKo ? '회피' : 'Avoid',
-                    description: isKo ? '피해를 피하지만 수확이 없다.' : 'Avoid damage but gain nothing.',
-                    delta: { hp: 2, food: -1, meds: 0, money: 0 },
-                    response: isKo ? '회피에 성공했지만 수확이 줄었다.' : 'You avoid danger but lose the harvest.',
+                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '안전한 곳으로 몸을 피해 위험을 흘려보냈습니다.' : 'You avoid danger but lose the harvest.',
                     skillCheck: {
                         label: isKo ? '회피' : 'Evasion',
-                        group: 'survival',
+                        group: ['생존'],
                         fixedChance: 60,
-                        successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '안전하게 회피했다.' : 'You evade safely.',
-                        failText: isKo ? '회피에 실패했다.' : 'Evasion fails.'
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -2, food: 0, meds: 0, money: 0 }
                     }
                 }
             ]
@@ -567,40 +566,30 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'disease',
             title: isKo ? '질병 발생' : 'Disease Outbreak',
-            description: isKo ? '질병이 퍼져 몸이 약해졌다.' : 'A disease spreads through the camp.',
+            description: isKo ? '질병이 퍼져 몸이 약해졌습니다.' : 'A disease spreads through the camp.',
             category: 'danger',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
-            traitMods: {
-                hp: {
-                    pos: ['tough', 'iron_willed'],
-                    neg: ['sickly', 'delicate', 'wimp'],
-                    goodText: isKo ? '강한 체력이 버텨냈다.' : 'Sturdy constitution resists.',
-                    badText: isKo ? '몸이 약해 큰 피해를 입었다.' : 'Fragility makes it worse.'
-                }
-            },
             choices: [
                 {
                     id: 'treat_with_meds',
                     label: isKo ? '치료제 사용' : 'Use Meds',
-                    description: isKo ? '치료제 1개로 확실히 치료한다.' : 'Use 1 med for guaranteed treatment.',
+                    description: isKo ? '체력 +2, 치료제 -1' : 'HP +2, Meds -1',
                     delta: { hp: 2, food: 0, meds: -1, money: 0 },
-                    response: isKo ? '치료제를 써 상태가 회복됐다.' : 'You use meds and recover.',
+                    response: isKo ? '치료제를 써 상태가 회복되었습니다.' : 'You use meds and recover.',
                     requirements: { meds: 1 }
                 },
                 {
                     id: 'treat_without_meds',
                     label: isKo ? '무치료 치료' : 'Treat Without Meds',
-                    description: isKo ? '치료제 없이 의학으로 치료한다.' : 'Treat using medical skills without meds.',
+                    description: isKo ? '의학 기술 체크' : 'Medical skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '치료제 없이 치료를 시도했다.' : 'You attempt treatment without meds.',
+                    response: isKo ? '치료제 없이 치료를 시도했습니다.' : 'You attempt treatment without meds.',
                     skillCheck: {
-                        label: isKo ? '무치료 치료' : 'Field Treatment',
-                        group: 'medical',
+                        label: isKo ? '치료' : 'Treatment',
+                        group: ['의학'],
                         successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -2, food: 0, meds: 0, money: 0 },
-                        successText: isKo ? '응급 처치에 성공했다.' : 'Field treatment succeeds.',
-                        failText: isKo ? '치료가 실패해 상태가 악화됐다.' : 'Treatment fails and worsens.'
+                        failDelta: { hp: -2, food: 0, meds: 0, money: 0 }
                     }
                 }
             ]
@@ -608,59 +597,69 @@ const buildSimEvents = (language: string): SimEvent[] => {
         {
             id: 'cold_snap',
             title: isKo ? '한파' : 'Cold Snap',
-            description: isKo ? '갑작스러운 한파가 찾아왔다.' : 'A sudden cold snap hits.',
+            description: isKo ? '갑작스러운 한파가 찾아왔습니다.' : 'A sudden cold snap hits.',
             category: 'danger',
             weight: 3,
-            base: { hp: -1, food: -1, meds: 0, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['food'],
-            traitMods: {
-                hp: {
-                    pos: ['iron_willed', 'steadfast', 'sanguine'],
-                    neg: ['depressive', 'pessimist', 'sickly'],
-                    goodText: isKo ? '정신력이 버텨낸다.' : 'Strong will keeps you going.',
-                    badText: isKo ? '체력이 급격히 떨어졌다.' : 'Weakness hits hard.'
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'cold_endure',
+                    label: isKo ? '한파 견디기' : 'Endure',
+                    description: isKo ? '재배 기술 체크' : 'Plants skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '추위에 떨며 한파를 견뎌냈습니다.' : 'You endure the cold.',
+                    skillCheck: {
+                        label: isKo ? '대응' : 'Response',
+                        group: ['재배'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -1, food: -2, meds: 0, money: 0 }
+                    }
                 }
-            }
+            ]
         },
         {
             id: 'heat_wave',
             title: isKo ? '폭염' : 'Heat Wave',
-            description: isKo ? '무더위가 이어졌다.' : 'Relentless heat drains you.',
+            description: isKo ? '무더위가 이어지고 있습니다.' : 'Relentless heat drains you.',
             category: 'danger',
             weight: 2,
-            base: { hp: -1, food: 0, meds: 0, money: 0 },
-            skillGroup: 'noncombat',
-            skillTargets: ['money'],
-            traitMods: {
-                hp: {
-                    pos: ['iron_willed', 'steadfast', 'optimist'],
-                    neg: ['depressive', 'pessimist', 'sickly'],
-                    goodText: isKo ? '정신력이 피해를 줄였다.' : 'Mental fortitude helps endure.',
-                    badText: isKo ? '컨디션이 급격히 악화됐다.' : 'Condition deteriorates quickly.'
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'heat_endure',
+                    label: isKo ? '폭염 견디기' : 'Endure',
+                    description: isKo ? '체력 -1' : 'HP -1',
+                    delta: { hp: -1, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '무더위 속에서 하루를 버텼습니다.' : 'You endure the heat wave.'
                 }
-            }
+            ]
         },
         {
             id: 'fire',
             title: isKo ? '화재' : 'Fire',
-            description: isKo ? '화재로 돈이 손실됐다.' : 'A fire destroys your funds.',
+            description: isKo ? '화재가 발생해 귀중품들이 불타고 있습니다!' : 'A fire destroys your funds.',
             category: 'danger',
             weight: 1,
-            base: { hp: -1, food: 0, meds: 0, money: -2 },
-            skillGroup: 'noncombat',
-            skillTargets: ['money'],
-            traitMods: {
-                money: {
-                    pos: ['industrious', 'hard_worker'],
-                    neg: ['pyromaniac', 'lazy'],
-                    goodText: isKo ? '신속한 진압으로 피해를 줄였다.' : 'Quick response limits the damage.',
-                    badText: isKo ? '방화 성향으로 피해가 커졌다.' : 'Pyromaniac tendencies worsen the fire.'
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'fire_extinguish',
+                    label: isKo ? '불길 진압' : 'Extinguish',
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '목숨을 걸고 불길을 진압했습니다.' : 'You extinguish the fire.',
+                    skillCheck: {
+                        label: isKo ? '진압' : 'Extinguish',
+                        group: ['제작'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: -2, food: 0, meds: 0, money: -3 }
+                    }
                 }
-            }
+            ]
         }
     ];
 };
+
 
 const pickWeightedEvent = (events: SimEvent[]) => {
     const total = events.reduce((sum, e) => sum + e.weight, 0);
@@ -685,72 +684,109 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
     const medical = skillMap[isKo ? '의학' : 'Medical'] || 0;
     const plants = skillMap[isKo ? '재배' : 'Plants'] || 0;
 
-    if (event.id === 'quiet_day' && Math.random() < 0.3) {
-        choices.push({
-            id: 'work_day',
-            label: isKo ? '일한다' : 'Work',
-            description: isKo ? '시설을 보수하거나 도구를 정비한다.' : 'Repair facilities or maintain tools.',
-            delta: { hp: 0, food: 0, meds: 0, money: 1 },
-            response: isKo ? '열심히 일해 은을 조금 벌었다.' : 'You worked hard and earned some silver.'
-        });
+    // QUIET.md Special Choices
+    if (event.id === 'quiet_day') {
+        if (Math.random() < 0.15) {
+            choices.push({
+                id: 'work_day',
+                label: isKo ? '일한다' : 'Work',
+                description: isKo ? '돈 +1' : 'Money +1',
+                delta: { hp: 0, food: 0, meds: 0, money: 1 },
+                response: isKo ? '열심히 일해 은을 조금 벌었습니다.' : 'You worked hard and earned some silver.'
+            });
+        }
+        if (traitIds.has('industrious') && Math.random() < 0.15) {
+            choices.push({
+                id: 'work_overtime',
+                label: isKo ? '야근' : 'Overtime',
+                description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '야근으로 추가 물자를 확보했습니다.' : 'You work overtime for extra supplies.',
+                isSpecial: true,
+                specialReason: isKo ? '근면성실' : 'Industrious',
+                skillCheck: {
+                    label: isKo ? '정진' : 'Hard Work',
+                    group: ['제작'],
+                    successDelta: { hp: 0, food: 1, meds: 0, money: 1 },
+                    failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
+                }
+            });
+        }
+        if (traitIds.has('lazy') && Math.random() < 0.1) {
+            choices.push({
+                id: 'rest_day',
+                label: isKo ? '휴식' : 'Rest',
+                description: isKo ? '의학 기술 체크' : 'Medical skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '휴식을 택해 체력을 회복했습니다.' : 'You rest and recover.',
+                isSpecial: true,
+                specialReason: isKo ? '게으름' : 'Lazy',
+                skillCheck: {
+                    label: isKo ? '휴식' : 'Rest',
+                    group: ['의학'],
+                    successDelta: { hp: 2, food: 0, meds: 0, money: 0 },
+                    failDelta: { hp: 0, food: 0, meds: 0, money: 0 }
+                }
+            });
+        }
     }
 
-    if (event.id === 'raiders' && (shooting >= 15 || melee >= 15)) {
-        choices.push({
-            id: 'raid_counter',
-            label: isKo ? '역습 및 약탈' : 'Counter-attack & Loot',
-            description: isKo ? '압도적인 무력으로 적을 소탕하고 기지를 턴다.' : 'Crush the raiders and loot their camp.',
-            delta: { hp: 0, food: 1, meds: 1, money: 5 },
-            response: isKo ? '적들을 전멸시키고 그들의 물자를 역으로 약탈했다.' : 'You annihilated the raiders and looted their supplies.',
-            isSpecial: true,
-            specialReason: isKo ? '격투/사격 15+' : 'Melee/Shooting 15+'
-        });
-    }
-
-    if (event.id === 'trade' && social >= 15) {
-        choices.push({
-            id: 'master_trade',
-            label: isKo ? '전설적인 거래' : 'Legendary Deal',
-            description: isKo ? '상인을 완전히 설득하여 최고의 이득을 챙긴다.' : 'Persuade the trader for ultimate gain.',
-            delta: { hp: 0, food: 3, meds: 3, money: 5 },
-            response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었다.' : 'The trader, charmed by your words, gave everything.',
-            isSpecial: true,
-            specialReason: isKo ? '사교 15+' : 'Social 15+'
-        });
-    }
-
-    if (event.id === 'manhunter' && (shooting >= 12 || melee >= 12)) {
-        choices.push({
-            id: 'hunt_all',
-            label: isKo ? '일가실각' : 'Exterminate',
-            description: isKo ? '동물들을 모두 사격해 대량의 고기를 얻는다.' : 'Kill all animals for a massive meat harvest.',
-            delta: { hp: 1, food: 6, meds: 0, money: 0 },
-            response: isKo ? '달려드는 동물들을 모두 사냥해 축제를 열었다.' : 'You hunted all the attackers and held a feast.',
-            isSpecial: true,
-            specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+'
-        });
-    }
-
-    if (event.id === 'disease' && medical >= 15) {
-        choices.push({
-            id: 'perfect_treat',
-            label: isKo ? '완벽한 치료' : 'Miracle Cure',
-            description: isKo ? '최고의 술법으로 모든 후유증을 막는다.' : 'Cure the disease with expert care.',
-            delta: { hp: 4, food: 0, meds: -1, money: 0 },
-            response: isKo ? '당신의 신의에 가까운 의술로 질병을 완전히 극복했다.' : 'Your god-like medical skill completely cured the disease.',
-            isSpecial: true,
-            specialReason: isKo ? '의학 15+' : 'Medical 15+',
-            requirements: { meds: 1 }
-        });
+    // NONCOMBAT.md Special Choices
+    if (event.id === 'trade') {
+        if (social >= 15) {
+            choices.push({
+                id: 'master_trade',
+                label: isKo ? '전설적인 거래' : 'Legendary Deal',
+                description: isKo ? '식량 +3, 치료제 +3, 돈 +5' : 'Food +3, Meds +3, Money +5',
+                delta: { hp: 0, food: 3, meds: 3, money: 5 },
+                response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었습니다.' : 'The trader was charmed by your words and gave you a legendary deal.',
+                isSpecial: true,
+                specialReason: isKo ? '사교 15+' : 'Social 15+'
+            });
+        }
+        if (traitIds.has('kind')) {
+            choices.push({
+                id: 'kind_help',
+                label: isKo ? '호의 베풀기' : 'Show Kindness',
+                description: isKo ? '사교 기술 체크' : 'Social skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '호의로 거래를 시도했습니다.' : 'You offer kindness in the deal.',
+                isSpecial: true,
+                specialReason: isKo ? '다정다감' : 'Kind',
+                skillCheck: {
+                    label: isKo ? '호의' : 'Kindness',
+                    group: ['사교'],
+                    successDelta: { hp: 0, food: 1, meds: 1, money: 1 },
+                    failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
+                }
+            });
+        }
+        if (traitIds.has('abrasive')) {
+            choices.push({
+                id: 'abrasive_threat',
+                label: isKo ? '협박' : 'Threaten',
+                description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '협박으로 거래를 시도했습니다.' : 'You attempt to threaten the trader.',
+                isSpecial: true,
+                specialReason: isKo ? '직설적' : 'Abrasive',
+                skillCheck: {
+                    label: isKo ? '협박' : 'Intimidation',
+                    group: ['격투', '사격'],
+                    successDelta: { hp: 0, food: 1, meds: 0, money: 2 },
+                    failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
+                }
+            });
+        }
     }
 
     if (event.id === 'blight' && plants >= 12) {
         choices.push({
             id: 'plant_save',
             label: isKo ? '해충 전문가' : 'Pest Specialist',
-            description: isKo ? '해충의 생태를 이용해 피해를 완전히 막는다.' : 'Use expert knowledge to stop the blight.',
+            description: isKo ? '식량 +2' : 'Food +2',
             delta: { hp: 0, food: 2, meds: 0, money: 0 },
-            response: isKo ? '해충 전문가인 당신에게 이 정도 병충해는 아무것도 아니었다.' : 'As a pest specialist, you saved the crops with ease.',
+            response: isKo ? '해충 전문가인 당신에게 이 정도 병충해는 아무것도 아니었습니다.' : 'As a pest specialist, you saved the crops with ease.',
             isSpecial: true,
             specialReason: isKo ? '재배 12+' : 'Plants 12+'
         });
@@ -760,91 +796,85 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         choices.push({
             id: 'perfect_salvage',
             label: isKo ? '정밀 분해' : 'Precision Salvage',
-            description: isKo ? '잔해에서 모든 유용한 부품을 추출한다.' : 'Extract every useful component.',
+            description: isKo ? '돈 +6' : 'Money +6',
             delta: { hp: 0, food: 0, meds: 0, money: 6 },
-            response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 은을 챙겼다.' : 'Your precision salvage earned you a fortune in silver.',
+            response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 은을 챙겼습니다.' : 'Your precision salvage earned you a fortune in silver.',
             isSpecial: true,
             specialReason: isKo ? '제작 12+' : 'Crafting 12+'
         });
     }
 
-    if (event.id === 'raiders' && traitIds.has('tough')) {
+    // DANGER.md Special Choices
+    if (event.id === 'raiders') {
+        if (shooting >= 15 || melee >= 15) {
+            choices.push({
+                id: 'raid_counter',
+                label: isKo ? '완벽한 역습' : 'Perfect Counter',
+                description: isKo ? '식량 +2, 치료제 +2, 돈 +6' : 'Food +2, Meds +2, Money +6',
+                delta: { hp: 0, food: 2, meds: 2, money: 6 },
+                response: isKo ? '완벽한 전술로 피해 없이 적들을 소탕했습니다.' : 'With perfect tactics, you wiped out the raiders without any damage.',
+                isSpecial: true,
+                specialReason: isKo ? '격투/사격 15+' : 'Melee/Shooting 15+'
+            });
+        }
+        if (traitIds.has('tough')) {
+            choices.push({
+                id: 'tough_charge',
+                label: isKo ? '강인한 돌격' : 'Tough Charge',
+                description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '강인함을 믿고 돌격했습니다.' : 'You charge with confidence.',
+                isSpecial: true,
+                specialReason: isKo ? '강인함' : 'Tough',
+                skillCheck: {
+                    label: isKo ? '돌격' : 'Charge',
+                    group: ['격투', '사격'],
+                    successDelta: { hp: 2, food: 0, meds: 0, money: 2 },
+                    failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
+                }
+            });
+        }
+        if (traitIds.has('wimp')) {
+            choices.push({
+                id: 'wimp_hide',
+                label: isKo ? '은신' : 'Hide',
+                description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                delta: { hp: 1, food: 0, meds: 0, money: -1 },
+                response: isKo ? '숨어서 상황을 피하려 했습니다.' : 'You try to hide from the raid.',
+                isSpecial: true,
+                specialReason: isKo ? '심약자' : 'Wimp',
+                skillCheck: {
+                    label: isKo ? '은신' : 'Stealth',
+                    group: ['생존'],
+                    successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
+                    failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
+                }
+            });
+        }
+    }
+
+    if (event.id === 'manhunter' && (shooting >= 12 || melee >= 12)) {
         choices.push({
-            id: 'tough_charge',
-            label: isKo ? '돌격' : 'Charge',
-            description: isKo ? '강인함을 믿고 돌파한다.' : 'Charge through with toughness.',
-            delta: { hp: -1, food: 0, meds: 0, money: 1 },
-            response: isKo ? '강인함을 믿고 돌격했다.' : 'You charge with confidence.',
+            id: 'hunt_all',
+            label: isKo ? '동물 섬멸' : 'Exterminate',
+            description: isKo ? '체력 -2, 식량 +7' : 'HP -2, Food +7',
+            delta: { hp: -2, food: 7, meds: 0, money: 0 },
+            response: isKo ? '달려드는 동물들을 모두 사냥해 축제를 열었습니다.' : 'You hunted all the attackers and held a feast.',
             isSpecial: true,
-            specialReason: isKo ? '강인함' : 'Tough',
-            skillCheck: {
-                label: isKo ? '돌격' : 'Charge',
-                group: 'combat',
-                successDelta: { hp: 2, food: 0, meds: 0, money: 2 },
-                failDelta: { hp: -2, food: 0, meds: 0, money: -1 },
-                successText: isKo ? '돌격이 성공했다.' : 'The charge succeeds.',
-                failText: isKo ? '돌격이 실패했다.' : 'The charge fails.'
-            }
+            specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+'
         });
     }
 
-    if (event.id === 'raiders' && traitIds.has('wimp')) {
+    if (event.id === 'disease' && medical >= 15) {
         choices.push({
-            id: 'wimp_hide',
-            label: isKo ? '은신' : 'Hide',
-            description: isKo ? '숨어서 피해를 줄인다.' : 'Hide to avoid damage.',
-            delta: { hp: 1, food: 0, meds: 0, money: -1 },
-            response: isKo ? '숨어서 상황을 피하려 했다.' : 'You try to hide from the raid.',
+            id: 'perfect_treat',
+            label: isKo ? '완벽한 치료' : 'Miracle Cure',
+            description: isKo ? '체력 +4, 치료제 -1' : 'HP +4, Meds -1',
+            delta: { hp: 4, food: 0, meds: -1, money: 0 },
+            response: isKo ? '당신의 신의에 가까운 의술로 질병을 완전히 극복했습니다.' : 'Your god-like medical skill completely cured the disease.',
             isSpecial: true,
-            specialReason: isKo ? '심약자' : 'Wimp',
-            skillCheck: {
-                label: isKo ? '은신' : 'Stealth',
-                group: 'survival',
-                successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
-                failDelta: { hp: -1, food: 0, meds: 0, money: -1 },
-                successText: isKo ? '은신에 성공했다.' : 'You remain hidden.',
-                failText: isKo ? '은신에 실패했다.' : 'You are discovered.'
-            }
-        });
-    }
-
-    if (event.id === 'trade' && traitIds.has('kind')) {
-        choices.push({
-            id: 'kind_help',
-            label: isKo ? '호의 베풀기' : 'Show Kindness',
-            description: isKo ? '상인에게 호의를 보인다.' : 'Offer kindness to the trader.',
-            delta: { hp: 0, food: 0, meds: 0, money: 0 },
-            response: isKo ? '호의로 거래를 시도했다.' : 'You offer kindness in the deal.',
-            isSpecial: true,
-            specialReason: isKo ? '다정다감' : 'Kind',
-            skillCheck: {
-                label: isKo ? '호의' : 'Kindness',
-                group: 'social',
-                successDelta: { hp: 0, food: 1, meds: 1, money: 1 },
-                failDelta: { hp: 0, food: 0, meds: 0, money: -1 },
-                successText: isKo ? '호의가 통했다.' : 'Kindness pays off.',
-                failText: isKo ? '호의가 통하지 않았다.' : 'Kindness backfires.'
-            }
-        });
-    }
-
-    if (event.id === 'trade' && traitIds.has('abrasive')) {
-        choices.push({
-            id: 'abrasive_threat',
-            label: isKo ? '협박' : 'Threaten',
-            description: isKo ? '강경한 태도로 압박한다.' : 'Force a deal with threats.',
-            delta: { hp: 0, food: 0, meds: 0, money: 0 },
-            response: isKo ? '협박으로 거래를 시도했다.' : 'You attempt to threaten the trader.',
-            isSpecial: true,
-            specialReason: isKo ? '직설적' : 'Abrasive',
-            skillCheck: {
-                label: isKo ? '협박' : 'Intimidation',
-                group: 'combat',
-                successDelta: { hp: 0, food: 1, meds: 0, money: 2 },
-                failDelta: { hp: -1, food: 0, meds: 0, money: -1 },
-                successText: isKo ? '협박이 통했다.' : 'The threat works.',
-                failText: isKo ? '협박이 실패했다.' : 'The threat backfires.'
-            }
+            specialReason: isKo ? '의학 15+' : 'Medical 15+',
+            requirements: { meds: 1 }
         });
     }
 
@@ -852,61 +882,16 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         choices.push({
             id: 'pyro_fuel',
             label: isKo ? '불길 확장' : 'Fuel the Fire',
-            description: isKo ? '위험하지만 보상을 노린다.' : 'Risky but tempting.',
+            description: isKo ? '제작 기술 체크' : 'Crafting skill check',
             delta: { hp: -1, food: 0, meds: 0, money: 1 },
-            response: isKo ? '불길을 확장하려 했다.' : 'You feed the fire.',
+            response: isKo ? '불길이 번지는 것을 지켜보며 즐거움을 느꼈습니다.' : 'You feed the fire.',
             isSpecial: true,
             specialReason: isKo ? '방화광' : 'Pyromaniac',
             skillCheck: {
                 label: isKo ? '방화' : 'Arson',
-                group: 'craft',
+                group: ['제작'],
                 successDelta: { hp: 0, food: 0, meds: 0, money: 2 },
-                failDelta: { hp: -2, food: 0, meds: 0, money: -1 },
-                successText: isKo ? '위험한 보상을 얻었다.' : 'You gain a risky reward.',
-                failText: isKo ? '불길을 통제하지 못했다.' : 'You lose control of the blaze.'
-            }
-        });
-    }
-
-    if (event.id === 'quiet_day' && traitIds.has('industrious')) {
-        // 30% chance to show 'Work Overtime'
-        if (Math.random() < 0.3) {
-            choices.push({
-                id: 'work_overtime',
-                label: isKo ? '야근' : 'Overtime',
-                description: isKo ? '돈과 식량을 더 확보한다.' : 'Work for extra supplies.',
-                delta: { hp: -1, food: 1, meds: 0, money: 2 },
-                response: isKo ? '야근으로 추가 물자를 확보했다.' : 'You work overtime for extra supplies.',
-                isSpecial: true,
-                specialReason: isKo ? '근면성실' : 'Industrious',
-                skillCheck: {
-                    label: isKo ? '노동' : 'Labor',
-                    group: 'craft',
-                    successDelta: { hp: 0, food: 1, meds: 0, money: 1 },
-                    failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                    successText: isKo ? '노동이 잘 풀렸다.' : 'The extra work pays off.',
-                    failText: isKo ? '과로로 컨디션이 나빠졌다.' : 'Overwork backfires.'
-                }
-            });
-        }
-    }
-
-    if (event.id === 'quiet_day' && traitIds.has('lazy')) {
-        choices.push({
-            id: 'rest_day',
-            label: isKo ? '휴식' : 'Rest',
-            description: isKo ? '체력을 회복한다.' : 'Recover some stamina.',
-            delta: { hp: 0, food: 0, meds: 0, money: 0 },
-            response: isKo ? '휴식을 택해 체력을 회복했다.' : 'You rest and recover.',
-            isSpecial: true,
-            specialReason: isKo ? '게으름' : 'Lazy',
-            skillCheck: {
-                label: isKo ? '휴식' : 'Rest',
-                group: 'medical',
-                successDelta: { hp: 2, food: 0, meds: 0, money: 0 },
-                failDelta: { hp: -1, food: 0, meds: 0, money: 0 },
-                successText: isKo ? '깊은 휴식으로 체력을 크게 회복했다.' : 'Deep rest recovers a lot of stamina.',
-                failText: isKo ? '잠자리가 불편해 오히려 몸이 찌푸둥해졌다.' : 'Uncomfortable sleep makes you feel stiff.'
+                failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
             }
         });
     }
@@ -1107,11 +1092,23 @@ export default function SimulationClient() {
         return { score, note };
     }, [traitIds]);
 
-    const getSkillBonus = useCallback((group?: 'combat' | 'noncombat') => {
-        if (!group) return { bonus: 0, note: '' };
-        const pool = group === 'combat' ? COMBAT_SKILLS : NONCOMBAT_SKILLS;
-        const levels = pool.map(name => skillMap[name] ?? 0);
-        const avg = levels.reduce((sum, v) => sum + v, 0) / levels.length;
+    const getGroupAverage = useCallback((group?: string[]) => {
+        if (!group || group.length === 0) return 0;
+        let total = 0;
+        let count = 0;
+        group.forEach(g => {
+            const pool = SKILL_GROUPS[g] || [g];
+            pool.forEach(name => {
+                total += skillMap[name] ?? 0;
+                count++;
+            });
+        });
+        return total / count;
+    }, [skillMap]);
+
+    const getSkillBonus = useCallback((group?: string[]) => {
+        if (!group || group.length === 0) return { bonus: 0, note: '' };
+        const avg = getGroupAverage(group);
         let bonus = 0;
         if (avg <= 3) bonus = -1;
         else if (avg >= 13) bonus = 2;
@@ -1120,7 +1117,10 @@ export default function SimulationClient() {
         let note = '';
         const getRandomNote = (notes: string[]) => notes[Math.floor(Math.random() * notes.length)];
 
-        if (group === 'combat') {
+        // Simple heuristic for combat/non-combat note selection
+        const isCombat = group.some(g => g.includes('전투') || g.includes('격투') || g.includes('사격'));
+
+        if (isCombat) {
             if (bonus > 0) {
                 note = language === 'ko'
                     ? getRandomNote(['전투 기술을 발휘해 피해를 최소화했다.', '숙련된 전투 지식으로 위기를 넘겼다.', '전공을 살려 적절히 대응했다.'])
@@ -1147,12 +1147,6 @@ export default function SimulationClient() {
         }
         return { bonus, note };
     }, [language, skillMap]);
-
-    const getGroupAverage = useCallback((group: SkillCheckGroup) => {
-        const pool = SKILL_GROUPS[group];
-        const levels = pool.map(name => skillMap[name] ?? 0);
-        return levels.reduce((sum, v) => sum + v, 0) / levels.length;
-    }, [skillMap]);
 
     const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
@@ -1642,7 +1636,7 @@ export default function SimulationClient() {
             event: pendingChoice.event,
             entry
         });
-        setCardView('event');
+        setCardView('result');
 
         setPendingChoice(null);
     };
@@ -1908,7 +1902,6 @@ export default function SimulationClient() {
                                                         }
 
                                                         const res = [] as string[];
-                                                        const l = (key: string) => language === 'ko' ? key : key; // simplified for now
                                                         if (hpD !== 0) res.push(getVagueDeltaText('HP', hpD));
                                                         if (foodD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '식량' : 'Food', foodD));
                                                         if (medsD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '치료제' : 'Meds', medsD));
@@ -1928,8 +1921,8 @@ export default function SimulationClient() {
                                                         if (fText) outcomeInfo.push(language === 'ko' ? `실패 시: ${fText}` : `On Fail: ${fText}`);
                                                     } else {
                                                         const info = getExpectation(choice.delta).join(', ');
-                                                        if (info) outcomeInfo.push(language === 'ko' ? `최종 예후: ${info}` : `Final Prediction: ${info}`);
-                                                        else outcomeInfo.push(language === 'ko' ? '특별한 변화 없음' : 'No significant changes');
+                                                        if (info) outcomeInfo.push(info);
+                                                        else outcomeInfo.push(language === 'ko' ? '변화 없음' : 'No changes');
                                                     }
 
                                                     return (
@@ -1964,14 +1957,6 @@ export default function SimulationClient() {
                                                     );
                                                 })}
                                             </div>
-                                        )}
-                                        {!pendingChoice && currentCard?.entry && cardView === 'event' && (
-                                            <button
-                                                onClick={() => setCardView('result')}
-                                                className="w-full px-4 py-3 rounded-xl bg-[#2d6a4f] hover:bg-[#40916c] text-white text-sm font-bold border border-[#1b4332] shadow-md"
-                                            >
-                                                {language === 'ko' ? '결과 보기' : 'Show Result'}
-                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -2102,47 +2087,49 @@ export default function SimulationClient() {
                 )}
             </div>
 
-            {showLog && (
-                <div className="bg-[#0d0d0d] border border-[#3b3b3b] rounded-xl p-5 shadow-xl">
-                    <h3 className="text-sm font-bold text-[#e7c07a] mb-3">
-                        {language === 'ko' ? '생존 로그' : 'Survival Log'}
-                    </h3>
-                    <div className="max-h-[480px] overflow-y-auto border border-[#2a2a2a] rounded-lg bg-black/40 p-3 space-y-3 text-xs">
-                        {simState.log.length === 0 && (
-                            <div className="text-slate-500">
-                                {language === 'ko' ? '로그가 비어 있습니다.' : 'No logs yet.'}
-                            </div>
-                        )}
-                        {simState.log.map((entry, idx) => (
-                            <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#121212] p-3 shadow-sm space-y-2">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <div className="text-slate-500 text-xs">
-                                        Day {entry.day} • {entry.season}
+            {
+                showLog && (
+                    <div className="bg-[#0d0d0d] border border-[#3b3b3b] rounded-xl p-5 shadow-xl">
+                        <h3 className="text-sm font-bold text-[#e7c07a] mb-3">
+                            {language === 'ko' ? '생존 로그' : 'Survival Log'}
+                        </h3>
+                        <div className="max-h-[480px] overflow-y-auto border border-[#2a2a2a] rounded-lg bg-black/40 p-3 space-y-3 text-xs">
+                            {simState.log.length === 0 && (
+                                <div className="text-slate-500">
+                                    {language === 'ko' ? '로그가 비어 있습니다.' : 'No logs yet.'}
+                                </div>
+                            )}
+                            {simState.log.map((entry, idx) => (
+                                <div key={`${entry.day}-${idx}`} className="rounded-lg border border-[#2a2a2a] bg-[#121212] p-3 shadow-sm space-y-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div className="text-slate-500 text-xs">
+                                            Day {entry.day} • {entry.season}
+                                        </div>
+                                        <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
+                                            ? 'text-green-400'
+                                            : entry.status === 'bad'
+                                                ? 'text-red-400'
+                                                : 'text-slate-200'}`}
+                                        >
+                                            {entry.title}
+                                        </div>
                                     </div>
-                                    <div className={`font-bold text-xs uppercase tracking-wide px-2 py-1 rounded-md ${entry.status === 'good'
-                                        ? 'text-green-400'
-                                        : entry.status === 'bad'
-                                            ? 'text-red-400'
-                                            : 'text-slate-200'}`}
-                                    >
-                                        {entry.title}
+                                    <div className="rounded-md border border-[#222] bg-[#1a1a1a] p-2 text-slate-300">
+                                        {language === 'ko' ? '사건' : 'Event'}: {entry.description}
+                                    </div>
+                                    <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
+                                        {language === 'ko' ? '대처' : 'Response'}: {entry.response}
+                                    </div>
+                                    <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2">
+                                        {renderDeltaItems(entry)}
                                     </div>
                                 </div>
-                                <div className="rounded-md border border-[#222] bg-[#1a1a1a] p-2 text-slate-300">
-                                    {language === 'ko' ? '사건' : 'Event'}: {entry.description}
-                                </div>
-                                <div className="rounded-md border border-[#2a2112] bg-[#2b1f0e] p-2 text-[#f3d7a1]">
-                                    {language === 'ko' ? '대처' : 'Response'}: {entry.response}
-                                </div>
-                                <div className="rounded-md border border-[#1b1b1b] bg-[#0f0f0f] p-2">
-                                    {renderDeltaItems(entry)}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 

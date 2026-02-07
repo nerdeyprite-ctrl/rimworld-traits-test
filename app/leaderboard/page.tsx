@@ -144,7 +144,14 @@ export default function LeaderboardPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right text-[10px] text-slate-500 font-mono">
-                                            {new Date(entry.created_at).toLocaleDateString()}
+                                            {new Date(entry.created_at).toLocaleString('ko-KR', {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: false
+                                            })}
                                         </td>
                                     </tr>
                                 ))}

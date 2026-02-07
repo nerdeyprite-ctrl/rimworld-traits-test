@@ -150,7 +150,16 @@ export default function SettlersClient() {
                                         <span className="opacity-30">|</span>
                                         <span>{language === 'ko' ? `나이 ${settler.age}` : `Age ${settler.age}`}</span>
                                         <span className="opacity-30">|</span>
-                                        <span suppressHydrationWarning>{new Date(settler.created_at).toLocaleDateString()}</span>
+                                        <span suppressHydrationWarning>
+                                            {new Date(settler.created_at).toLocaleString('ko-KR', {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: false
+                                            })}
+                                        </span>
                                     </div>
                                 </div>
                                 <button
