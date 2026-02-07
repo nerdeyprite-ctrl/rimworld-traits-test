@@ -255,10 +255,11 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
         choices.push({
             id: 'buy_meds_large',
             label: isKo ? '치료제 대량 구매' : 'Buy Meds (Large)',
-            description: isKo ? '돈 2 → 치료제 3' : 'Money 2 → Meds 3',
-            delta: { hp: 0, food: 0, meds: 3, money: -2 },
+            description: isKo ? '돈 2 → 치료제 2' : 'Money 2 → Meds 2',
+            delta: { hp: 0, food: 0, meds: 2, money: -2 },
             response: isKo ? '치료제를 대량으로 구매했습니다.' : 'You buy a large med supply.'
         });
+
     }
     if (money >= 1) {
         choices.push({
@@ -271,10 +272,11 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
         choices.push({
             id: 'buy_meds_small',
             label: isKo ? '치료제 소량 구매' : 'Buy Meds (Small)',
-            description: isKo ? '돈 1 → 치료제 2' : 'Money 1 → Meds 2',
-            delta: { hp: 0, food: 0, meds: 2, money: -1 },
+            description: isKo ? '돈 1 → 치료제 1' : 'Money 1 → Meds 1',
+            delta: { hp: 0, food: 0, meds: 1, money: -1 },
             response: isKo ? '치료제를 소량 구매했습니다.' : 'You buy a small med supply.'
         });
+
     }
 
     if (food >= 2) {
@@ -378,13 +380,14 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '협상' : 'Negotiate',
                     description: isKo ? '사교 기술 체크' : 'Social skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '협상을 시도했습니다.' : 'You attempt to negotiate.',
+                    response: isKo ? '화술을 발휘해 유리한 조건으로 거래를 시도합니다.' : 'You attempt to negotiate a better deal.',
                     skillCheck: {
                         label: isKo ? '협상' : 'Negotiation',
                         group: ['사교'],
-                        successDelta: { hp: 0, food: 1, meds: 1, money: 3 },
-                        failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
+                        successDelta: { hp: 0, food: 3, meds: 2, money: -1 },
+                        failDelta: { hp: 0, food: 1, meds: 1, money: -2 }
                     }
+
                 },
                 {
                     id: 'trade_pass',
@@ -492,9 +495,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '분해' : 'Salvage',
                         group: ['제작'],
-                        successDelta: { hp: 0, food: 0, meds: 0, money: 3 },
-                        failDelta: { hp: 0, food: 0, meds: 0, money: 1 }
+                        successDelta: { hp: 0, food: 0, meds: 0, money: 6 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 2 }
                     }
+
                 },
                 {
                     id: 'chunk_ignore',
@@ -1003,9 +1007,10 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 label: isKo ? '전설적인 거래' : 'Legendary Trade',
                 description: isKo ? '식량 +5, 치료제 +3, 돈 +5' : 'Food +5, Meds +3, Money +5',
                 delta: { hp: 0, food: 5, meds: 3, money: 5 },
-                response: isKo ? '당신의 화술에 매료된 상인이 보따리를 풀었습니다.' : 'The trader was charmed by your words and gave you a legendary deal.',
+                response: isKo ? '당신의 화술과 비전에 매료된 상인이 보따리를 풀었습니다.' : 'The trader was charmed by your words and vision, and gave you a legendary deal.',
                 isSpecial: true,
                 specialReason: isKo ? '사교 15+' : 'Social 15+'
+
             });
         }
         if (traitIds.has('kind')) {
@@ -1021,9 +1026,10 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                     label: isKo ? '호의' : 'Kindness',
                     group: ['사교'],
                     chanceMultiplier: 2,
-                    successDelta: { hp: 0, food: 2, meds: 1, money: 1 },
+                    successDelta: { hp: 0, food: 2, meds: 2, money: -1 },
                     failDelta: { hp: 0, food: 0, meds: 0, money: -1 }
                 }
+
             });
         }
         if (traitIds.has('abrasive')) {
@@ -1039,9 +1045,10 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                     label: isKo ? '협박' : 'Intimidation',
                     group: ['격투', '사격'],
                     chanceMultiplier: 2,
-                    successDelta: { hp: 0, food: 2, meds: 0, money: 2 },
+                    successDelta: { hp: 0, food: 2, meds: 1, money: 2 },
                     failDelta: { hp: -1, food: 0, meds: 0, money: -1 }
                 }
+
             });
         }
     }
@@ -1062,11 +1069,18 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         choices.push({
             id: 'perfect_salvage',
             label: isKo ? '정밀 분해' : 'Precision Salvage',
-            description: isKo ? '돈 +6' : 'Money +6',
-            delta: { hp: 0, food: 0, meds: 0, money: 6 },
-            response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 은을 챙겼습니다.' : 'Your precision salvage earned you a fortune in silver.',
+            description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
+            response: isKo ? '당신의 정밀한 분해 기술 덕에 막대한 이득을 챙겼습니다.' : 'Your precision salvage earned you a fortune.',
             isSpecial: true,
-            specialReason: isKo ? '제작 12+' : 'Crafting 12+'
+            specialReason: isKo ? '제작 12+' : 'Crafting 12+',
+            skillCheck: {
+                label: isKo ? '정밀 분해' : 'Precision Salvage',
+                group: ['제작'],
+                successDelta: { hp: 0, food: 0, meds: 0, money: 10 },
+                failDelta: { hp: 0, food: 0, meds: 0, money: 4 }
+            }
+
         });
     }
 
