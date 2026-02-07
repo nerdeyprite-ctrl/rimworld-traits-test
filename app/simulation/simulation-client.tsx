@@ -227,10 +227,10 @@ const getEventIcon = (event?: SimEvent) => {
 };
 
 const getHealAmount = (medicineLevel: number) => {
-    if (medicineLevel <= 3) return 1;
-    if (medicineLevel <= 6) return 2;
-    if (medicineLevel <= 10) return 3;
-    return 4;
+    if (medicineLevel <= 3) return 3;
+    if (medicineLevel <= 6) return 4;
+    if (medicineLevel <= 10) return 5;
+    return 6;
 };
 
 const getSkillChance = (level: number) => {

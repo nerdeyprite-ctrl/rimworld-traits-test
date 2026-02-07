@@ -121,6 +121,13 @@ export default function Home() {
   const updates = [
     {
       date: '2024.02.08',
+      title: language === 'ko' ? '치료제 효율 개선 및 최대 체력 상향' : 'Meds Buff & Max HP Increase',
+      content: language === 'ko'
+        ? '치료제 사용 시 회복량이 2씩 증가하도록 상향 조정되었으며, 기본/최대 체력이 10/20으로 증가했습니다.'
+        : 'Medical supplies now heal +2 more HP. Base/Max HP increased to 10/20.'
+    },
+    {
+      date: '2024.02.08',
       title: language === 'ko' ? '실시간 채팅 기능 추가' : 'Real-time Chat Added',
       content: language === 'ko'
         ? '리더보드에서 다른 정착민들과 실시간으로 대화할 수 있습니다. 최근 30개 메시지만 표시됩니다.'
