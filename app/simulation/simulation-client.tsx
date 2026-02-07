@@ -162,10 +162,15 @@ const TRAIT_EFFECTS: Record<string, { ko: string; en: string }> = {
     jogger: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
     nimble: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
     slowpoke: { ko: "성공 확률 -20% (이동/회피 관련)", en: "Success chance -20% (Movement/Evasion)" },
-    tough: { ko: "받는 모든 HP 피해량 50% 감소 (반올림)", en: "All HP damage received reduced by 50% (rounded)" },
+    tough: { ko: "받는 모든 HP 피해량 50% 감소 (반올림), [전용 선택지 추가]", en: "All HP damage received reduced by 50% (rounded), [Special choice added]" },
     greedy: { ko: "시작 물자: 은 +10 보너스", en: "Starting items: +10 Silver bonus" },
     ascetic: { ko: "시작 물자: HP +5 보너스, 은 -5 페널티", en: "Starting items: +5 HP bonus, -5 Silver penalty" },
-    wimp: { ko: "시작 물자: 치료제 +3 보너스", en: "Starting items: +3 Meds bonus" },
+    wimp: { ko: "시작 물자: 치료제 +3 보너스, [전용 선택지 추가]", en: "Starting items: +3 Meds bonus, [Special choice added]" },
+    industrious: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
+    lazy: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
+    kind: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
+    abrasive: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
+    pyromaniac: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
 };
 
 const getEventIcon = (event?: SimEvent) => {
@@ -2493,59 +2498,64 @@ export default function SimulationClient() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={handleUseMeds}
-                        disabled={!canUseMeds}
-                        className={`px-4 py-2 text-sm font-bold border ${canUseMeds
-                            ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332] rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
-                    </button>
-                    <button
-                        onClick={handleUpgradeBase}
-                        disabled={!canUpgradeBase}
-                        className={`px-4 py-2 text-sm font-bold border ${canUpgradeBase
-                            ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko'
-                            ? `기지 업그레이드 Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (돈 ${nextBaseCost})` : ''}`
-                            : `Base Upgrade Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (Money ${nextBaseCost})` : ''}`}
-                    </button>
-                    <button
-                        onClick={() => {
-                            if (submittedOnExit) return;
-                            submitScore('escape', simState.day, false);
-                            setSubmittedOnExit(true);
-                            setSimState(prev => ({ ...prev, status: 'success' }));
-                        }}
-                        disabled={!canBoardNow}
-                        className={`px-4 py-2 text-sm font-bold border ${canBoardNow
-                            ? 'bg-[#8b5a2b] hover:bg-[#a06b35] text-white border-[#5a3a1a] rounded-md shadow-sm'
-                            : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
-                    >
-                        {language === 'ko' ? '우주선 탑승하기' : 'Board the Ship'}
-                    </button>
-                    <button
-                        onClick={() => setShowLog(prev => !prev)}
-                        className="px-4 py-2 rounded-md bg-[#1a1a1a] hover:bg-[#262626] text-slate-200 text-sm border border-[#2a2a2a]"
-                    >
-                        {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Log') : (language === 'ko' ? '로그 보기' : 'Show Log')}
-                    </button>
-                    <button
-                        onClick={() => setShowTraitsModal(true)}
-                        className="px-4 py-2 rounded-md bg-[#2c1d3f] hover:bg-[#3f2a56] text-purple-200 text-sm border border-[#3f2a56] shadow-sm"
-                    >
-                        {language === 'ko' ? '특성' : 'Traits'}
-                    </button>
-                    <button
-                        onClick={() => setShowSkillsModal(true)}
-                        className="px-4 py-2 rounded-md bg-[#1c3d5a] hover:bg-[#2c5282] text-blue-200 text-sm border border-[#2c5282] shadow-sm"
-                    >
-                        {language === 'ko' ? '기술' : 'Skills'}
-                    </button>
+                <div className="flex flex-wrap gap-2 justify-between items-center">
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={handleUseMeds}
+                            disabled={!canUseMeds}
+                            className={`px-4 py-2 text-sm font-bold border ${canUseMeds
+                                ? 'bg-[#2d6a4f] hover:bg-[#40916c] text-white border-[#1b4332] rounded-md shadow-sm'
+                                : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                        >
+                            {language === 'ko' ? `치료제 사용 (HP +${healAmount})` : `Use Meds (+${healAmount} HP)`}
+                        </button>
+                        <button
+                            onClick={handleUpgradeBase}
+                            disabled={!canUpgradeBase}
+                            className={`px-4 py-2 text-sm font-bold border ${canUpgradeBase
+                                ? 'bg-[#3f2a56] hover:bg-[#5a3d7a] text-white border-[#2b1d3f] rounded-md shadow-sm'
+                                : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                        >
+                            {language === 'ko'
+                                ? `기지 업그레이드 Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (돈 ${nextBaseCost})` : ''}`
+                                : `Base Upgrade Lv.${simState.campLevel}${nextBaseCost !== undefined ? ` (Money ${nextBaseCost})` : ''}`}
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (submittedOnExit) return;
+                                submitScore('escape', simState.day, false);
+                                setSubmittedOnExit(true);
+                                setSimState(prev => ({ ...prev, status: 'success' }));
+                            }}
+                            disabled={!canBoardNow}
+                            className={`px-4 py-2 text-sm font-bold border ${canBoardNow
+                                ? 'bg-[#8b5a2b] hover:bg-[#a06b35] text-white border-[#5a3a1a] rounded-md shadow-sm'
+                                : 'bg-[#333] text-gray-500 border-gray-700 cursor-not-allowed rounded-md'}`}
+                        >
+                            {language === 'ko' ? '우주선 탑승하기' : 'Board the Ship'}
+                        </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setShowLog(prev => !prev)}
+                            className="px-4 py-2 rounded-md bg-[#1a1a1a] hover:bg-[#262626] text-slate-200 text-sm border border-[#2a2a2a]"
+                        >
+                            {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Log') : (language === 'ko' ? '로그 보기' : 'Show Log')}
+                        </button>
+                        <button
+                            onClick={() => setShowTraitsModal(true)}
+                            className="px-4 py-2 rounded-md bg-[#2c1d3f] hover:bg-[#3f2a56] text-purple-200 text-sm border border-[#3f2a56] shadow-sm"
+                        >
+                            {language === 'ko' ? '특성' : 'Traits'}
+                        </button>
+                        <button
+                            onClick={() => setShowSkillsModal(true)}
+                            className="px-4 py-2 rounded-md bg-[#1c3d5a] hover:bg-[#2c5282] text-blue-200 text-sm border border-[#2c5282] shadow-sm"
+                        >
+                            {language === 'ko' ? '기술' : 'Skills'}
+                        </button>
+                    </div>
                 </div>
                 {submitMessage && (
                     <div className="text-xs text-slate-400">
@@ -2672,15 +2682,25 @@ export default function SimulationClient() {
                                 </svg>
                             </button>
                         </div>
-                        <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="p-6 space-y-2 max-h-[70vh] overflow-y-auto">
                             {ALL_SKILLS.map(skill => {
                                 const level = skillMap[skill] || 0;
                                 const skillName = language === 'ko' ? (SKILL_NAMES_KO[skill] || skill) : skill;
                                 return (
-                                    <div key={skill} className="bg-black/30 border border-[#333] rounded-xl p-3 flex flex-col items-center justify-center space-y-1">
-                                        <span className="text-[10px] uppercase font-black text-slate-500 tracking-tighter">{skill}</span>
-                                        <span className="text-sm font-bold text-blue-200 leading-none">{skillName}</span>
-                                        <span className="text-2xl font-black text-white leading-none">{level}</span>
+                                    <div key={skill} className="bg-black/40 border border-[#333] rounded-lg p-2 px-4 flex items-center justify-between group hover:border-blue-500/30 transition-colors">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] uppercase font-black text-slate-600 tracking-tighter leading-none group-hover:text-slate-400 transition-colors">{skill}</span>
+                                            <span className="text-xs font-bold text-blue-100">{skillName}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden sm:block">
+                                                <div
+                                                    className="h-full bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                                    style={{ width: `${Math.min(100, (level / 20) * 100)}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-lg font-black text-white w-6 text-right">{level}</span>
+                                        </div>
                                     </div>
                                 );
                             })}
