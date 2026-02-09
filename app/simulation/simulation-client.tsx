@@ -116,6 +116,7 @@ type SimState = {
     evacCountdown: number;
     evacForceThreatNextDay: boolean;
     deathDuringEvac: boolean;
+    evacReady: boolean;
     skillProgress: Record<string, { level: number; xp: number }>; // 숙련도 시스템
 };
 
@@ -140,6 +141,7 @@ type PreparedTurn = {
     showEndingCard?: boolean;
     allowContinue?: boolean;
     canBoardShip?: boolean;
+    showLaunchReadyPrompt?: boolean;
 };
 
 const MAX_DAYS = 60;
@@ -2307,6 +2309,8 @@ export default function SimulationClient() {
     const [hasTempSave, setHasTempSave] = useState(false);
     const [showBoardConfirm, setShowBoardConfirm] = useState(false);
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
+    const [showLaunchReadyPrompt, setShowLaunchReadyPrompt] = useState(false);
+    const [showLaunchConfirm, setShowLaunchConfirm] = useState(false);
     const [turnPhase, setTurnPhase] = useState<TurnPhase>('idle');
     const [preparedTurn, setPreparedTurn] = useState<PreparedTurn | null>(null);
     const prepareTimerRef = useRef<number | null>(null);
@@ -2332,6 +2336,7 @@ export default function SimulationClient() {
         evacCountdown: 0,
         evacForceThreatNextDay: false,
         deathDuringEvac: false,
+        evacReady: false,
         skillProgress: {} // 숙련도는 빈 객체로 시작
     });
 
@@ -2388,7 +2393,8 @@ export default function SimulationClient() {
                 evacActive: data.simState?.evacActive ?? false,
                 evacCountdown: data.simState?.evacCountdown ?? 0,
                 evacForceThreatNextDay: data.simState?.evacForceThreatNextDay ?? false,
-                deathDuringEvac: data.simState?.deathDuringEvac ?? false
+                deathDuringEvac: data.simState?.deathDuringEvac ?? false,
+                evacReady: data.simState?.evacReady ?? false
             });
             setPendingChoice(data.pendingChoice);
             setCurrentCard(data.currentCard);
@@ -2722,14 +2728,15 @@ export default function SimulationClient() {
             hasSerum: false,
             serumTraderShown: false,
             daysSinceDanger: 0,
-            evacActive: false,
-            evacCountdown: 0,
-            evacForceThreatNextDay: false,
-            deathDuringEvac: false,
-            skillProgress: ALL_SKILLS.reduce((acc, skill) => {
-                acc[skill] = { level: 0, xp: 0 };
-                return acc;
-            }, {} as Record<string, { level: number; xp: number }>)
+        evacActive: false,
+        evacCountdown: 0,
+        evacForceThreatNextDay: false,
+        deathDuringEvac: false,
+        evacReady: false,
+        skillProgress: ALL_SKILLS.reduce((acc, skill) => {
+            acc[skill] = { level: 0, xp: 0 };
+            return acc;
+        }, {} as Record<string, { level: number; xp: number }>)
         });
         setPendingChoice(null);
         setCurrentCard(null);
@@ -2748,6 +2755,8 @@ export default function SimulationClient() {
         setSubmitMessage(null);
         setShowBoardConfirm(false);
         setShowEndingConfirm(false);
+        setShowLaunchReadyPrompt(false);
+        setShowLaunchConfirm(false);
         setTurnPhase('idle');
         setPreparedTurn(null);
     }, [language, traitIds]);
@@ -3299,7 +3308,9 @@ export default function SimulationClient() {
         let finalResponseCard = resolved.responseTextCard;
         let finalHasSerum = simState.hasSerum;
         let finalEvacCountdown = simState.evacCountdown;
+        let finalEvacReady = simState.evacReady;
         let finalDeathDuringEvac = false;
+        let shouldPromptLaunchReady = false;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -3315,15 +3326,16 @@ export default function SimulationClient() {
         if (simState.evacActive && finalStatus === 'running') {
             finalEvacCountdown = Math.max(0, simState.evacCountdown - 1);
             if (finalEvacCountdown === 0) {
-                finalStatus = 'success';
+                finalEvacReady = true;
+                shouldPromptLaunchReady = true;
                 finalResponse += language === 'ko'
-                    ? ' 탈출 카운트다운을 끝까지 버텨 우주선 발진에 성공했습니다!'
-                    : ' You survived the evacuation countdown and launched the ship!';
+                    ? ' 탈출 준비가 완료되었습니다. 우주선 출발을 선택할 수 있습니다.'
+                    : ' Evacuation prep is complete. You can launch the ship anytime.';
                 finalResponseCard += language === 'ko'
-                    ? '\n탈출 카운트다운 완료! 우주선 발진 성공.'
-                    : '\nEvacuation countdown complete! Ship launch successful.';
+                    ? '\n탈출 준비 완료! 우주선 출발 가능.'
+                    : '\nEvacuation prep complete! Ship launch available.';
             }
-        } else if (!simState.evacActive) {
+        } else if (!simState.evacActive && !finalEvacReady) {
             finalEvacCountdown = 0;
         }
 
@@ -3364,10 +3376,11 @@ export default function SimulationClient() {
                 status: finalStatus,
                 hasSerum: finalHasSerum,
                 serumTraderShown,
-                evacActive: simState.evacActive && finalStatus !== 'success',
-                evacCountdown: finalStatus === 'success' ? 0 : finalEvacCountdown,
-                evacForceThreatNextDay: finalStatus === 'success' ? false : evacForceThreatNextDay,
+                evacActive: simState.evacActive && finalEvacCountdown > 0,
+                evacCountdown: finalEvacCountdown,
+                evacForceThreatNextDay: simState.evacActive && finalEvacCountdown > 0 ? evacForceThreatNextDay : false,
                 deathDuringEvac: finalDeathDuringEvac,
+                evacReady: finalEvacReady,
                 skillProgress: resolved.skillProgress,
                 daysSinceDanger: nextDaysSinceDanger,
                 log: [entry, ...simState.log].slice(0, 60)
@@ -3379,7 +3392,8 @@ export default function SimulationClient() {
                 event,
                 entry
             },
-            cardView: 'event'
+            cardView: 'event',
+            showLaunchReadyPrompt: shouldPromptLaunchReady
         };
     }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage]);
 
@@ -3392,6 +3406,7 @@ export default function SimulationClient() {
         if (nextTurn.showEndingCard !== undefined) setShowEndingCard(nextTurn.showEndingCard);
         if (nextTurn.allowContinue !== undefined) setAllowContinue(nextTurn.allowContinue);
         if (nextTurn.canBoardShip !== undefined) setCanBoardShip(nextTurn.canBoardShip);
+        if (nextTurn.showLaunchReadyPrompt) setShowLaunchReadyPrompt(true);
     }, []);
 
     const advanceDay = useCallback(() => {
@@ -3423,7 +3438,8 @@ export default function SimulationClient() {
                     evacActive: true,
                     evacCountdown: EVAC_SURVIVAL_DAYS,
                     evacForceThreatNextDay: false,
-                    deathDuringEvac: false
+                    deathDuringEvac: false,
+                    evacReady: false
                 }));
                 setCurrentCard({
                     day: pendingChoice.day,
@@ -3490,7 +3506,9 @@ export default function SimulationClient() {
         let finalHasSerum = simState.hasSerum;
         const finalCounts = resolved.counts;
         let finalEvacCountdown = simState.evacCountdown;
+        let finalEvacReady = simState.evacReady;
         let finalDeathDuringEvac = false;
+        let shouldPromptLaunchReady = false;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -3510,15 +3528,16 @@ export default function SimulationClient() {
         if (simState.evacActive && finalStatus === 'running') {
             finalEvacCountdown = Math.max(0, simState.evacCountdown - 1);
             if (finalEvacCountdown === 0) {
-                finalStatus = 'success';
+                finalEvacReady = true;
+                shouldPromptLaunchReady = true;
                 finalResponse += language === 'ko'
-                    ? ' 탈출 카운트다운을 끝까지 버텨 우주선 발진에 성공했습니다!'
-                    : ' You survived the evacuation countdown and launched the ship!';
+                    ? ' 탈출 준비가 완료되었습니다. 우주선 출발을 선택할 수 있습니다.'
+                    : ' Evacuation prep is complete. You can launch the ship anytime.';
                 finalResponseCard += language === 'ko'
-                    ? '\n탈출 카운트다운 완료! 우주선 발진 성공.'
-                    : '\nEvacuation countdown complete! Ship launch successful.';
+                    ? '\n탈출 준비 완료! 우주선 출발 가능.'
+                    : '\nEvacuation prep complete! Ship launch available.';
             }
-        } else if (!simState.evacActive) {
+        } else if (!simState.evacActive && !finalEvacReady) {
             finalEvacCountdown = 0;
         }
 
@@ -3560,9 +3579,11 @@ export default function SimulationClient() {
                 spouseCount: finalCounts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
-                evacActive: simState.evacActive && finalStatus !== 'success',
-                evacCountdown: finalStatus === 'success' ? 0 : finalEvacCountdown,
+                evacActive: simState.evacActive && finalEvacCountdown > 0,
+                evacCountdown: finalEvacCountdown,
                 deathDuringEvac: finalDeathDuringEvac,
+                evacForceThreatNextDay: simState.evacActive && finalEvacCountdown > 0 ? simState.evacForceThreatNextDay : false,
+                evacReady: finalEvacReady,
                 skillProgress: resolved.skillProgress,
                 log
             };
@@ -3576,6 +3597,7 @@ export default function SimulationClient() {
         setCardView('result');
 
         setPendingChoice(null);
+        if (shouldPromptLaunchReady) setShowLaunchReadyPrompt(true);
     };
 
     const handleUseMeds = () => {
@@ -3630,6 +3652,17 @@ export default function SimulationClient() {
                 log: [entry, ...prev.log].slice(0, 60)
             };
         });
+    };
+
+    const launchShipNow = () => {
+        setSimState(prev => ({
+            ...prev,
+            status: 'success',
+            evacActive: false,
+            evacCountdown: 0
+        }));
+        setShowLaunchReadyPrompt(false);
+        setShowLaunchConfirm(false);
     };
 
     useEffect(() => {
@@ -3703,7 +3736,9 @@ export default function SimulationClient() {
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && turnPhase === 'idle' && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
-    const canBoardNow = hasShipBuilt && simState.status === 'running' && !simState.evacActive;
+    const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady;
+    const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive;
+    const canBoardNow = canStartEvac || canLaunchNow;
     const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
     const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
     const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
@@ -4131,7 +4166,11 @@ export default function SimulationClient() {
                         <button
                             onClick={() => {
                                 if (submittedOnExit) return;
-                                setShowBoardConfirm(true);
+                                if (canLaunchNow) {
+                                    setShowLaunchConfirm(true);
+                                } else {
+                                    setShowBoardConfirm(true);
+                                }
                             }}
                             disabled={!canBoardNow}
                             className={`sim-btn px-4 py-2 text-xs ${canBoardNow
@@ -4141,7 +4180,9 @@ export default function SimulationClient() {
                         >
                             {simState.evacActive
                                 ? (language === 'ko' ? `🛸 탈출 준비 중 (${simState.evacCountdown}일)` : `🛸 Evac Active (${simState.evacCountdown}d)`)
-                                : (language === 'ko' ? `🛸 탈출 준비 시작 (${EVAC_SURVIVAL_DAYS}일)` : `🛸 Start Evac (${EVAC_SURVIVAL_DAYS}d)`)}
+                                : simState.evacReady
+                                    ? (language === 'ko' ? '🛸 우주선 출발' : '🛸 Launch Ship')
+                                    : (language === 'ko' ? `🛸 탈출 준비 시작 (${EVAC_SURVIVAL_DAYS}일)` : `🛸 Start Evac (${EVAC_SURVIVAL_DAYS}d)`)}
                         </button>
                     </div>
 
@@ -4285,6 +4326,74 @@ export default function SimulationClient() {
                 </SimModalShell>
             )}
 
+            {showLaunchReadyPrompt && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in zoom-in-95 duration-200">
+                    <div className="sim-modal-shell w-full max-w-md border-2 border-[var(--sim-accent)]">
+                        <div className="bg-[var(--sim-accent)]/10 p-6 text-center border-b border-[var(--sim-border)]">
+                            <div className="text-3xl mb-2">🛸</div>
+                            <h3 className="text-xl font-black text-[var(--sim-accent)] uppercase tracking-widest">
+                                {language === 'ko' ? '탈출 준비 완료' : 'Evac Ready'}
+                            </h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-[var(--sim-text-sub)] text-sm leading-relaxed text-center font-medium">
+                                {language === 'ko'
+                                    ? '15일을 버텨 우주선 출발이 가능합니다. 출발하지 않고 계속 도전하시겠습니까?'
+                                    : 'You survived 15 days. The ship is ready to launch. Continue the challenge?'}
+                            </p>
+                        </div>
+                        <div className="p-4 bg-[var(--sim-surface-1)]/70 flex gap-3">
+                            <button
+                                onClick={() => setShowLaunchReadyPrompt(false)}
+                                className="sim-btn sim-btn-ghost flex-1 py-3 text-sm"
+                            >
+                                {language === 'ko' ? '계속 도전' : 'Keep Challenging'}
+                            </button>
+                            <button
+                                onClick={launchShipNow}
+                                className="sim-btn sim-btn-danger flex-1 py-3 text-sm"
+                            >
+                                {language === 'ko' ? '지금 출발' : 'Launch Now'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showLaunchConfirm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in zoom-in-95 duration-200">
+                    <div className="sim-modal-shell w-full max-w-md border-2 border-[var(--sim-accent)]">
+                        <div className="bg-[var(--sim-accent)]/10 p-6 text-center border-b border-[var(--sim-border)]">
+                            <div className="text-3xl mb-2">🚀</div>
+                            <h3 className="text-xl font-black text-[var(--sim-accent)] uppercase tracking-widest">
+                                {language === 'ko' ? '우주선 출발' : 'Launch Ship'}
+                            </h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-[var(--sim-text-sub)] text-sm leading-relaxed text-center font-medium">
+                                {language === 'ko'
+                                    ? '지금 출발하면 바로 엔딩입니다. 괜찮습니까?'
+                                    : 'Launching now ends the game immediately. Proceed?'}
+                            </p>
+                        </div>
+                        <div className="p-4 bg-[var(--sim-surface-1)]/70 flex gap-3">
+                            <button
+                                onClick={() => setShowLaunchConfirm(false)}
+                                className="sim-btn sim-btn-ghost flex-1 py-3 text-sm"
+                            >
+                                {language === 'ko' ? '취소' : 'Cancel'}
+                            </button>
+                            <button
+                                onClick={launchShipNow}
+                                className="sim-btn sim-btn-danger flex-1 py-3 text-sm"
+                            >
+                                {language === 'ko' ? '출발' : 'Launch'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Confirmation Modals */}
             {(showBoardConfirm || showEndingConfirm) && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in zoom-in-95 duration-200">
@@ -4302,8 +4411,8 @@ export default function SimulationClient() {
                                         ? '정말 떠나시겠습니까? 계속 생존하여 더 높은 기록을 세울 수 있습니다.'
                                         : 'Do you really want to leave? You can continue to survive for a higher record.')
                                     : (language === 'ko'
-                                        ? `우주선 시동을 걸면 ${EVAC_SURVIVAL_DAYS}일 버텨야 탈출합니다. 시작하시겠습니까?`
-                                        : `Starting ship launch requires surviving ${EVAC_SURVIVAL_DAYS} more days. Start now?`)
+                                        ? `우주선 시동을 걸면 ${EVAC_SURVIVAL_DAYS}일 버텨야 탈출합니다. 곧 습격이 몰아닥칠 텐데 시작하시겠습니까?`
+                                        : `Starting ship launch requires surviving ${EVAC_SURVIVAL_DAYS} more days. Raids will intensify—start now?`)
                                 }
                             </p>
                         </div>
@@ -4332,7 +4441,8 @@ export default function SimulationClient() {
                                         evacActive: true,
                                         evacCountdown: EVAC_SURVIVAL_DAYS,
                                         evacForceThreatNextDay: false,
-                                        deathDuringEvac: false
+                                        deathDuringEvac: false,
+                                        evacReady: false
                                     }));
                                     setShowBoardConfirm(false);
                                     setShowEndingConfirm(false);
