@@ -46,8 +46,7 @@ export default function LeaderboardPage() {
                 const { data, error: fetchError } = await supabase
                     .from('leaderboard_scores')
                     .select('*')
-                    .order('day_count', { ascending: false })
-                    .limit(100);
+                    .order('day_count', { ascending: false });
 
                 if (fetchError) throw fetchError;
                 setScores(data || []);
@@ -97,14 +96,17 @@ export default function LeaderboardPage() {
             : (language === 'ko' ? '역대' : 'All Time');
 
     const buildDistribution = (entries: LeaderboardEntry[]) => {
+        const bucketSize = 10;
+        const tailStart = 1000;
         const counts = new Map<number, number>();
         for (const entry of entries) {
             const day = Math.max(0, Math.floor(entry.day_count));
-            counts.set(day, (counts.get(day) ?? 0) + 1);
+            const bucket = day >= tailStart ? tailStart : Math.floor(day / bucketSize) * bucketSize;
+            counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
         }
         const rows = Array.from(counts.entries()).sort((a, b) => a[0] - b[0]);
         const maxCount = rows.reduce((max, [, count]) => Math.max(max, count), 1);
-        return { rows, maxCount };
+        return { rows, maxCount, bucketSize, tailStart };
     };
 
     const renderLeaderboardTable = (entries: LeaderboardEntry[]) => {
@@ -184,27 +186,70 @@ export default function LeaderboardPage() {
             );
         }
 
-        const { rows, maxCount } = buildDistribution(entries);
-        const barMaxHeight = 160;
-        const labelStep = rows.length > 120 ? 10 : rows.length > 60 ? 5 : rows.length > 30 ? 2 : 1;
+        const { rows, maxCount, bucketSize, tailStart } = buildDistribution(entries);
+        if (rows.length === 0) {
+            return (
+                <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
+                    {language === 'ko' ? '해당 기간의 기록이 없습니다.' : 'No records for this period.'}
+                </div>
+            );
+        }
+
+        const width = 900;
+        const height = 220;
+        const padX = 40;
+        const padY = 24;
+        const chartW = width - padX * 2;
+        const chartH = height - padY * 2;
+        const maxX = rows.length - 1;
+        const labelStep = rows.length > 100 ? 10 : rows.length > 60 ? 5 : rows.length > 30 ? 2 : 1;
+
+        const toX = (i: number) => padX + (maxX === 0 ? 0 : (i / maxX) * chartW);
+        const toY = (count: number) => padY + (1 - (maxCount === 0 ? 0 : count / maxCount)) * chartH;
+        const points = rows.map(([, count], i) => `${toX(i)},${toY(count)}`).join(' ');
 
         return (
             <div className="border border-[#333] rounded-xl bg-[#111] shadow-2xl p-6">
-                <div className="flex items-end gap-1 h-[200px] overflow-x-auto pb-2">
-                    {rows.map(([day, count], idx) => {
-                        const height = Math.max(4, Math.round((count / maxCount) * barMaxHeight));
-                        return (
-                            <div key={day} className="flex flex-col items-center justify-end min-w-[10px]">
-                                <div
-                                    className="w-3 md:w-4 rounded-t bg-[#e2c178] shadow-[0_-6px_18px_rgba(226,193,120,0.25)]"
-                                    style={{ height: `${height}px` }}
-                                />
-                                <div className="mt-1 text-[9px] text-slate-500 font-mono h-3">
-                                    {idx % labelStep === 0 ? day : ''}
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="w-full overflow-x-auto">
+                    <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[680px]">
+                        <polyline
+                            points={points}
+                            fill="none"
+                            stroke="#e2c178"
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                        />
+                        {rows.map(([day, count], i) => (
+                            <circle
+                                key={`${day}-${i}`}
+                                cx={toX(i)}
+                                cy={toY(count)}
+                                r={2.5}
+                                fill="#e2c178"
+                                opacity={0.9}
+                            />
+                        ))}
+                        {rows.map(([day], i) => {
+                            if (i % labelStep !== 0) return null;
+                            const label = day >= tailStart ? `${tailStart}+` : `${day}-${day + bucketSize - 1}`;
+                            return (
+                                <text
+                                    key={`label-${day}`}
+                                    x={toX(i)}
+                                    y={height - 4}
+                                    textAnchor="middle"
+                                    fontSize="9"
+                                    fill="#64748b"
+                                    fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+                                >
+                                    {label}
+                                </text>
+                            );
+                        })}
+                        <line x1={padX} y1={padY} x2={padX} y2={height - padY} stroke="#1f2937" strokeWidth="1" />
+                        <line x1={padX} y1={height - padY} x2={width - padX} y2={height - padY} stroke="#1f2937" strokeWidth="1" />
+                    </svg>
                 </div>
                 <div className="mt-3 text-[10px] text-slate-500 flex items-center justify-between">
                     <span>{language === 'ko' ? `총 기록: ${entries.length}` : `Total records: ${entries.length}`}</span>
