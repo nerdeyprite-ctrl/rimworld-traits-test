@@ -3689,6 +3689,8 @@ export default function SimulationClient() {
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && turnPhase === 'idle' && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = hasShipBuilt && simState.status === 'running' && !simState.evacActive;
+    const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
+    const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
 
     const handleAdvanceDay = () => {
         if (turnPhase !== 'idle') return;
@@ -3805,7 +3807,7 @@ export default function SimulationClient() {
                         <div aria-hidden className="reigns-card-stack reigns-card-stack--back-2" />
                         <div aria-hidden className={`reigns-card-stack reigns-card-stack--back-1 ${preparedTurn ? 'reigns-card-stack--preview' : ''}`}>
                             {preparedTurn && (
-                                <div className={`reigns-card-stack-content ${preparedTurn.currentCard.event.isRainbow ? 'rainbow-glow' : ''}`}>
+                                <div className={`reigns-card-stack-content ${isPreparedDangerCard ? 'reigns-card-stack-content--danger' : ''} ${preparedTurn.currentCard.event.isRainbow ? 'rainbow-glow' : ''}`}>
                                     <div className="reigns-card-stack-meta">
                                         {`Day ${preparedTurn.currentCard.day} • ${preparedTurn.currentCard.season}`}
                                     </div>
@@ -3818,8 +3820,7 @@ export default function SimulationClient() {
                             )}
                         </div>
                         <div
-                            key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
+                            className={`reigns-card ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
@@ -3892,7 +3893,7 @@ export default function SimulationClient() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className={`reigns-card-face reigns-card-front flex flex-col text-center ${currentCard?.event.isRainbow ? 'rainbow-glow' : ''}`}>
+                                        <div className={`reigns-card-face reigns-card-front ${isCurrentDangerCard ? 'reigns-card-front--danger' : ''} flex flex-col text-center ${currentCard?.event.isRainbow ? 'rainbow-glow' : ''}`}>
                                             <div className="flex flex-col h-full">
                                                 <div className="text-xs text-[var(--sim-text-sub)]">
                                                     {currentCard
