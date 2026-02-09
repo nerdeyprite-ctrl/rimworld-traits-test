@@ -128,7 +128,7 @@ type CurrentCard = {
     entry?: SimLogEntry;
 };
 
-type TurnPhase = 'idle' | 'preparing' | 'flipping' | 'discarding';
+type TurnPhase = 'idle' | 'preparing' | 'flipping';
 
 type PreparedTurn = {
     simState: SimState;
@@ -3706,13 +3706,10 @@ export default function SimulationClient() {
         prepareTimerRef.current = window.setTimeout(() => {
             setTurnPhase('flipping');
             animateTimerRef.current = window.setTimeout(() => {
-                setTurnPhase('discarding');
-                animateTimerRef.current = window.setTimeout(() => {
-                    applyPreparedTurn(nextTurn);
-                    setPreparedTurn(null);
-                    setTurnPhase('idle');
-                    animateTimerRef.current = null;
-                }, 190);
+                applyPreparedTurn(nextTurn);
+                setPreparedTurn(null);
+                setTurnPhase('idle');
+                animateTimerRef.current = null;
             }, 230);
             prepareTimerRef.current = null;
         }, 150);
@@ -3822,7 +3819,7 @@ export default function SimulationClient() {
                         </div>
                         <div
                             key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'flipping' ? 'reigns-card--flipping' : ''} ${turnPhase === 'discarding' ? 'reigns-card--discarding' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'flipping' ? 'reigns-card--flipping' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
