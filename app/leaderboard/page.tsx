@@ -31,6 +31,7 @@ export default function LeaderboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
+    const [activeTab, setActiveTab] = useState<'leaderboard' | 'distribution'>('leaderboard');
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -83,6 +84,139 @@ export default function LeaderboardPage() {
 
     const getSkillName = (key: string) => t(key.toLowerCase());
 
+    const sortedScores = [...scores].sort((a, b) => b.day_count - a.day_count);
+    const nowMs = Date.now();
+    const last24hScores = sortedScores.filter((entry) => new Date(entry.created_at).getTime() >= nowMs - 24 * 60 * 60 * 1000);
+    const last7dScores = sortedScores.filter((entry) => new Date(entry.created_at).getTime() >= nowMs - 7 * 24 * 60 * 60 * 1000);
+
+    const buildDistribution = (entries: LeaderboardEntry[]) => {
+        const counts = new Map<number, number>();
+        for (const entry of entries) {
+            const day = Math.max(0, Math.floor(entry.day_count));
+            counts.set(day, (counts.get(day) ?? 0) + 1);
+        }
+        const rows = Array.from(counts.entries()).sort((a, b) => a[0] - b[0]);
+        const maxCount = rows.reduce((max, [, count]) => Math.max(max, count), 1);
+        return { rows, maxCount };
+    };
+
+    const renderLeaderboardTable = (entries: LeaderboardEntry[]) => {
+        if (entries.length === 0) {
+            return (
+                <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
+                    {language === 'ko' ? '해당 기간의 기록이 없습니다.' : 'No records for this period.'}
+                </div>
+            );
+        }
+
+        return (
+            <div className="overflow-hidden border border-[#333] rounded-xl bg-[#111] shadow-2xl">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-[#1a1a1a] border-b border-[#333] text-[#9f752a] text-xs uppercase tracking-widest">
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '순위' : 'Rank'}</th>
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '이름' : 'Name'}</th>
+                            <th className="px-6 py-4 font-bold text-center">{language === 'ko' ? '생존일' : 'Days'}</th>
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '결말' : 'Fate'}</th>
+                            <th className="px-6 py-4 font-bold text-right">{language === 'ko' ? '날짜' : 'Date'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {entries.map((entry, idx) => (
+                            <tr
+                                key={entry.id}
+                                className={`border-b border-[#222] hover:bg-white/[0.02] transition-colors ${idx < 3 ? 'bg-[#9f752a]/5' : ''}`}
+                            >
+                                <td className="px-6 py-4">
+                                    <span className={`text-lg font-black ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-600'}`}>
+                                        #{idx + 1}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <button
+                                        onClick={() => setSelectedEntry(entry)}
+                                        className="font-bold text-[#e2c178] hover:text-white text-base transition-colors text-left"
+                                    >
+                                        {entry.settler_name}
+                                    </button>
+                                    <div className="text-[10px] text-slate-500 uppercase font-mono">{entry.account_id}</div>
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                    <span className="text-xl font-mono font-bold text-[#e7c07a]">{entry.day_count}</span>
+                                    <span className="text-xs text-slate-500 ml-1">Days</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={`text-xs font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
+                                        {getExitTypeLabel(entry.exit_type)}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right text-[10px] text-slate-500 font-mono">
+                                    {new Date(entry.created_at).toLocaleString('ko-KR', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false
+                                    })}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    const renderDistributionTable = (entries: LeaderboardEntry[]) => {
+        if (entries.length === 0) {
+            return (
+                <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
+                    {language === 'ko' ? '해당 기간의 기록이 없습니다.' : 'No records for this period.'}
+                </div>
+            );
+        }
+
+        const { rows, maxCount } = buildDistribution(entries);
+
+        return (
+            <div className="overflow-hidden border border-[#333] rounded-xl bg-[#111] shadow-2xl">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-[#1a1a1a] border-b border-[#333] text-[#9f752a] text-xs uppercase tracking-widest">
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '스테이지' : 'Stage'}</th>
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '종료 수' : 'Count'}</th>
+                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '분포' : 'Distribution'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map(([day, count]) => {
+                            const widthPct = Math.max(2, Math.round((count / maxCount) * 100));
+                            return (
+                                <tr key={day} className="border-b border-[#222] hover:bg-white/[0.02] transition-colors">
+                                    <td className="px-6 py-4">
+                                        <span className="text-lg font-mono font-bold text-[#e7c07a]">{day}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-sm text-slate-300 font-mono">{count}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="h-3 w-full bg-black/40 border border-white/5 rounded">
+                                            <div
+                                                className="h-full rounded bg-[#e2c178]"
+                                                style={{ width: `${widthPct}%` }}
+                                            />
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-slate-200 p-4 md:p-8 font-sans">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -100,6 +234,29 @@ export default function LeaderboardPage() {
                         className="px-6 py-2 bg-[#1c3d5a] hover:bg-[#2c5282] text-white border border-blue-900 rounded transition-colors text-sm font-bold"
                     >
                         {language === 'ko' ? '홈으로' : 'Home'}
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setActiveTab('leaderboard')}
+                        className={`px-4 py-2 text-sm font-bold border rounded transition-colors ${
+                            activeTab === 'leaderboard'
+                                ? 'bg-[#9f752a]/20 border-[#9f752a] text-[#e7c07a]'
+                                : 'bg-transparent border-[#333] text-slate-400 hover:text-slate-200 hover:border-[#666]'
+                        }`}
+                    >
+                        {language === 'ko' ? '리더보드' : 'Leaderboard'}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('distribution')}
+                        className={`px-4 py-2 text-sm font-bold border rounded transition-colors ${
+                            activeTab === 'distribution'
+                                ? 'bg-[#9f752a]/20 border-[#9f752a] text-[#e7c07a]'
+                                : 'bg-transparent border-[#333] text-slate-400 hover:text-slate-200 hover:border-[#666]'
+                        }`}
+                    >
+                        {language === 'ko' ? '분포' : 'Distribution'}
                     </button>
                 </div>
 
@@ -125,60 +282,40 @@ export default function LeaderboardPage() {
                                 {language === 'ko' ? '아직 기록된 점수가 없습니다. 첫 정복자가 되어보세요!' : 'No records yet. Be the first conqueror!'}
                             </div>
                         ) : (
-                            <div className="overflow-hidden border border-[#333] rounded-xl bg-[#111] shadow-2xl">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-[#1a1a1a] border-b border-[#333] text-[#9f752a] text-xs uppercase tracking-widest">
-                                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '순위' : 'Rank'}</th>
-                                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '이름' : 'Name'}</th>
-                                            <th className="px-6 py-4 font-bold text-center">{language === 'ko' ? '생존일' : 'Days'}</th>
-                                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '결말' : 'Fate'}</th>
-                                            <th className="px-6 py-4 font-bold text-right">{language === 'ko' ? '날짜' : 'Date'}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {scores.map((entry, idx) => (
-                                            <tr
-                                                key={entry.id}
-                                                className={`border-b border-[#222] hover:bg-white/[0.02] transition-colors ${idx < 3 ? 'bg-[#9f752a]/5' : ''}`}
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <span className={`text-lg font-black ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-600'}`}>
-                                                        #{idx + 1}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <button
-                                                        onClick={() => setSelectedEntry(entry)}
-                                                        className="font-bold text-[#e2c178] hover:text-white text-base transition-colors text-left"
-                                                    >
-                                                        {entry.settler_name}
-                                                    </button>
-                                                    <div className="text-[10px] text-slate-500 uppercase font-mono">{entry.account_id}</div>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className="text-xl font-mono font-bold text-[#e7c07a]">{entry.day_count}</span>
-                                                    <span className="text-xs text-slate-500 ml-1">Days</span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
-                                                        {getExitTypeLabel(entry.exit_type)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right text-[10px] text-slate-500 font-mono">
-                                                    {new Date(entry.created_at).toLocaleString('ko-KR', {
-                                                        year: 'numeric',
-                                                        month: '2-digit',
-                                                        day: '2-digit',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                        hour12: false
-                                                    })}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="space-y-10">
+                                <section className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-bold text-[#e2c178]">
+                                            {language === 'ko' ? '최근 24시간' : 'Last 24 Hours'}
+                                        </h2>
+                                        <span className="text-xs text-slate-500 font-mono">{last24hScores.length}</span>
+                                    </div>
+                                    {activeTab === 'leaderboard'
+                                        ? renderLeaderboardTable(last24hScores)
+                                        : renderDistributionTable(last24hScores)}
+                                </section>
+                                <section className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-bold text-[#e2c178]">
+                                            {language === 'ko' ? '최근 7일' : 'Last 7 Days'}
+                                        </h2>
+                                        <span className="text-xs text-slate-500 font-mono">{last7dScores.length}</span>
+                                    </div>
+                                    {activeTab === 'leaderboard'
+                                        ? renderLeaderboardTable(last7dScores)
+                                        : renderDistributionTable(last7dScores)}
+                                </section>
+                                <section className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-bold text-[#e2c178]">
+                                            {language === 'ko' ? '역대' : 'All Time'}
+                                        </h2>
+                                        <span className="text-xs text-slate-500 font-mono">{sortedScores.length}</span>
+                                    </div>
+                                    {activeTab === 'leaderboard'
+                                        ? renderLeaderboardTable(sortedScores)
+                                        : renderDistributionTable(sortedScores)}
+                                </section>
                             </div>
                         )}
                     </div>

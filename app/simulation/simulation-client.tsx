@@ -78,6 +78,7 @@ type SimLogEntry = {
     title: string;
     description: string;
     response: string;
+    responseCard?: string;
     delta: SimDelta;
     after: SimDelta;
     status?: 'good' | 'bad' | 'warn' | 'neutral';
@@ -777,29 +778,29 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '전투' : 'Combat',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -3, food: -1, meds: 0, money: 2 },
-                        failDelta: { hp: -6, food: -1, meds: -1, money: -1 }
+                        successDelta: { hp: -2, food: -1, meds: 0, money: 2 },
+                        failDelta: { hp: -6, food: -1, meds: 0, money: -1 }
                     }
                 },
                 {
                     id: 'raid_defend',
                     label: isKo ? '방어전' : 'Hold Position',
-                    description: isKo ? '체력 -2, 식량 -1, 돈 -2' : 'HP -2, Food -1, Money -2',
-                    delta: { hp: -2, food: -1, meds: 0, money: -2 },
+                    description: isKo ? '체력 -3, 식량 -1, 돈 -4' : 'HP -3, Food -1, Money -4',
+                    delta: { hp: -3, food: -1, meds: 0, money: -4 },
                     response: isKo ? '방어선을 구축해 피해를 줄였습니다.' : 'You fortify and take controlled damage.'
                 },
                 {
                     id: 'raid_retreat',
                     label: isKo ? '후퇴' : 'Retreat',
-                    description: isKo ? '고정 확률 80%' : 'Fixed 80%',
+                    description: isKo ? '고정 확률 60%' : 'Fixed 60%',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '후퇴하며 물자를 포기했습니다.' : 'You retreat and abandon supplies.',
+                    response: isKo ? '후퇴하며 물자를 일부 포기했습니다. (가벼운 발/신속/재빠름 특성 보너스 적용)' : 'You retreat and abandon supplies.',
                     skillCheck: {
                         label: isKo ? '후퇴' : 'Retreat',
                         group: ['생존'],
-                        fixedChance: 80,
-                        successDelta: { hp: 0, food: -1, meds: 0, money: -2 },
-                        failDelta: { hp: -3, food: -2, meds: 0, money: -3 }
+                        fixedChance: 60,
+                        successDelta: { hp: -2, food: -2, meds: 0, money: -4 },
+                        failDelta: { hp: -6, food: -2, meds: 0, money: -4 }
                     }
                 }
             ]
@@ -821,34 +822,35 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '돌파' : 'Assault',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -3, food: 0, meds: -1, money: 2 },
-                        failDelta: { hp: -7, food: 0, meds: -2, money: -1 }
+                        successDelta: { hp: -3, food: -1, meds: 0, money: 2 },
+                        failDelta: { hp: -7, food: -1, meds: 0, money: 2 }
                     }
                 },
                 {
                     id: 'mortar_counter',
-                    label: isKo ? '맞박격포 대응' : 'Counter-battery',
+                    label: isKo ? '박격포 맞대응' : 'Counter-battery',
                     description: isKo ? '제작/연구 기술 체크' : 'Crafting/Intellectual skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '급히 포대를 구성해 맞박격포를 쏘아 올립니다.' : 'You assemble a quick battery and fire back.',
                     skillCheck: {
                         label: isKo ? '대응' : 'Counter',
                         group: ['제작', '연구'],
-                        successDelta: { hp: -2, food: 0, meds: -1, money: -2 },
-                        failDelta: { hp: -5, food: 0, meds: -2, money: -3 }
+                        successDelta: { hp: -2, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -5, food: 0, meds: 0, money: -2 }
                     }
                 },
                 {
                     id: 'mortar_hunker',
-                    label: isKo ? '엄폐 및 지혈' : 'Hunker and Triage',
+                    label: isKo ? '엄폐 및 지혈 (치료제 최소 1개 이상 치료제 1개 기본 소모)' : 'Hunker and Triage',
                     description: isKo ? '의학 기술 체크' : 'Medical skill check',
-                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    delta: { hp: 0, food: 0, meds: -1, money: 0 },
                     response: isKo ? '두꺼운 벽 뒤로 숨어 출혈을 최소화합니다.' : 'You take cover and focus on stopping the bleeding.',
+                    requirements: { meds: 1 },
                     skillCheck: {
                         label: isKo ? '지혈' : 'Triage',
                         group: ['의학'],
-                        successDelta: { hp: -2, food: 0, meds: -1, money: 0 },
-                        failDelta: { hp: -4, food: 0, meds: -2, money: 0 }
+                        successDelta: { hp: -2, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -2, food: 0, meds: -1, money: 0 }
                     }
                 }
             ]
@@ -870,8 +872,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '복구' : 'Restore',
                         group: ['제작', '연구'],
-                        successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
-                        failDelta: { hp: -3, food: 0, meds: 0, money: -3 }
+                        successDelta: { hp: -2, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: -5, food: 0, meds: 0, money: -3 }
                     }
                 },
                 {
@@ -883,15 +885,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '방어' : 'Defense',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -2, food: -1, meds: 0, money: 0 },
-                        failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+                        successDelta: { hp: -3, food: -1, meds: 0, money: 0 },
+                        failDelta: { hp: -6, food: -3, meds: 0, money: 0 }
                     }
                 },
                 {
                     id: 'emp_blackout',
                     label: isKo ? '전원 차단 대기' : 'Power Down',
-                    description: isKo ? '체력 -2, 돈 -2' : 'HP -2, Money -2',
-                    delta: { hp: -2, food: 0, meds: 0, money: -2 },
+                    description: isKo ? '체력 -5' : 'HP -5',
+                    delta: { hp: -5, food: 0, meds: 0, money: 0 },
                     response: isKo ? '불필요한 손실을 막기 위해 전원을 내리고 버팁니다.' : 'You power down and ride out the disruption.'
                 }
             ]
@@ -913,8 +915,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '지구전' : 'Attrition',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -3, food: -1, meds: 0, money: 1 },
-                        failDelta: { hp: -6, food: -2, meds: -1, money: 0 }
+                        successDelta: { hp: -1, food: -3, meds: 0, money: 0 },
+                        failDelta: { hp: -3, food: -5, meds: 0, money: 0 }
                     }
                 },
                 {
@@ -926,8 +928,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '구축' : 'Build',
                         group: ['제작'],
-                        successDelta: { hp: -2, food: -1, meds: 0, money: -1 },
-                        failDelta: { hp: -4, food: -2, meds: 0, money: -2 }
+                        successDelta: { hp: 0, food: -2, meds: 0, money: -2 },
+                        failDelta: { hp: -2, food: -4, meds: 0, money: -2 }
                     }
                 },
                 {
@@ -939,8 +941,8 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '유인' : 'Lure',
                         group: ['생존'],
-                        successDelta: { hp: -1, food: -2, meds: 0, money: 0 },
-                        failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+                        successDelta: { hp: -2, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: -5, food: 0, meds: 0, money: -1 }
                     }
                 }
             ]
@@ -962,29 +964,29 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '사냥' : 'Hunting',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -3, food: 8, meds: 0, money: 0 },
-                        failDelta: { hp: -5, food: 4, meds: 0, money: 0 }
+                        successDelta: { hp: -3, food: 6, meds: 0, money: 0 },
+                        failDelta: { hp: -6, food: 4, meds: 0, money: 0 }
                     }
                 },
                 {
                     id: 'defend',
                     label: isKo ? '방어' : 'Defend',
-                    description: isKo ? '체력 -2, 식량 +1' : 'HP -2, Food +1',
-                    delta: { hp: -2, food: 1, meds: 0, money: 0 },
+                    description: isKo ? '체력 -4, 식량 +2' : 'HP -4, Food +2',
+                    delta: { hp: -4, food: 2, meds: 0, money: 0 },
                     response: isKo ? '방어를 택해 피해를 줄였습니다.' : 'You defend to reduce damage.'
                 },
                 {
                     id: 'avoid',
                     label: isKo ? '회피' : 'Avoid',
-                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    description: isKo ? '고정 확률 70%' : 'Fixed 70%',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     response: isKo ? '안전한 곳으로 몸을 피해 위험을 흘려보냈습니다.' : 'You avoid danger but lose the harvest.',
                     skillCheck: {
                         label: isKo ? '회피' : 'Evasion',
                         group: ['생존'],
-                        fixedChance: 60,
+                        fixedChance: 70,
                         successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
-                        failDelta: { hp: -2, food: 0, meds: 0, money: 0 }
+                        failDelta: { hp: -4, food: 0, meds: 0, money: 0 }
                     }
                 }
             ]
@@ -1100,8 +1102,21 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     skillCheck: {
                         label: isKo ? '교전' : 'Engagement',
                         group: ['격투', '사격'],
-                        successDelta: { hp: -2, food: 1, meds: 0, money: 0 },
-                        failDelta: { hp: -6, food: -3, meds: 0, money: 0 }
+                        successDelta: { hp: -3, food: 4, meds: 0, money: 0 },
+                        failDelta: { hp: -6, food: -2, meds: 0, money: 0 }
+                    }
+                },
+                {
+                    id: 'infest_suppress',
+                    label: isKo ? '화력 진압' : 'Suppress',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '흔적도 없이 곤충을 쓸어버렸습니다.' : 'You suppress and wipe out the insects.',
+                    skillCheck: {
+                        label: isKo ? '진압' : 'Suppress',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -2, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -5, food: 0, meds: 0, money: 0 }
                     }
                 }
             ]
@@ -1520,9 +1535,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '돌격' : 'Charge',
                     group: ['격투', '사격'],
-                    chanceMultiplier: 2,
-                    successDelta: { hp: 2, food: 0, meds: 0, money: 2 },
-                    failDelta: { hp: -2, food: 0, meds: 0, money: -1 }
+                    successDelta: { hp: -4, food: -1, meds: 0, money: 2 },
+                    failDelta: { hp: -6, food: -1, meds: 0, money: 2 }
                 }
             });
         }
@@ -1530,17 +1544,17 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             choices.push({
                 id: 'wimp_hide',
                 label: isKo ? '은신' : 'Stealth',
-                description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                description: isKo ? '고정 확률 70%' : 'Fixed 70%',
                 delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다.' : 'You hide in fear.',
+                response: isKo ? '겁에 질려 숨죽인 채 적들이 지나가길 기다립니다. (가벼운 발/신속/재빠름 특성 보너스 적용)' : 'You hide in fear.',
                 isSpecial: true,
                 specialReason: isKo ? '엄살쟁이' : 'Wimp',
                 skillCheck: {
                     label: isKo ? '은신' : 'Stealth',
                     group: ['생존'],
-                    chanceMultiplier: 2,
-                    successDelta: { hp: 0, food: -1, meds: 0, money: -1 },
-                    failDelta: { hp: -2, food: -1, meds: 0, money: -2 }
+                    fixedChance: 70,
+                    successDelta: { hp: 0, food: -2, meds: 0, money: -2 },
+                    failDelta: { hp: -2, food: -4, meds: 0, money: -4 }
                 }
             });
         }
@@ -1556,9 +1570,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 skillCheck: {
                     label: isKo ? '방화' : 'Arson',
                     group: ['사격'],
-                    chanceMultiplier: 2,
-                    successDelta: { hp: -1, food: 0, meds: 0, money: 3 },
-                    failDelta: { hp: -3, food: 0, meds: 0, money: -1 }
+                    successDelta: { hp: -2, food: 0, meds: 0, money: -2 },
+                    failDelta: { hp: -4, food: 0, meds: 0, money: -2 }
                 }
             });
         }
@@ -1577,9 +1590,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 label: isKo ? '기습' : 'Sabotage',
                 group: ['격투', '사격'],
                 advanced: true,
-                chanceMultiplier: 2,
                 successDelta: { hp: -2, food: 0, meds: 0, money: 3 },
-                failDelta: { hp: -5, food: 0, meds: -1, money: -1 }
+                failDelta: { hp: -5, food: 0, meds: 0, money: 3 }
             }
         });
     }
@@ -1597,9 +1609,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 label: isKo ? '차폐' : 'Hardening',
                 group: ['제작', '연구'],
                 advanced: true,
-                chanceMultiplier: 2,
                 successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
-                failDelta: { hp: -2, food: 0, meds: 0, money: -2 }
+                failDelta: { hp: -2, food: 0, meds: 0, money: -3 }
             }
         });
     }
@@ -1617,9 +1628,26 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 label: isKo ? '화력망' : 'Fireline',
                 group: ['격투', '사격'],
                 advanced: true,
-                chanceMultiplier: 2,
-                successDelta: { hp: -2, food: -1, meds: 0, money: 2 },
-                failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+                successDelta: { hp: 0, food: 0, meds: 0, money: -3 },
+                failDelta: { hp: -2, food: 0, meds: 0, money: -3 }
+            }
+        });
+    }
+
+    if (event.id === 'infestation' && traitIds.has('pyromaniac')) {
+        choices.push({
+            id: 'infest_burn',
+            label: isKo ? '불태우기' : 'Burn It Down',
+            description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
+            response: isKo ? '흔적도 없이 곤충을 불태웠습니다.' : 'You burn the infestation to the ground.',
+            isSpecial: true,
+            specialReason: isKo ? '방화광' : 'Pyromaniac',
+            skillCheck: {
+                label: isKo ? '방화' : 'Arson',
+                group: ['격투', '사격'],
+                successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                failDelta: { hp: -4, food: 0, meds: 0, money: -4 }
             }
         });
     }
@@ -2660,12 +2688,14 @@ export default function SimulationClient() {
         });
 
         const responseText = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse, systemNote);
+        const responseTextCard = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse);
 
         return {
             after: { hp, food, meds, money },
             counts: { petCount, loverCount, spouseCount },
             delta,
             responseText,
+            responseTextCard,
             status: hp <= 0 ? 'dead' : 'running',
             skillProgress: updatedSkillProgress
         };
@@ -2965,15 +2995,18 @@ export default function SimulationClient() {
         let finalHp = resolved.after.hp;
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
+        let finalResponseCard = resolved.responseTextCard;
         let finalHasSerum = simState.hasSerum;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
             finalStatus = 'running';
             finalHasSerum = false;
-            finalResponse += language === 'ko'
+            const reviveText = language === 'ko'
                 ? ' 하지만 부활 혈청이 작동하여 당신을 죽음에서 다시 일으켜 세웠습니다!'
                 : ' However, the Resurrector Serum activated and brought you back to life!';
+            finalResponse += reviveText;
+            finalResponseCard += reviveText;
         }
 
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
@@ -2983,6 +3016,7 @@ export default function SimulationClient() {
             title: event.title,
             description: event.description,
             response: finalResponse,
+            responseCard: finalResponseCard,
             delta: resolved.delta,
             after: { ...resolved.after, hp: finalHp },
             status: entryStatus
@@ -3049,6 +3083,7 @@ export default function SimulationClient() {
                         title: pendingChoice.event.title,
                         description: pendingChoice.event.description,
                         response: choice.response || '',
+                        responseCard: choice.response || '',
                         delta: { hp: 0, food: 0, meds: 0, money: 0 },
                         after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
                         status: 'neutral'
@@ -3072,6 +3107,7 @@ export default function SimulationClient() {
         let finalHp = resolved.after.hp;
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
+        let finalResponseCard = resolved.responseTextCard;
         let finalHasSerum = simState.hasSerum;
         const finalCounts = resolved.counts;
 
@@ -3079,9 +3115,11 @@ export default function SimulationClient() {
             finalHp = 10;
             finalStatus = 'running';
             finalHasSerum = false;
-            finalResponse += language === 'ko'
+            const reviveText = language === 'ko'
                 ? ' 하지만 부활 혈청이 작동하여 당신을 죽음에서 다시 일으켜 세웠습니다!'
                 : ' However, the Resurrector Serum activated and brought you back to life!';
+            finalResponse += reviveText;
+            finalResponseCard += reviveText;
         }
 
         if (pendingChoice.event.id === 'resurrector_trader' && choice.id === 'buy_serum') {
@@ -3095,6 +3133,7 @@ export default function SimulationClient() {
             title: pendingChoice.event.title,
             description: pendingChoice.event.description,
             response: finalResponse,
+            responseCard: finalResponseCard,
             delta: resolved.delta,
             after: { ...resolved.after, hp: finalHp },
             status: entryStatus
@@ -3248,7 +3287,9 @@ export default function SimulationClient() {
     const getVagueDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
         const abs = Math.abs(delta);
-        const isLarge = abs >= 3;
+        const isHpLabel = label === 'HP' || label === '체력';
+        const largeThreshold = delta < 0 && isHpLabel ? 5 : 3;
+        const isLarge = abs >= largeThreshold;
         const symbol = delta > 0 ? (isLarge ? '++' : '+') : (isLarge ? '--' : '-');
         return `${label} ${symbol}`;
     };
@@ -3530,7 +3571,7 @@ export default function SimulationClient() {
                                             </div>
                                             <div className="flex-1 flex flex-col justify-center overflow-y-auto px-2">
                                                 <div className="text-sm md:text-base text-slate-200 leading-relaxed font-medium mb-4">
-                                                    {currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
+                                                    {currentCard?.entry?.responseCard || currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
                                                 </div>
                                                 {currentCard?.entry && renderDeltaItems(currentCard.entry)}
                                             </div>
