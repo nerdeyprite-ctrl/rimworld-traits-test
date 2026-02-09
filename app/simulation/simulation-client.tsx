@@ -144,7 +144,6 @@ type PreparedTurn = {
 
 const MAX_DAYS = 60;
 const TEMP_SAVE_KEY = 'rimworld_sim_temp_save';
-const BASE_NOTE_OVERRIDE = '__BASE_NOTE_OVERRIDE__';
 
 const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
@@ -2762,10 +2761,6 @@ export default function SimulationClient() {
         lineBreaks?: boolean
     ) => {
         const parts = [] as string[];
-        if (baseNotes.includes(BASE_NOTE_OVERRIDE)) {
-            const onlyNotes = baseNotes.filter(n => n && n !== BASE_NOTE_OVERRIDE);
-            return onlyNotes.join(lineBreaks ? '\n' : ' ') || (language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.');
-        }
         if (choiceResponse) parts.push(choiceResponse);
         const systemParts: string[] = [];
         if (systemNote) systemParts.push(systemNote);
@@ -3025,7 +3020,12 @@ export default function SimulationClient() {
                 : `Submitted to leaderboard. (Day ${finalDay})`);
         } catch (err) {
             console.error('Failed to submit leaderboard score:', err);
-            setSubmitMessage(language === 'ko' ? '리더보드 제출에 실패했습니다.' : 'Leaderboard submission failed.');
+            const detail = (typeof err === 'object' && err && 'message' in err)
+                ? String((err as { message?: unknown }).message ?? '')
+                : '';
+            setSubmitMessage(language === 'ko'
+                ? `리더보드 제출에 실패했습니다.${detail ? ` (${detail})` : ''}`
+                : `Leaderboard submission failed.${detail ? ` (${detail})` : ''}`);
         }
     }, [language, userInfo, result]);
 
@@ -3239,7 +3239,6 @@ export default function SimulationClient() {
         }
 
         if (dailyGreatSuccess && event.id === 'quiet_day') {
-            responseNotes.push(BASE_NOTE_OVERRIDE);
             responseNotes.push(dailyGreatSuccessNote);
         }
 
@@ -3836,8 +3835,14 @@ export default function SimulationClient() {
                             )}
                         </div>
                         <div
-                            className={`reigns-card ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
+                            className={`reigns-card rounded-[18px] ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)]' : ''}`}
                         >
+                            {simState.evacActive && simState.status === 'running' && (
+                                <div
+                                    aria-hidden
+                                    className="pointer-events-none absolute inset-0 z-30 rounded-[18px] border-2 border-red-400/70 animate-pulse"
+                                />
+                            )}
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
                                     <div className="reigns-card-face reigns-card-front flex flex-col items-center justify-center text-center p-6 space-y-4">
@@ -4314,6 +4319,14 @@ export default function SimulationClient() {
                             </button>
                             <button
                                 onClick={() => {
+                                    if (showEndingConfirm) {
+                                        const shouldStartNow = window.confirm(
+                                            language === 'ko'
+                                                ? '정말로 지금 시작하겠습니까?'
+                                                : 'Start right now?'
+                                        );
+                                        if (!shouldStartNow) return;
+                                    }
                                     setSimState(prev => ({
                                         ...prev,
                                         evacActive: true,
