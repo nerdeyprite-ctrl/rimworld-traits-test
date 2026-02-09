@@ -48,7 +48,7 @@ type SimChoice = {
     isRainbow?: boolean;
 };
 
-type SimEventCategory = 'quiet' | 'noncombat' | 'danger';
+type SimEventCategory = 'quiet' | 'noncombat' | 'mind' | 'danger';
 
 type SimEvent = {
     id: string;
@@ -125,7 +125,7 @@ const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
 
-const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'disease', 'wanderer'];
+const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'wanderer', 'mortar_raid', 'emp_raid', 'shambler_horde'];
 
 const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
 const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
@@ -179,7 +179,7 @@ const SKILL_NAMES_KO: Record<string, string> = {
 
 const TRAIT_EFFECTS: Record<string, { ko: string; en: string }> = {
     fast_walker: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
-    jogger: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
+    jogger: { ko: "성공 확률 +20% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
     nimble: { ko: "성공 확률 +10% (이동/회피 관련)", en: "Success chance +10% (Movement/Evasion)" },
     slowpoke: { ko: "성공 확률 -20% (이동/회피 관련)", en: "Success chance -20% (Movement/Evasion)" },
     tough: { ko: "받는 모든 HP 피해량 50% 감소 (반올림), [전용 선택지 추가]", en: "All HP damage received reduced by 50% (rounded), [Special choice added]" },
@@ -218,8 +218,14 @@ const getEventIcon = (event?: SimEvent) => {
     switch (event.id) {
         case 'raiders':
             return '⚔️';
+        case 'mortar_raid':
+            return '🎯';
+        case 'emp_raid':
+            return '⚡️';
         case 'manhunter':
             return '🦁';
+        case 'shambler_horde':
+            return '🧟';
         case 'infestation':
             return '🐜';
         case 'disease':
@@ -228,6 +234,8 @@ const getEventIcon = (event?: SimEvent) => {
             return '🤢';
         case 'psychic_drone':
             return '🧠';
+        case 'psychic_soother':
+            return '💫';
         case 'cold_snap':
             return '❄️';
         case 'heat_wave':
@@ -259,7 +267,13 @@ const getEventIcon = (event?: SimEvent) => {
         case 'quiet_day':
             return '🌤️';
         default:
-            return event.category === 'danger' ? '⚠️' : event.category === 'noncombat' ? '🧭' : '🌤️';
+            return event.category === 'danger'
+                ? '⚠️'
+                : event.category === 'mind'
+                    ? '🧠'
+                    : event.category === 'noncombat'
+                        ? '🧭'
+                        : '🌤️';
     }
 };
 
@@ -778,6 +792,147 @@ const buildSimEvents = (language: string): SimEvent[] => {
             ]
         },
         {
+            id: 'mortar_raid',
+            title: isKo ? '박격포 습격' : 'Mortar Raid',
+            description: isKo ? '적의 박격포가 기지를 두드리며 출혈과 파편 피해를 유발합니다.' : 'Enemy mortars pound the base, causing bleeding and shrapnel injuries.',
+            category: 'danger',
+            weight: 4,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'mortar_assault',
+                    label: isKo ? '박격포 진지 돌파' : 'Storm the Emplacement',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '연막을 뚫고 적진으로 돌격합니다.' : 'You charge through the smoke into enemy lines.',
+                    skillCheck: {
+                        label: isKo ? '돌파' : 'Assault',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -3, food: 0, meds: -1, money: 2 },
+                        failDelta: { hp: -7, food: 0, meds: -2, money: -1 }
+                    }
+                },
+                {
+                    id: 'mortar_counter',
+                    label: isKo ? '맞박격포 대응' : 'Counter-battery',
+                    description: isKo ? '제작/연구 기술 체크' : 'Crafting/Intellectual skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '급히 포대를 구성해 맞박격포를 쏘아 올립니다.' : 'You assemble a quick battery and fire back.',
+                    skillCheck: {
+                        label: isKo ? '대응' : 'Counter',
+                        group: ['제작', '연구'],
+                        successDelta: { hp: -2, food: 0, meds: -1, money: -2 },
+                        failDelta: { hp: -5, food: 0, meds: -2, money: -3 }
+                    }
+                },
+                {
+                    id: 'mortar_hunker',
+                    label: isKo ? '엄폐 및 지혈' : 'Hunker and Triage',
+                    description: isKo ? '의학 기술 체크' : 'Medical skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '두꺼운 벽 뒤로 숨어 출혈을 최소화합니다.' : 'You take cover and focus on stopping the bleeding.',
+                    skillCheck: {
+                        label: isKo ? '지혈' : 'Triage',
+                        group: ['의학'],
+                        successDelta: { hp: -2, food: 0, meds: -1, money: 0 },
+                        failDelta: { hp: -4, food: 0, meds: -2, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'emp_raid',
+            title: isKo ? 'EMP 습격' : 'EMP Raid',
+            description: isKo ? 'EMP 폭탄이 터지며 전자기기가 마비됩니다.' : 'An EMP blast knocks out all electronics.',
+            category: 'danger',
+            weight: 4,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'emp_restore',
+                    label: isKo ? '긴급 복구' : 'Emergency Repair',
+                    description: isKo ? '제작/연구 기술 체크' : 'Crafting/Intellectual skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '급하게 회로를 복구하고 전원을 재가동합니다.' : 'You patch the circuits and restore power.',
+                    skillCheck: {
+                        label: isKo ? '복구' : 'Restore',
+                        group: ['제작', '연구'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: -3, food: 0, meds: 0, money: -3 }
+                    }
+                },
+                {
+                    id: 'emp_manual_defense',
+                    label: isKo ? '수동 방어선' : 'Manual Defense',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '포탑 없이 사람 손으로 방어선을 유지합니다.' : 'You hold the line without turrets.',
+                    skillCheck: {
+                        label: isKo ? '방어' : 'Defense',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -2, food: -1, meds: 0, money: 0 },
+                        failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+                    }
+                },
+                {
+                    id: 'emp_blackout',
+                    label: isKo ? '전원 차단 대기' : 'Power Down',
+                    description: isKo ? '체력 -2, 돈 -2' : 'HP -2, Money -2',
+                    delta: { hp: -2, food: 0, meds: 0, money: -2 },
+                    response: isKo ? '불필요한 손실을 막기 위해 전원을 내리고 버팁니다.' : 'You power down and ride out the disruption.'
+                }
+            ]
+        },
+        {
+            id: 'shambler_horde',
+            title: isKo ? '대량의 휘청이는자 접근' : 'Shambler Horde',
+            description: isKo ? '전투력은 낮지만 끈질긴 움직이는 시체들이 소모전을 강요합니다.' : 'Slow, relentless shamblers force a war of attrition.',
+            category: 'danger',
+            weight: 5,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'shambler_grind',
+                    label: isKo ? '소모전' : 'Grind Them Down',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '하나씩 꾸준히 베어 넘깁니다.' : 'You cut them down one by one.',
+                    skillCheck: {
+                        label: isKo ? '지구전' : 'Attrition',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -3, food: -1, meds: 0, money: 1 },
+                        failDelta: { hp: -6, food: -2, meds: -1, money: 0 }
+                    }
+                },
+                {
+                    id: 'shambler_chokepoint',
+                    label: isKo ? '차단선 구축' : 'Build a Chokepoint',
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '문과 바리케이드로 동선을 좁혀 대응합니다.' : 'You funnel them through barricades and doors.',
+                    skillCheck: {
+                        label: isKo ? '구축' : 'Build',
+                        group: ['제작'],
+                        successDelta: { hp: -2, food: -1, meds: 0, money: -1 },
+                        failDelta: { hp: -4, food: -2, meds: 0, money: -2 }
+                    }
+                },
+                {
+                    id: 'shambler_lure',
+                    label: isKo ? '미끼 유인' : 'Lure Away',
+                    description: isKo ? '생존 기술 체크' : 'Survival skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '소음을 이용해 무리를 다른 방향으로 유인합니다.' : 'You use noise and bait to draw them away.',
+                    skillCheck: {
+                        label: isKo ? '유인' : 'Lure',
+                        group: ['생존'],
+                        successDelta: { hp: -1, food: -2, meds: 0, money: 0 },
+                        failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
             id: 'manhunter',
             title: isKo ? '광포한 동물 무리' : 'Manhunter Pack',
             description: isKo ? '광포해진 동물들이 기지를 덮쳐왔습니다!' : 'A pack of enraged animals attacks.',
@@ -825,7 +980,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'disease',
             title: isKo ? '질병 발생' : 'Disease Outbreak',
             description: isKo ? '질병이 퍼져 몸이 약해졌습니다.' : 'A disease spreads through the camp.',
-            category: 'danger',
+            category: 'noncombat',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -856,7 +1011,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'cold_snap',
             title: isKo ? '한파' : 'Cold Snap',
             description: isKo ? '갑작스러운 한파가 찾아왔습니다.' : 'A sudden cold snap hits.',
-            category: 'danger',
+            category: 'noncombat',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -879,7 +1034,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'heat_wave',
             title: isKo ? '폭염' : 'Heat Wave',
             description: isKo ? '무더위가 이어지고 있습니다.' : 'Relentless heat drains you.',
-            category: 'danger',
+            category: 'noncombat',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -896,7 +1051,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'fire',
             title: isKo ? '화재' : 'Fire',
             description: isKo ? '화재가 발생해 귀중품들이 불타고 있습니다!' : 'A fire destroys your funds.',
-            category: 'danger',
+            category: 'noncombat',
             weight: 1,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -942,7 +1097,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'toxic_fallout',
             title: isKo ? '독성 낙진' : 'Toxic Fallout',
             description: isKo ? '하늘에서 정체 모를 독성 가루가 내립니다.' : 'Toxic dust falls from the sky.',
-            category: 'danger',
+            category: 'noncombat',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -959,7 +1114,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'psychic_drone',
             title: isKo ? '심리적 파동' : 'Psychic Drone',
             description: isKo ? '머릿속을 울리는 기분 나쁜 파동이 기지에 퍼집니다.' : 'A psychic wave distresses everyone.',
-            category: 'danger',
+            category: 'mind',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -982,7 +1137,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'breakup',
             title: isKo ? '이별' : 'Breakup',
             description: isKo ? '사랑하던 연인이 당신을 떠났습니다. 마음이 찢어지는 듯한 고통을 느낍니다.' : 'Your lover has left you. You feel a heart-wrenching pain.',
-            category: 'noncombat',
+            category: 'mind',
             weight: 2,
             base: { hp: -2, food: 0, meds: 0, money: 0 },
             choices: [
@@ -999,7 +1154,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'marriage',
             title: isKo ? '결혼식' : 'Marriage Ceremony',
             description: isKo ? '연인과 평생을 함께하기로 약속했습니다. 축복 속에서 결혼식이 열립니다.' : 'You and your lover promised to be together forever. A wedding is held amidst blessings.',
-            category: 'quiet',
+            category: 'mind',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1016,7 +1171,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'divorce',
             title: isKo ? '이혼' : 'Divorce',
             description: isKo ? '배우자와의 관계가 돌이킬 수 없이 악화되었습니다. 결국 각자의 길을 가기로 했습니다.' : 'Relationship with spouse has deteriorated irreversibly. You decided to go separate ways.',
-            category: 'noncombat',
+            category: 'mind',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1032,7 +1187,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'pet_death',
             title: isKo ? '반려동물의 죽음' : 'Death of a Pet',
             description: isKo ? '기지에서 오랫동안 함께한 애정하는 반려동물이 세상을 떠났습니다.' : 'Your beloved bonded pet has passed away.',
-            category: 'danger',
+            category: 'mind',
             weight: 2,
             base: { hp: -3, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1049,7 +1204,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             id: 'psychic_soother',
             title: isKo ? '정신 안정기' : 'Psychic Soother',
             description: isKo ? '기분 좋은 파동이 정착지에 퍼지며 마음이 평온해집니다.' : 'A pleasant psychic wave spreads, bringing peace of mind.',
-            category: 'noncombat',
+            category: 'mind',
             weight: 3,
             base: { hp: 2, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1190,6 +1345,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
     const crafting = skillMap[isKo ? '제작' : 'Crafting'] || 0;
     const medical = skillMap[isKo ? '의학' : 'Medical'] || 0;
     const plants = skillMap[isKo ? '재배' : 'Plants'] || 0;
+    const intellectual = skillMap[isKo ? '연구' : 'Intellectual'] || 0;
 
     // QUIET.md Special Choices
     if (event.id === 'quiet_day') {
@@ -1392,6 +1548,63 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 }
             });
         }
+    }
+
+    if (event.id === 'mortar_raid' && (shooting >= 12 || melee >= 12)) {
+        choices.push({
+            id: 'mortar_sabotage',
+            label: isKo ? '야간 기습' : 'Night Sabotage',
+            description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
+            response: isKo ? '어둠을 이용해 박격포 진지를 파괴했습니다.' : 'You used the darkness to sabotage the mortars.',
+            isSpecial: true,
+            specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+',
+            skillCheck: {
+                label: isKo ? '기습' : 'Sabotage',
+                group: ['격투', '사격'],
+                chanceMultiplier: 2,
+                successDelta: { hp: -2, food: 0, meds: 0, money: 3 },
+                failDelta: { hp: -5, food: 0, meds: -1, money: -1 }
+            }
+        });
+    }
+
+    if (event.id === 'emp_raid' && (crafting >= 12 || intellectual >= 12)) {
+        choices.push({
+            id: 'emp_harden',
+            label: isKo ? 'EMP 차폐 강화' : 'EMP Hardening',
+            description: isKo ? '제작/연구 기술 체크' : 'Crafting/Intellectual skill check',
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
+            response: isKo ? '차폐 설계를 적용해 피해를 크게 줄였습니다.' : 'You apply hardening and greatly reduce the damage.',
+            isSpecial: true,
+            specialReason: isKo ? '제작/연구 12+' : 'Crafting/Intellectual 12+',
+            skillCheck: {
+                label: isKo ? '차폐' : 'Hardening',
+                group: ['제작', '연구'],
+                chanceMultiplier: 2,
+                successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
+                failDelta: { hp: -2, food: 0, meds: 0, money: -2 }
+            }
+        });
+    }
+
+    if (event.id === 'shambler_horde' && (shooting >= 12 || melee >= 12)) {
+        choices.push({
+            id: 'shambler_killbox',
+            label: isKo ? '화력망 구축' : 'Killbox Fireline',
+            description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+            delta: { hp: 0, food: 0, meds: 0, money: 0 },
+            response: isKo ? '화력망으로 무리를 빠르게 정리했습니다.' : 'You clear the horde quickly with a fireline.',
+            isSpecial: true,
+            specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+',
+            skillCheck: {
+                label: isKo ? '화력망' : 'Fireline',
+                group: ['격투', '사격'],
+                chanceMultiplier: 2,
+                successDelta: { hp: -2, food: -1, meds: 0, money: 2 },
+                failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
+            }
+        });
     }
 
     if (event.id === 'manhunter' && (shooting >= 12 || melee >= 12)) {
@@ -1661,16 +1874,24 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                         <div className="text-red-400 font-bold text-xs mb-1">⚔️ {language === 'ko' ? '위협 (Danger)' : 'Danger'}</div>
                                         <div className="text-slate-400 text-[10px] leading-relaxed">
                                             {language === 'ko'
-                                                ? '습격, 흑점 폭발, 질병 등 정착지를 위협하는 사건입니다. 전투 기술이나 의학 기술이 중요합니다.'
-                                                : 'Raids, flares, diseases. Combat and Medicine skills are crucial.'}
+                                                ? '습격/공격성 사건입니다. 전투 기술이 중요합니다.'
+                                                : 'Raid-style threats. Combat skills matter most.'}
+                                        </div>
+                                    </div>
+                                    <div className="bg-purple-900/10 border border-purple-900/30 p-3 rounded-lg">
+                                        <div className="text-purple-400 font-bold text-xs mb-1">🧠 {language === 'ko' ? '정신 (Mind)' : 'Mind'}</div>
+                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                            {language === 'ko'
+                                                ? '관계, 상실, 심령 파동 등 정신적 사건입니다. 감정적 피해/회복이 중심입니다.'
+                                                : 'Relationships, loss, and psychic waves. Emotional impact and recovery.'}
                                         </div>
                                     </div>
                                     <div className="bg-blue-900/10 border border-blue-900/30 p-3 rounded-lg">
                                         <div className="text-blue-400 font-bold text-xs mb-1">📦 {language === 'ko' ? '자원 (Resource)' : 'Resource'}</div>
                                         <div className="text-slate-400 text-[10px] leading-relaxed">
                                             {language === 'ko'
-                                                ? '화물 낙하, 여행자 방문 등 자원을 획득할 수 있는 기회입니다. 사교나 거래 능력이 도움이 됩니다.'
-                                                : 'Cargo pods, visitors. Social and trading skills help gain resources.'}
+                                                ? '자원/비전투 사건입니다. 사교나 기술이 도움이 됩니다.'
+                                                : 'Resource and non-combat events. Social or technical skills help.'}
                                         </div>
                                     </div>
                                     <div className="bg-slate-800/30 border border-slate-700/30 p-3 rounded-lg">
@@ -1748,8 +1969,8 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                 </p>
                                 <p className="text-slate-400 text-[10px] leading-relaxed">
                                     {language === 'ko'
-                                        ? '기본 확률은 레벨 0 기준 20%에서 시작해 레벨 1마다 5%씩 증가합니다. 고정 확률 이벤트는 이동 특성(빠른걸음/조깅/민첩 +10, 느림보 -20)의 보정을 받습니다.'
-                                        : 'Base chance starts at 20% at level 0 and increases by 5% per level. Fixed-chance events are modified by movement traits (+10 each for Fast Walker/Jogger/Nimble, -20 for Slowpoke).'}
+                                        ? '기본 확률은 레벨 0 기준 20%에서 시작해 레벨 1마다 5%씩 증가합니다. 고정 확률 이벤트는 이동 특성(재빠른 걸음/민첩 +10, 신속 +20, 느림보 -20)의 보정을 받습니다.'
+                                        : 'Base chance starts at 20% at level 0 and increases by 5% per level. Fixed-chance events are modified by movement traits (+10 each for Fast Walker/Nimble, +20 for Jogger, -20 for Slowpoke).'}
                                 </p>
                             </div>
 
@@ -2611,14 +2832,17 @@ export default function SimulationClient() {
             const dangerChance = Math.max(0, getDangerChance(nextDay, simState.daysSinceDanger ?? 0));
             const remaining = Math.max(0, 100 - dangerChance);
             const wQuiet = remaining * (50 / 90);
-            const wNonCombat = remaining * (40 / 90);
+            let wNonCombat = remaining * (40 / 90);
+            const wMind = wNonCombat * 0.2;
+            wNonCombat = wNonCombat * 0.8;
             const wDanger = dangerChance;
-            const totalSetWeight = wQuiet + wNonCombat + wDanger;
+            const totalSetWeight = wQuiet + wNonCombat + wMind + wDanger;
 
             const roll = Math.random() * totalSetWeight;
             let selectedCat: SimEventCategory = 'quiet';
             if (roll <= wQuiet) selectedCat = 'quiet';
             else if (roll <= wQuiet + wNonCombat) selectedCat = 'noncombat';
+            else if (roll <= wQuiet + wNonCombat + wMind) selectedCat = 'mind';
             else selectedCat = 'danger';
 
             const filteredEvents = events.filter(e => {
