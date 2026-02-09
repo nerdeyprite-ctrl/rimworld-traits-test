@@ -4,7 +4,7 @@
 아래의 원칙을 **엄격히(STRICTLY)** 준수하여 코드를 작성하십시오.
 
 ## 1. Zero Hallucination Policy (할루시네이션 금지)
-- **절대 원칙:** `reference/rimworld_constants.md` 파일에 명시된 특성(Traits)과 기술(Skills) 외에, 당신이 임의로 창작한 특성을 코드에 넣지 마십시오.
+- **절대 원칙:** `reference/rimworld_data.md` 파일에 명시된 특성(Traits)과 기술(Skills) 외에, 당신이 임의로 창작한 특성을 코드에 넣지 마십시오.
 - 만약 사용자의 답변이 어떤 특성과도 연결하기 애매하다면, 새로운 특성을 만들지 말고 기존 특성의 점수 변동을 주지 않는 쪽을 택하십시오.
 - 특성 간의 상충 관계(예: 우울증이면서 동시에 낙천적이면 불가능)를 로직에 반드시 반영하십시오.
 
@@ -30,11 +30,19 @@
 ## 5. Language
 - 코드는 영어로 변수명을 짓되, 주석과 사용자에게 보이는 텍스트(UI)는 **한국어(Korean)**를 사용하십시오.
 
-## 6. Monetization & Tracking Principles (수익화 및 추적 원칙)
+# Role: Trait System Manager
 
-수익 창출은 이 프로젝트의 최우선 목표이다.
+## Core Requirement
+- 시뮬레이션 코드 수정 시 `reference/rimworld_data.md` 파일을 최우선으로 참조할 것.
+- 새로운 Trait 관련 기능을 추가하거나, 기존 Trait의 로직/변수를 수정할 경우 **반드시** `reference/rimworld_data.md` 파일도 동시에 업데이트해야 함.
 
-- **AdSense 준비:** 결과 페이지와 메인 페이지 하단에 Google AdSense 광고를 삽입할 수 있는 **반응형 컨테이너(Placeholder)**를 미리 구현할 것.
-- **광고 유도 기능:** '풀 테스트(상세 결과)'를 보기 전에 **전면 광고**를 시청하도록 유도하는 로직을 미리 설계할 것. (예: "상세 스탯을 보려면 광고를 시청해주세요" 버튼)
-- **분석 스크립트:** Google Analytics(GA) 또는 기타 트래픽 분석 도구를 쉽게 삽입할 수 있도록 **Head 태그 영역에 Script 컴포넌트를 미리 구성**할 것.
-- **공유 기능 필수:** 테스트 결과 페이지에 카카오톡/X(트위터)/페이스북 공유 버튼을 구현하고, 공유 시 썸네일 이미지(OG Image)가 보이도록 **SEO 메타태그**를 완벽하게 구성할 것.
+## Workflow
+1. 수정 사항이 Trait 시스템과 관련 있는지 확인.
+2. 관련이 있다면 `reference/rimworld_data.md`를 읽어 현재 규격 확인.
+3. 코드 수정 후, 변경된 내용을 바탕으로 `reference/rimworld_data.md`의 내용을 최신화(추가/삭제/수정)할 것.
+4. 모든 응답 끝에 "rimworld_data.md 업데이트 완료" 여부를 표시할 것.
+
+## Simulation Data Sync
+   - **대상**: `simulation-client` 관련 코드 작업 시.
+   - **필수 동작**: 코드 변경에 따라 `app/simulation/data` 폴더 내의 관련 파일들(JSON, 리소스 등)을 반드시 최신화할 것.
+   - **확인**: 코드 로직이 바뀌었는데 데이터 파일이 그대로라면, 사용자에게 데이터 구조 변경 여부를 묻거나 직접 업데이트를 제안할 것.

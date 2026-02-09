@@ -1533,13 +1533,13 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                 </h4>
                                 <p className="text-slate-300 text-xs leading-relaxed">
                                     {language === 'ko'
-                                        ? '기지 레벨이 오를 때마다 정착지가 더 안전해집니다. 강화된 기지는 외부의 위협으로부터 정착민을 보호합니다.'
-                                        : 'Upgrading your base makes the settlement safer. A fortified base protects settlers from external threats.'}
+                                        ? '기지 레벨이 오를 때마다 정착지가 더 안전해집니다. 강화된 기지는 위험 이벤트에서 받는 피해를 줄여줍니다.'
+                                        : 'Upgrading your base makes the settlement safer. Fortifications reduce damage during danger events.'}
                                 </p>
                                 <ul className="space-y-1 text-xs text-slate-400 list-disc list-inside bg-black/20 p-3 rounded-lg border border-[#222]">
                                     <li>{language === 'ko' ? '레벨 0: 기본 상태' : 'Level 0: Basic'}</li>
-                                    <li>{language === 'ko' ? '레벨 1: 받는 피해 -1 감소' : 'Level 1: Incoming Damage -1'}</li>
-                                    <li>{language === 'ko' ? '레벨 2: 받는 피해 -2 감소' : 'Level 2: Incoming Damage -2'}</li>
+                                    <li>{language === 'ko' ? '레벨 1: 위험 이벤트 피해 -1' : 'Level 1: Danger damage -1'}</li>
+                                    <li>{language === 'ko' ? '레벨 2: 위험 이벤트 피해 -2 (최대)' : 'Level 2: Danger damage -2 (max)'}</li>
                                 </ul>
                             </div>
 
@@ -1551,8 +1551,14 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                     <li>
                                         <span className="text-red-400 font-bold">{language === 'ko' ? '식량:' : 'Food:'}</span>
                                         {language === 'ko'
-                                            ? ' 매 2일마다 식량이 1씩 감소합니다. 식량이 0이 되면 체력이 감소합니다.'
-                                            : ' Food decreases by 1 every 2 days. If food is 0, HP decreases.'}
+                                            ? ' 매일 식량이 1씩 감소합니다. 식량이 0이 되면 체력이 감소합니다.'
+                                            : ' Food decreases by 1 every day. If food is 0, HP decreases.'}
+                                    </li>
+                                    <li>
+                                        <span className="text-green-400 font-bold">{language === 'ko' ? '대성공:' : 'Great Success:'}</span>
+                                        {language === 'ko'
+                                            ? ' 요리/재배 평균 레벨이 높을수록 식량 대성공 확률이 올라가며, 대성공 시 식량 +2를 추가로 얻습니다.'
+                                            : 'Higher Cooking/Plants average increases the great success chance, granting +2 extra food.'}
                                     </li>
                                     <li>
                                         <span className="text-blue-400 font-bold">{language === 'ko' ? '치료:' : 'Healing:'}</span>
@@ -1565,6 +1571,60 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                         {language === 'ko'
                                             ? ' 특정 특성(철의 의지, 사이코패스 등)은 정신적 충격 이벤트에서 특별한 선택지를 제공합니다.'
                                             : ' Traits like Iron Will or Psychopath unlock special choices in mental events.'}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '자원 한도' : 'Resource Caps'}
+                                </h4>
+                                <ul className="space-y-2 text-xs text-slate-300">
+                                    <li>
+                                        {language === 'ko'
+                                            ? '체력 최대 20, 식량/치료제/돈은 최대 30까지 저장됩니다.'
+                                            : 'HP caps at 20, and Food/Meds/Money cap at 30.'}
+                                    </li>
+                                    <li>
+                                        {language === 'ko'
+                                            ? '체력이 0 이하가 되면 사망합니다.'
+                                            : 'You die if HP reaches 0.'}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '우주선 / 엔딩' : 'Ship / Ending'}
+                                </h4>
+                                <ul className="space-y-2 text-xs text-slate-300">
+                                    <li>
+                                        {language === 'ko'
+                                            ? '60일차에 우주선이 완성됩니다. 즉시 탈출하거나 계속 생존을 선택할 수 있습니다.'
+                                            : 'The ship completes on Day 60. You can escape immediately or keep surviving.'}
+                                    </li>
+                                    <li>
+                                        {language === 'ko'
+                                            ? '우주선 완성 이후에는 언제든 탑승 버튼으로 탈출 가능합니다.'
+                                            : 'After completion, you can board the ship anytime.'}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '부활 혈청' : 'Resurrector Serum'}
+                                </h4>
+                                <ul className="space-y-2 text-xs text-slate-300">
+                                    <li>
+                                        {language === 'ko'
+                                            ? '보유한 은이 충분하면 낮은 확률로 혈청 상인이 등장합니다.'
+                                            : 'With enough money, a serum trader can appear at a low chance.'}
+                                    </li>
+                                    <li>
+                                        {language === 'ko'
+                                            ? '혈청을 보유한 상태에서 사망하면 HP 10으로 1회 부활합니다.'
+                                            : 'If you die while holding the serum, you revive once with HP 10.'}
                                     </li>
                                 </ul>
                             </div>
@@ -1662,8 +1722,45 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                                 </h4>
                                 <p className="text-slate-300 text-xs">
                                     {language === 'ko'
-                                        ? '이벤트 발생 시 관련 기술 레벨에 따라 성공 확률이 결정됩니다. 일부 기술(격투, 사격 등)은 전투 상황에서 매우 중요합니다.'
-                                        : 'Event success depends on skill levels. Combat skills are vital for raids.'}
+                                        ? '이벤트 발생 시 관련 기술 평균 레벨로 성공 확률이 결정됩니다. 성공 확률은 5~95% 범위로 제한됩니다.'
+                                        : 'Skill checks use the average level of the related skills. Chances are clamped to 5~95%.'}
+                                </p>
+                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                    {language === 'ko'
+                                        ? '기본 확률은 레벨 0 기준 20%에서 시작해 레벨 1마다 5%씩 증가합니다. 고정 확률 이벤트는 이동 특성(빠른걸음/조깅/민첩 +10, 느림보 -20)의 보정을 받습니다.'
+                                        : 'Base chance starts at 20% at level 0 and increases by 5% per level. Fixed-chance events are modified by movement traits (+10 each for Fast Walker/Jogger/Nimble, -20 for Slowpoke).'}
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '기술 보너스' : 'Skill Bonuses'}
+                                </h4>
+                                <p className="text-slate-300 text-xs">
+                                    {language === 'ko'
+                                        ? '스킬 체크가 없는 이벤트는 관련 기술 평균에 따라 결과가 보정됩니다.'
+                                        : 'Events without skill checks get a bonus based on the related skill average.'}
+                                </p>
+                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                    {language === 'ko'
+                                        ? '평균 레벨 3 이하: -1, 8 이상: +1, 13 이상: +2'
+                                        : 'Avg ≤ 3: -1, Avg ≥ 8: +1, Avg ≥ 13: +2'}
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                    {language === 'ko' ? '숙련도 & 경험치' : 'Proficiency & XP'}
+                                </h4>
+                                <p className="text-slate-300 text-xs">
+                                    {language === 'ko'
+                                        ? '스킬 체크가 발생하면 관련 기술에 경험치가 누적됩니다.'
+                                        : 'Skill checks grant XP to the related skills.'}
+                                </p>
+                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                    {language === 'ko'
+                                        ? '기본 10 XP + 성공 보너스 5 XP, 열정에 따라 배율(없음 0.5 / 관심 1.0 / 불꽃 1.5)이 적용됩니다.'
+                                        : 'Base 10 XP + 5 on success, multiplied by passion (None 0.5 / Minor 1.0 / Major 1.5).'}
                                 </p>
                             </div>
                         </div>
@@ -2078,6 +2175,7 @@ export default function SimulationClient() {
             // Additional check or starting bonus could be added here later
         }
 
+        const isAsexual = traitIds.has('asexual');
         setSimState({
             status: 'running',
             day: 0,
@@ -2087,7 +2185,7 @@ export default function SimulationClient() {
             money: startMoney,
             campLevel: 0,
             petCount: 1,
-            loverCount: 1,
+            loverCount: isAsexual ? 0 : 1,
             spouseCount: 0,
             log: [{
                 day: 0,
@@ -2101,6 +2199,7 @@ export default function SimulationClient() {
             }],
             hasSerum: false,
             serumTraderShown: false,
+            daysSinceDanger: 0,
             skillProgress: ALL_SKILLS.reduce((acc, skill) => {
                 acc[skill] = { level: 0, xp: 0 };
                 return acc;
@@ -2359,8 +2458,8 @@ export default function SimulationClient() {
         let money = simState.money;
         const responseNotes: string[] = [];
 
-        // 2일마다 식량 -1 소모 (홀수일 -> 짝수일 넘어갈 때 소모)
-        if (nextDay > 0 && nextDay % 2 === 0) {
+        // 매일 식량 -1 소모
+        if (nextDay > 0) {
             food -= 1;
             const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
             const greatChance = getGreatSuccessChance(foodSkillAvg);
@@ -2439,7 +2538,8 @@ export default function SimulationClient() {
                 hp,
                 food,
                 meds,
-                money
+                money,
+                daysSinceDanger: (prev.daysSinceDanger ?? 0) + 1
             }));
             setCurrentCard({
                 day: nextDay,
@@ -2450,7 +2550,11 @@ export default function SimulationClient() {
             return;
         }
 
-        if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
+        if (nextDay === 7) {
+            // Day 7: Danger event forced
+            const filteredDanger = events.filter(e => e.category === 'danger');
+            event = filteredDanger.length > 0 ? pickWeightedEvent(filteredDanger) : pickWeightedEvent(events);
+        } else if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
             const serumEvent: SimEvent = {
                 id: 'resurrector_trader',
                 title: language === 'ko' ? '부활 혈청 상인' : 'Resurrector Serum Trader',
@@ -2483,13 +2587,11 @@ export default function SimulationClient() {
         } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
-            // Difficulty Curve: Calculate category weights based on day
-            // Day 0: Quiet(50%), NonCombat(40%), Danger(10%)
-            // Day 60: Quiet(30%), NonCombat(40%), Danger(30%)
-            const diffFactor = Math.min(1.0, nextDay / SHIP_BUILD_DAY);
-            const wQuiet = 50 - (20 * diffFactor);
-            const wNonCombat = 40;
-            const wDanger = 10 + (20 * diffFactor);
+            const dangerChance = Math.max(0, getDangerChance(nextDay, simState.daysSinceDanger ?? 0));
+            const remaining = Math.max(0, 100 - dangerChance);
+            const wQuiet = remaining * (50 / 90);
+            const wNonCombat = remaining * (40 / 90);
+            const wDanger = dangerChance;
             const totalSetWeight = wQuiet + wNonCombat + wDanger;
 
             const roll = Math.random() * totalSetWeight;
@@ -2500,6 +2602,9 @@ export default function SimulationClient() {
 
             const filteredEvents = events.filter(e => {
                 if (e.category !== selectedCat) return false;
+
+                // Asexual settlers don't receive romance events
+                if (traitIds.has('asexual') && (e.id === 'breakup' || e.id === 'marriage' || e.id === 'divorce')) return false;
 
                 // Count-based filtering
                 if (e.id === 'pet_death' && simState.petCount <= 0) return false;
@@ -2515,11 +2620,14 @@ export default function SimulationClient() {
                 event = pickWeightedEvent(events); // Fallback
             }
 
-            // Debug log for difficulty
-            console.log(`[Sim] Day ${nextDay} Difficulty: ${diffFactor.toFixed(2)}, Roll: ${roll.toFixed(1)}/${totalSetWeight.toFixed(1)}, Cat: ${selectedCat}`);
+            // Debug log for danger curve
+            console.log(`[Sim] Day ${nextDay} DangerChance: ${dangerChance.toFixed(1)}%, Roll: ${roll.toFixed(1)}/${totalSetWeight.toFixed(1)}, Cat: ${selectedCat}`);
         }
 
         event = applyTraitChoices(event!, traitIds, skillMap, language);
+        const nextDaysSinceDanger = event.category === 'danger'
+            ? 0
+            : (simState.daysSinceDanger ?? 0) + 1;
         if (event.choices && event.choices.length > 0) {
             const available = event.choices
                 .filter(choice => meetsRequirements(choice, { food, meds, money }))
@@ -2559,7 +2667,8 @@ export default function SimulationClient() {
                 hp,
                 food,
                 meds,
-                money
+                money,
+                daysSinceDanger: nextDaysSinceDanger
             }));
             setCurrentCard({
                 day: nextDay,
@@ -2614,6 +2723,7 @@ export default function SimulationClient() {
                 status: finalStatus,
                 hasSerum: finalHasSerum,
                 skillProgress: resolved.skillProgress,
+                daysSinceDanger: nextDaysSinceDanger,
                 log
             };
         });
