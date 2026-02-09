@@ -176,8 +176,18 @@ body {
   color: var(--sim-text-sub);
 }
 
-.reigns-card--advance .reigns-card-inner {
-  animation: reigns-card-advance 0.24s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+.reigns-card-stack-icon {
+  margin-top: 10px;
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.reigns-card--flipping .reigns-card-inner {
+  animation: reigns-card-flip-in-place 0.23s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.reigns-card--discarding .reigns-card-inner {
+  animation: reigns-card-discard 0.19s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes reigns-card-enter {
@@ -192,14 +202,25 @@ body {
   }
 }
 
-@keyframes reigns-card-advance {
+@keyframes reigns-card-flip-in-place {
   0% {
     opacity: 1;
-    transform: translateX(0) rotate(0deg) rotateY(0deg) scale(1);
+    transform: rotateY(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(-180deg);
+  }
+}
+
+@keyframes reigns-card-discard {
+  0% {
+    opacity: 1;
+    transform: rotateY(-180deg) translateX(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateX(56%) rotate(12deg) rotateY(22deg) scale(0.93);
+    transform: rotateY(-180deg) translateX(62%) scale(0.96);
   }
 }
 

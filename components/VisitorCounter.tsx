@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { isSupabaseConfigured, supabase } from '@/app/lib/supabase';
 
 // Use a unique namespace for your app
 const NAMESPACE = 'rimworld-traits-test';
@@ -8,6 +9,7 @@ const KEY = 'visits';
 
 export default function VisitorCounter() {
     const [count, setCount] = useState<number | null>(null);
+    const [simulationCount, setSimulationCount] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchCount = async () => {
@@ -28,15 +30,37 @@ export default function VisitorCounter() {
             }
         };
 
+        const fetchSimulationCount = async () => {
+            if (!isSupabaseConfigured()) return;
+            try {
+                const { count, error } = await supabase
+                    .from('leaderboard_scores')
+                    .select('*', { count: 'exact', head: true });
+                if (error) throw error;
+                if (typeof count === 'number') {
+                    setSimulationCount(count);
+                }
+            } catch (error) {
+                console.error('Failed to fetch simulation count:', error);
+            }
+        };
+
         fetchCount();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        fetchSimulationCount();
     }, []);
 
     if (count === null) return null;
 
     return (
-        <div className="mt-4 text-xs font-bold text-gray-500 animate-fade-in">
-            총 <span className="text-[var(--rimworld-highlight)]">{count.toLocaleString()}</span>명이 이 테스트를 플레이했습니다.
+        <div className="mt-4 text-xs font-bold text-gray-500 animate-fade-in text-center">
+            <div>
+                총 <span className="text-[var(--rimworld-highlight)]">{count.toLocaleString()}</span>명이 이 테스트를 플레이했습니다.
+            </div>
+            {simulationCount !== null && (
+                <div className="mt-1">
+                    총 <span className="text-[var(--rimworld-highlight)]">{simulationCount.toLocaleString()}</span>명이 시뮬레이션을 플레이했습니다.
+                </div>
+            )}
         </div>
     );
 }

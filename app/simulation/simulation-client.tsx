@@ -128,7 +128,7 @@ type CurrentCard = {
     entry?: SimLogEntry;
 };
 
-type TurnPhase = 'idle' | 'preparing' | 'animating';
+type TurnPhase = 'idle' | 'preparing' | 'flipping' | 'discarding';
 
 type PreparedTurn = {
     simState: SimState;
@@ -3704,13 +3704,16 @@ export default function SimulationClient() {
         setPreparedTurn(nextTurn);
         setTurnPhase('preparing');
         prepareTimerRef.current = window.setTimeout(() => {
-            setTurnPhase('animating');
+            setTurnPhase('flipping');
             animateTimerRef.current = window.setTimeout(() => {
-                applyPreparedTurn(nextTurn);
-                setPreparedTurn(null);
-                setTurnPhase('idle');
-                animateTimerRef.current = null;
-            }, 280);
+                setTurnPhase('discarding');
+                animateTimerRef.current = window.setTimeout(() => {
+                    applyPreparedTurn(nextTurn);
+                    setPreparedTurn(null);
+                    setTurnPhase('idle');
+                    animateTimerRef.current = null;
+                }, 190);
+            }, 230);
             prepareTimerRef.current = null;
         }, 150);
     };
@@ -3805,22 +3808,21 @@ export default function SimulationClient() {
                         <div aria-hidden className="reigns-card-stack reigns-card-stack--back-2" />
                         <div aria-hidden className={`reigns-card-stack reigns-card-stack--back-1 ${preparedTurn ? 'reigns-card-stack--preview' : ''}`}>
                             {preparedTurn && (
-                                <div className="reigns-card-stack-content">
+                                <div className={`reigns-card-stack-content ${preparedTurn.currentCard.event.isRainbow ? 'rainbow-glow' : ''}`}>
                                     <div className="reigns-card-stack-meta">
                                         {`Day ${preparedTurn.currentCard.day} • ${preparedTurn.currentCard.season}`}
                                     </div>
                                     <div className="reigns-card-stack-title">{preparedTurn.currentCard.event.title}</div>
+                                    <div className="reigns-card-stack-icon">{getEventIcon(preparedTurn.currentCard.event)}</div>
                                     <div className="reigns-card-stack-body">
-                                        {turnPhase === 'preparing'
-                                            ? (language === 'ko' ? '다음 일차를 준비 중...' : 'Preparing next day...')
-                                            : preparedTurn.currentCard.event.description}
+                                        {preparedTurn.currentCard.event.description}
                                     </div>
                                 </div>
                             )}
                         </div>
                         <div
                             key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'animating' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'flipping' ? 'reigns-card--flipping' : ''} ${turnPhase === 'discarding' ? 'reigns-card--discarding' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
