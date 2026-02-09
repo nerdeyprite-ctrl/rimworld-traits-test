@@ -194,6 +194,25 @@ const TRAIT_EFFECTS: Record<string, { ko: string; en: string }> = {
     pyromaniac: { ko: "[전용 선택지 추가]", en: "[Special choice added]" },
 };
 
+const TRAIT_NAMES_KO: Record<string, string> = {
+    fast_walker: '가벼운 발',
+    jogger: '신속',
+    nimble: '재빠름',
+    slowpoke: '느림보',
+    tough: '강인함',
+    greedy: '탐욕',
+    ascetic: '검소',
+    wimp: '엄살쟁이',
+    industrious: '일벌레',
+    hard_worker: '근면성실',
+    lazy: '게으름',
+    kind: '다정다감',
+    abrasive: '직설적',
+    pyromaniac: '방화광',
+    iron_willed: '철의 의지',
+    psychopath: '사이코패스'
+};
+
 const getEventIcon = (event?: SimEvent) => {
     if (!event) return '🎴';
     switch (event.id) {
@@ -1677,7 +1696,9 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {Object.entries(TRAIT_EFFECTS).map(([id, effect]) => (
                                     <div key={id} className="bg-black/40 border border-[#222] p-2 rounded flex flex-col justify-center">
-                                        <span className="text-[#e7c07a] font-bold text-xs mb-1 capitalize">{id.replace(/_/g, ' ')}</span>
+                                        <span className="text-[#e7c07a] font-bold text-xs mb-1 capitalize">
+                                            {language === 'ko' ? (TRAIT_NAMES_KO[id] || id.replace(/_/g, ' ')) : id.replace(/_/g, ' ')}
+                                        </span>
                                         <span className="text-[10px] text-slate-400 leading-tight">{language === 'ko' ? effect.ko : effect.en}</span>
                                     </div>
                                 ))}
@@ -3427,7 +3448,7 @@ export default function SimulationClient() {
                             <h3 className="text-sm font-black text-blue-100 uppercase tracking-widest flex items-center gap-2">📊 {language === 'ko' ? '기술/숙련도' : 'Skills & Proficiency'}</h3>
                             <button onClick={() => setShowSkillsModal(false)} className="text-blue-300 hover:text-white transition-colors">✕</button>
                         </div>
-                        <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+                        <div className="p-6 space-y-2 max-h-[60vh] overflow-y-auto">
                             {ALL_SKILLS.map(skill => {
                                 const baseLevel = skillMap[skill] || 0;
                                 const progress = simState.skillProgress[skill] || { level: 0, xp: 0 };
@@ -3438,46 +3459,31 @@ export default function SimulationClient() {
                                 const xpPercent = progress.level >= 20 || xpNeeded === 0
                                     ? 100
                                     : Math.min(100, Math.floor((progress.xp / xpNeeded) * 100));
-
-                                const passionLabel = passion >= 2
-                                    ? (language === 'ko' ? '불꽃' : 'Major')
-                                    : passion === 1
-                                        ? (language === 'ko' ? '관심' : 'Minor')
-                                        : (language === 'ko' ? '없음' : 'None');
-
-                                const passionColor = passion >= 2
-                                    ? 'bg-red-900/40 text-red-300 border-red-700/50'
-                                    : passion === 1
-                                        ? 'bg-amber-900/40 text-amber-300 border-amber-700/50'
-                                        : 'bg-slate-900/40 text-slate-400 border-slate-700/50';
+                                const passionIcon = passion >= 2 ? '🔥🔥' : passion === 1 ? '🔥' : '0';
+                                const nextLevelText = progress.level >= 20
+                                    ? 'MAX'
+                                    : language === 'ko'
+                                        ? `다음 레벨까지 ${xpPercent}%`
+                                        : `Next level ${xpPercent}%`;
 
                                 return (
-                                    <div key={skill} className="bg-black/40 border border-[#222] p-3 rounded-xl space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm font-bold text-slate-200">{skillName}</div>
-                                            <div className="text-sm font-black text-blue-200 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
-                                                <span className="text-base leading-none">{totalLevel}</span>
+                                    <div key={skill} className="bg-black/40 border border-[#222] p-3 rounded-xl">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <div className="text-sm font-bold text-slate-200 truncate">{skillName}</div>
+                                                <div className="text-[10px] text-slate-400 mt-0.5">{nextLevelText}</div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
+                                                    {language === 'ko' ? '열정' : 'Passion'} <span className="text-xs font-black">{passionIcon}</span>
+                                                </div>
+                                                <div className="text-sm font-black text-blue-200 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
+                                                    <span className="text-base leading-none">{totalLevel}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
-                                                {language === 'ko' ? '기본' : 'Base'} <span className="text-xs font-black">{baseLevel}</span>
-                                            </div>
-                                            <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
-                                                {language === 'ko' ? '숙련' : 'Proficiency'} Lv <span className="text-xs font-black">{progress.level}</span>
-                                            </div>
-                                            <div className={`text-[10px] font-bold border px-2 py-1 rounded ${passionColor}`}>
-                                                {language === 'ko' ? '열정' : 'Passion'} {passionLabel} {passion >= 2 ? '🔥🔥' : passion === 1 ? '🔥' : ''}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between text-[10px] text-slate-400">
-                                                <span>{language === 'ko' ? '숙련 경험치' : 'Proficiency XP'}</span>
-                                                <span>{progress.level >= 20 ? 'MAX' : `${progress.xp}/${xpNeeded}`}</span>
-                                            </div>
-                                            <div className="h-2 bg-[#111] border border-[#2a2a2a] rounded">
-                                                <div className="h-full bg-gradient-to-r from-blue-700 to-cyan-400 rounded" style={{ width: `${xpPercent}%` }} />
-                                            </div>
+                                        <div className="mt-2 h-2 bg-[#111] border border-[#2a2a2a] rounded">
+                                            <div className="h-full bg-gradient-to-r from-blue-700 to-cyan-400 rounded" style={{ width: `${xpPercent}%` }} />
                                         </div>
                                     </div>
                                 );
