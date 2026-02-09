@@ -23,6 +23,7 @@ type SkillCheck = {
     group: string[]; // Changed to string[]
     fixedChance?: number;
     chanceMultiplier?: number;
+    advanced?: boolean;
     successDelta: SimDelta;
     failDelta: SimDelta;
     successText?: string;
@@ -287,10 +288,11 @@ const getHealAmount = (medicineLevel: number) => {
 // 일반 선택지 성공 확률 (Lv 0: 20%, Lv 15+: 95%)
 const getSkillChance = (level: number, isAdvanced: boolean = false) => {
     if (isAdvanced) {
-        // 고급 선택지 (Lv 15-20): 50% → 95%
-        if (level < 15) return 0; // 레벨 15 미만은 선택 불가
-        const chance = 50 + ((level - 15) * 9);
-        return Math.min(95, chance);
+        // 특수 선택지 (Lv 12-20): 30% → 80% (2차 함수)
+        if (level < 12) return 0; // 레벨 12 미만은 선택 불가
+        if (level >= 20) return 80;
+        const chance = (-0.75 * level * level) + (30.25 * level) - 225;
+        return Math.max(30, Math.min(80, Math.round(chance)));
     } else {
         // 일반 선택지 (Lv 0-20): 20% → 95%
         const chance = 20 + (level * 5);
@@ -1398,7 +1400,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
 
     // NONCOMBAT.md Special Choices
     if (event.id === 'trade') {
-        if (social >= 15) {
+        if (social >= 12) {
             choices.push({
                 id: 'master_trade',
                 label: isKo ? '전설적인 거래' : 'Legendary Trade',
@@ -1406,7 +1408,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 delta: { hp: 0, food: 5, meds: 3, money: 5 },
                 response: isKo ? '당신의 화술과 비전에 매료된 상인이 보따리를 풀었습니다.' : 'The trader was charmed by your words and vision, and gave you a legendary deal.',
                 isSpecial: true,
-                specialReason: isKo ? '사교 15+' : 'Social 15+'
+                specialReason: isKo ? '사교 12+' : 'Social 12+'
 
             });
         }
@@ -1474,6 +1476,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             skillCheck: {
                 label: isKo ? '정밀 분해' : 'Precision Salvage',
                 group: ['제작'],
+                advanced: true,
                 successDelta: { hp: 0, food: 0, meds: 0, money: 10 },
                 failDelta: { hp: 0, food: 0, meds: 0, money: 4 }
             }
@@ -1483,7 +1486,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
 
     // DANGER.md Special Choices
     if (event.id === 'raiders') {
-        if (shooting >= 15 || melee >= 15) {
+        if (shooting >= 12 || melee >= 12) {
             choices.push({
                 id: 'raid_counter',
                 label: isKo ? '완벽한 역습' : 'Perfect Counter',
@@ -1491,7 +1494,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 delta: { hp: 0, food: 2, meds: 2, money: 6 },
                 response: isKo ? '완벽한 전술로 피해 없이 적들을 소탕했습니다.' : 'With perfect tactics, you wiped out the raiders without any damage.',
                 isSpecial: true,
-                specialReason: isKo ? '격투/사격 15+' : 'Melee/Shooting 15+'
+                specialReason: isKo ? '격투/사격 12+' : 'Melee/Shooting 12+'
             });
         }
         if (traitIds.has('tough')) {
@@ -1562,6 +1565,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             skillCheck: {
                 label: isKo ? '기습' : 'Sabotage',
                 group: ['격투', '사격'],
+                advanced: true,
                 chanceMultiplier: 2,
                 successDelta: { hp: -2, food: 0, meds: 0, money: 3 },
                 failDelta: { hp: -5, food: 0, meds: -1, money: -1 }
@@ -1581,6 +1585,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             skillCheck: {
                 label: isKo ? '차폐' : 'Hardening',
                 group: ['제작', '연구'],
+                advanced: true,
                 chanceMultiplier: 2,
                 successDelta: { hp: -1, food: 0, meds: 0, money: -1 },
                 failDelta: { hp: -2, food: 0, meds: 0, money: -2 }
@@ -1600,6 +1605,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             skillCheck: {
                 label: isKo ? '화력망' : 'Fireline',
                 group: ['격투', '사격'],
+                advanced: true,
                 chanceMultiplier: 2,
                 successDelta: { hp: -2, food: -1, meds: 0, money: 2 },
                 failDelta: { hp: -4, food: -2, meds: 0, money: 0 }
@@ -1619,7 +1625,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
         });
     }
 
-    if (event.id === 'disease' && medical >= 15) {
+    if (event.id === 'disease' && medical >= 12) {
         choices.push({
             id: 'perfect_treat',
             label: isKo ? '완벽한 치료' : 'Miracle Cure',
@@ -1627,7 +1633,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
             delta: { hp: 4, food: 0, meds: -1, money: 0 },
             response: isKo ? '당신의 신의에 가까운 의술로 질병을 완전히 극복했습니다.' : 'Your god-like medical skill completely cured the disease.',
             isSpecial: true,
-            specialReason: isKo ? '의학 15+' : 'Medical 15+',
+            specialReason: isKo ? '의학 12+' : 'Medical 12+',
             requirements: { meds: 1 }
         });
     }
@@ -2370,7 +2376,7 @@ export default function SimulationClient() {
 
     const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
-        let chance = check.fixedChance ?? getSkillChance(avg);
+        let chance = check.fixedChance ?? getSkillChance(avg, check.advanced);
 
         // 확률 배율 적용
         if (check.chanceMultiplier) {
@@ -2390,7 +2396,9 @@ export default function SimulationClient() {
             }
         }
 
-        // 확률 범위 제한
+        // 확률 범위 제한 + 반올림
+        chance = Math.max(5, Math.min(95, chance));
+        chance = Math.round(chance);
         chance = Math.max(5, Math.min(95, chance));
 
         const roll = Math.random() * 100;
@@ -3441,8 +3449,10 @@ export default function SimulationClient() {
                                                                 let outcomeInfo = [] as string[];
                                                                 if (choice.skillCheck) {
                                                                     const avg = getGroupAverage(choice.skillCheck.group);
-                                                                    let chance = choice.skillCheck.fixedChance ?? getSkillChance(avg);
+                                                                    let chance = choice.skillCheck.fixedChance ?? getSkillChance(avg, choice.skillCheck.advanced);
                                                                     if (choice.skillCheck.chanceMultiplier) chance *= choice.skillCheck.chanceMultiplier;
+                                                                    chance = Math.max(5, Math.min(95, chance));
+                                                                    chance = Math.round(chance);
                                                                     chance = Math.max(5, Math.min(95, chance));
                                                                     chanceText = language === 'ko' ? `${chance}%` : `${chance}%`;
                                                                     const sText = getExpectation(choice.skillCheck.successDelta).join(', ');
