@@ -32,6 +32,7 @@ export default function LeaderboardPage() {
     const [error, setError] = useState<string | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
     const [activeTab, setActiveTab] = useState<'leaderboard' | 'distribution'>('leaderboard');
+    const [activeRange, setActiveRange] = useState<'24h' | '7d' | 'all'>('24h');
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -88,6 +89,12 @@ export default function LeaderboardPage() {
     const nowMs = Date.now();
     const last24hScores = sortedScores.filter((entry) => new Date(entry.created_at).getTime() >= nowMs - 24 * 60 * 60 * 1000);
     const last7dScores = sortedScores.filter((entry) => new Date(entry.created_at).getTime() >= nowMs - 7 * 24 * 60 * 60 * 1000);
+    const rangeScores = activeRange === '24h' ? last24hScores : activeRange === '7d' ? last7dScores : sortedScores;
+    const rangeLabel = activeRange === '24h'
+        ? (language === 'ko' ? '최근 24시간' : 'Last 24 Hours')
+        : activeRange === '7d'
+            ? (language === 'ko' ? '최근 7일' : 'Last 7 Days')
+            : (language === 'ko' ? '역대' : 'All Time');
 
     const buildDistribution = (entries: LeaderboardEntry[]) => {
         const counts = new Map<number, number>();
@@ -168,7 +175,7 @@ export default function LeaderboardPage() {
         );
     };
 
-    const renderDistributionTable = (entries: LeaderboardEntry[]) => {
+    const renderDistributionChart = (entries: LeaderboardEntry[]) => {
         if (entries.length === 0) {
             return (
                 <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
@@ -178,41 +185,31 @@ export default function LeaderboardPage() {
         }
 
         const { rows, maxCount } = buildDistribution(entries);
+        const barMaxHeight = 160;
+        const labelStep = rows.length > 120 ? 10 : rows.length > 60 ? 5 : rows.length > 30 ? 2 : 1;
 
         return (
-            <div className="overflow-hidden border border-[#333] rounded-xl bg-[#111] shadow-2xl">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-[#1a1a1a] border-b border-[#333] text-[#9f752a] text-xs uppercase tracking-widest">
-                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '스테이지' : 'Stage'}</th>
-                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '종료 수' : 'Count'}</th>
-                            <th className="px-6 py-4 font-bold">{language === 'ko' ? '분포' : 'Distribution'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map(([day, count]) => {
-                            const widthPct = Math.max(2, Math.round((count / maxCount) * 100));
-                            return (
-                                <tr key={day} className="border-b border-[#222] hover:bg-white/[0.02] transition-colors">
-                                    <td className="px-6 py-4">
-                                        <span className="text-lg font-mono font-bold text-[#e7c07a]">{day}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm text-slate-300 font-mono">{count}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="h-3 w-full bg-black/40 border border-white/5 rounded">
-                                            <div
-                                                className="h-full rounded bg-[#e2c178]"
-                                                style={{ width: `${widthPct}%` }}
-                                            />
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            <div className="border border-[#333] rounded-xl bg-[#111] shadow-2xl p-6">
+                <div className="flex items-end gap-1 h-[200px] overflow-x-auto pb-2">
+                    {rows.map(([day, count], idx) => {
+                        const height = Math.max(4, Math.round((count / maxCount) * barMaxHeight));
+                        return (
+                            <div key={day} className="flex flex-col items-center justify-end min-w-[10px]">
+                                <div
+                                    className="w-3 md:w-4 rounded-t bg-[#e2c178] shadow-[0_-6px_18px_rgba(226,193,120,0.25)]"
+                                    style={{ height: `${height}px` }}
+                                />
+                                <div className="mt-1 text-[9px] text-slate-500 font-mono h-3">
+                                    {idx % labelStep === 0 ? day : ''}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="mt-3 text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>{language === 'ko' ? `총 기록: ${entries.length}` : `Total records: ${entries.length}`}</span>
+                    <span>{language === 'ko' ? `최대 종료 수: ${maxCount}` : `Peak count: ${maxCount}`}</span>
+                </div>
             </div>
         );
     };
@@ -260,6 +257,39 @@ export default function LeaderboardPage() {
                     </button>
                 </div>
 
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setActiveRange('24h')}
+                        className={`px-4 py-2 text-xs font-bold border rounded transition-colors ${
+                            activeRange === '24h'
+                                ? 'bg-[#1c3d5a] border-[#1c3d5a] text-white'
+                                : 'bg-transparent border-[#333] text-slate-400 hover:text-slate-200 hover:border-[#666]'
+                        }`}
+                    >
+                        {language === 'ko' ? '최근 24시간' : '24h'}
+                    </button>
+                    <button
+                        onClick={() => setActiveRange('7d')}
+                        className={`px-4 py-2 text-xs font-bold border rounded transition-colors ${
+                            activeRange === '7d'
+                                ? 'bg-[#1c3d5a] border-[#1c3d5a] text-white'
+                                : 'bg-transparent border-[#333] text-slate-400 hover:text-slate-200 hover:border-[#666]'
+                        }`}
+                    >
+                        {language === 'ko' ? '최근 7일' : '7d'}
+                    </button>
+                    <button
+                        onClick={() => setActiveRange('all')}
+                        className={`px-4 py-2 text-xs font-bold border rounded transition-colors ${
+                            activeRange === 'all'
+                                ? 'bg-[#1c3d5a] border-[#1c3d5a] text-white'
+                                : 'bg-transparent border-[#333] text-slate-400 hover:text-slate-200 hover:border-[#666]'
+                        }`}
+                    >
+                        {language === 'ko' ? '역대' : 'All'}
+                    </button>
+                </div>
+
                 {/* Main Content: Leaderboard + Chat */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Leaderboard - 2/3 width */}
@@ -282,40 +312,14 @@ export default function LeaderboardPage() {
                                 {language === 'ko' ? '아직 기록된 점수가 없습니다. 첫 정복자가 되어보세요!' : 'No records yet. Be the first conqueror!'}
                             </div>
                         ) : (
-                            <div className="space-y-10">
-                                <section className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-bold text-[#e2c178]">
-                                            {language === 'ko' ? '최근 24시간' : 'Last 24 Hours'}
-                                        </h2>
-                                        <span className="text-xs text-slate-500 font-mono">{last24hScores.length}</span>
-                                    </div>
-                                    {activeTab === 'leaderboard'
-                                        ? renderLeaderboardTable(last24hScores)
-                                        : renderDistributionTable(last24hScores)}
-                                </section>
-                                <section className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-bold text-[#e2c178]">
-                                            {language === 'ko' ? '최근 7일' : 'Last 7 Days'}
-                                        </h2>
-                                        <span className="text-xs text-slate-500 font-mono">{last7dScores.length}</span>
-                                    </div>
-                                    {activeTab === 'leaderboard'
-                                        ? renderLeaderboardTable(last7dScores)
-                                        : renderDistributionTable(last7dScores)}
-                                </section>
-                                <section className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-bold text-[#e2c178]">
-                                            {language === 'ko' ? '역대' : 'All Time'}
-                                        </h2>
-                                        <span className="text-xs text-slate-500 font-mono">{sortedScores.length}</span>
-                                    </div>
-                                    {activeTab === 'leaderboard'
-                                        ? renderLeaderboardTable(sortedScores)
-                                        : renderDistributionTable(sortedScores)}
-                                </section>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-bold text-[#e2c178]">{rangeLabel}</h2>
+                                    <span className="text-xs text-slate-500 font-mono">{rangeScores.length}</span>
+                                </div>
+                                {activeTab === 'leaderboard'
+                                    ? renderLeaderboardTable(rangeScores)
+                                    : renderDistributionChart(rangeScores)}
                             </div>
                         )}
                     </div>
