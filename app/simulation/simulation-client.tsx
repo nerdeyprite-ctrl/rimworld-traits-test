@@ -3549,13 +3549,13 @@ export default function SimulationClient() {
                             <button
                                 onClick={advanceDay}
                                 disabled={!canAdvanceDay}
-                                className={`absolute -right-14 md:-right-20 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full border-4 flex items-center justify-center transition-all ${canAdvanceDay
+                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-4 flex items-center justify-center transition-all z-20 ${canAdvanceDay
                                     ? 'bg-[#9f752a] hover:bg-[#b08535] text-white border-[#7a5a20] shadow-[0_5px_15px_rgba(159,117,42,0.4)] hover:scale-110 active:scale-90 animate-bounce-x'
                                     : 'bg-[#1a1a1a] text-gray-600 border-[#2a2a2a] cursor-not-allowed opacity-50'
                                     }`}
                                 title={language === 'ko' ? '다음 날로' : 'Next Day'}
                             >
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
