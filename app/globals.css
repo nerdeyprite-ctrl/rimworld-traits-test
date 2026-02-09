@@ -81,6 +81,8 @@ body {
   width: 100%;
   width: clamp(320px, 70vw, 620px);
   perspective: 1200px;
+  position: relative;
+  z-index: 20;
 }
 
 .reigns-card-inner {
@@ -119,6 +121,32 @@ body {
   animation: reigns-card-enter 0.4s ease;
 }
 
+.reigns-card-stack {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--sim-border) 85%, transparent);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--sim-surface-2) 85%, transparent), color-mix(in srgb, var(--sim-surface-1) 82%, transparent));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.reigns-card-stack--back-1 {
+  transform: translateY(9px) scale(0.985);
+  z-index: 10;
+  opacity: 0.72;
+}
+
+.reigns-card-stack--back-2 {
+  transform: translateY(17px) scale(0.97);
+  z-index: 0;
+  opacity: 0.46;
+}
+
+.reigns-card--advance .reigns-card-inner {
+  animation: reigns-card-advance 0.24s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
 @keyframes reigns-card-enter {
   0% {
     opacity: 0;
@@ -128,6 +156,17 @@ body {
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reigns-card-advance {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) rotateY(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-56%) rotate(-12deg) rotateY(-22deg) scale(0.93);
   }
 }
 

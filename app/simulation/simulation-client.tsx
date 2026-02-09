@@ -2143,6 +2143,8 @@ export default function SimulationClient() {
     const [hasTempSave, setHasTempSave] = useState(false);
     const [showBoardConfirm, setShowBoardConfirm] = useState(false);
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
+    const [isAdvancingCard, setIsAdvancingCard] = useState(false);
+    const advanceTimerRef = useRef<number | null>(null);
 
 
     const [simState, setSimState] = useState<SimState>({
@@ -3346,6 +3348,24 @@ export default function SimulationClient() {
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = hasShipBuilt && simState.status === 'running';
 
+    const handleAdvanceDay = useCallback(() => {
+        if (!canAdvanceDay || isAdvancingCard) return;
+        setIsAdvancingCard(true);
+        advanceTimerRef.current = window.setTimeout(() => {
+            advanceDay();
+            setIsAdvancingCard(false);
+            advanceTimerRef.current = null;
+        }, 240);
+    }, [canAdvanceDay, isAdvancingCard, advanceDay]);
+
+    useEffect(() => {
+        return () => {
+            if (advanceTimerRef.current !== null) {
+                window.clearTimeout(advanceTimerRef.current);
+            }
+        };
+    }, []);
+
     const getVagueDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
         const abs = Math.abs(delta);
@@ -3432,9 +3452,11 @@ export default function SimulationClient() {
             <div className="flex flex-col items-center gap-4">
                 <div className="relative w-full flex items-center justify-center">
                     <div className="relative">
+                        <div aria-hidden className="reigns-card-stack reigns-card-stack--back-2" />
+                        <div aria-hidden className="reigns-card-stack reigns-card-stack--back-1" />
                         <div
                             key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${isAdvancingCard ? 'reigns-card--advance' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
@@ -3650,9 +3672,9 @@ export default function SimulationClient() {
 
                         {simState.status === 'running' && (
                             <button
-                                onClick={advanceDay}
-                                disabled={!canAdvanceDay}
-                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay
+                                onClick={handleAdvanceDay}
+                                disabled={!canAdvanceDay || isAdvancingCard}
+                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay && !isAdvancingCard
                                     ? 'bg-[var(--sim-accent)] hover:brightness-110 text-white border-[var(--sim-accent)] shadow-[0_4px_14px_rgba(0,0,0,0.28)] hover:scale-105 active:scale-95 animate-bounce-x'
                                     : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                     }`}
