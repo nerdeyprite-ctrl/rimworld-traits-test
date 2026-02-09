@@ -8,6 +8,8 @@ import { TestResult } from '../../types/rimworld';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 type SimDelta = { hp: number; food: number; meds: number; money: number };
+type SimTraitLike = string | { id?: string; name?: string };
+type SimUserInfo = { name?: string; age?: number; gender?: string };
 
 type TraitMod = {
     pos: string[];
@@ -15,8 +17,6 @@ type TraitMod = {
     goodText?: string;
     badText?: string;
 };
-
-type SkillCheckGroup = 'combat' | 'social' | 'medical' | 'survival' | 'craft';
 
 type SkillCheck = {
     label: string;
@@ -80,6 +80,7 @@ type SimLogEntry = {
     response: string;
     responseCard?: string;
     delta: SimDelta;
+    eventDelta?: SimDelta;
     after: SimDelta;
     status?: 'good' | 'bad' | 'warn' | 'neutral';
 };
@@ -122,6 +123,19 @@ type CurrentCard = {
     entry?: SimLogEntry;
 };
 
+type TurnPhase = 'idle' | 'preparing' | 'animating';
+
+type PreparedTurn = {
+    simState: SimState;
+    pendingChoice: PendingChoice | null;
+    currentCard: CurrentCard;
+    cardView: 'event' | 'result';
+    hasShipBuilt?: boolean;
+    showEndingCard?: boolean;
+    allowContinue?: boolean;
+    canBoardShip?: boolean;
+};
+
 const MAX_DAYS = 60;
 const TEMP_SAVE_KEY = 'rimworld_sim_temp_save';
 const BASE_NOTE_OVERRIDE = '__BASE_NOTE_OVERRIDE__';
@@ -129,11 +143,6 @@ const BASE_NOTE_OVERRIDE = '__BASE_NOTE_OVERRIDE__';
 const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
-
-const SPECIAL_EVENT_IDS = ['raiders', 'trade', 'ship_built', 'manhunter', 'wanderer', 'mortar_raid', 'emp_raid', 'shambler_horde'];
-
-const COMBAT_SKILLS = ['Shooting', 'Melee'] as const;
-const NONCOMBAT_SKILLS = ['Plants', 'Cooking', 'Construction', 'Mining', 'Crafting', 'Social', 'Animals'] as const;
 
 const SKILL_GROUPS: Record<string, string[]> = {
     '전투': ['Shooting', 'Melee'],
@@ -2121,7 +2130,7 @@ export default function SimulationClient() {
     const profileId = searchParams.get('profile');
 
     const [result, setResult] = useState<TestResult | null>(null);
-    const [localUserInfo, setLocalUserInfo] = useState<any>(null);
+    const [localUserInfo, setLocalUserInfo] = useState<SimUserInfo | null>(null);
     const [loading, setLoading] = useState(false);
     const [isFullResult, setIsFullResult] = useState(false);
     const selectedSettlerRef = useRef(false);
@@ -2143,8 +2152,10 @@ export default function SimulationClient() {
     const [hasTempSave, setHasTempSave] = useState(false);
     const [showBoardConfirm, setShowBoardConfirm] = useState(false);
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
-    const [isAdvancingCard, setIsAdvancingCard] = useState(false);
-    const advanceTimerRef = useRef<number | null>(null);
+    const [turnPhase, setTurnPhase] = useState<TurnPhase>('idle');
+    const [preparedTurn, setPreparedTurn] = useState<PreparedTurn | null>(null);
+    const prepareTimerRef = useRef<number | null>(null);
+    const animateTimerRef = useRef<number | null>(null);
 
 
     const [simState, setSimState] = useState<SimState>({
@@ -2341,7 +2352,7 @@ export default function SimulationClient() {
     const traitIds = useMemo(() => {
         const ids = new Set<string>();
         if (result?.traits) {
-            result.traits.forEach((tr: any) => {
+            result.traits.forEach((tr: SimTraitLike) => {
                 if (typeof tr === 'string') {
                     ids.add(tr);
                 } else if (tr?.id) {
@@ -2461,7 +2472,7 @@ export default function SimulationClient() {
             }
         }
         return { bonus, note };
-    }, [language, skillMap]);
+    }, [language, getGroupAverage]);
 
     const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
@@ -2570,9 +2581,11 @@ export default function SimulationClient() {
         setSubmitMessage(null);
         setShowBoardConfirm(false);
         setShowEndingConfirm(false);
-    }, [language]);
+        setTurnPhase('idle');
+        setPreparedTurn(null);
+    }, [language, traitIds]);
 
-    const buildResponseText = (
+    const buildResponseText = useCallback((
         baseNotes: string[],
         traitNotes: string[],
         skillNote: string,
@@ -2598,9 +2611,9 @@ export default function SimulationClient() {
         if (parts.length > 0) return parts.join(' ');
         if (systemParts.length > 0) return systemParts.join(sep);
         return language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.';
-    };
+    }, [language]);
 
-    const resolveEvent = (
+    const resolveEvent = useCallback((
         event: SimEvent,
         dayStart: { hp: number; food: number; meds: number; money: number },
         baseAfter: { hp: number; food: number; meds: number; money: number },
@@ -2723,6 +2736,13 @@ export default function SimulationClient() {
             }
         }
 
+        const eventOutcomeDelta: SimDelta = {
+            hp: hpDelta,
+            food: foodDelta,
+            meds: medsDelta,
+            money: moneyDelta
+        };
+
         hp += hpDelta;
         food += foodDelta;
         meds += medsDelta;
@@ -2758,12 +2778,25 @@ export default function SimulationClient() {
             after: { hp, food, meds, money },
             counts: { petCount, loverCount, spouseCount },
             delta,
+            eventOutcomeDelta,
             responseText,
             responseTextCard,
             status: hp <= 0 ? 'dead' : 'running',
             skillProgress: updatedSkillProgress
         };
-    };
+    }, [
+        simState.petCount,
+        simState.loverCount,
+        simState.spouseCount,
+        simState.skillProgress,
+        traitIds,
+        passions,
+        language,
+        rollSkillCheck,
+        getTraitScore,
+        getSkillBonus,
+        buildResponseText
+    ]);
 
     const meetsRequirements = (choice: SimChoice, state: { food: number; meds: number; money: number }) => {
         if (!choice.requirements) return true;
@@ -2809,16 +2842,9 @@ export default function SimulationClient() {
         }
     }, [language, userInfo, result]);
 
-    const advanceDay = useCallback(() => {
-        if (simState.status !== 'running' || pendingChoice) return;
-
-        // If showing event face but result is ready, flip to result first
-        if (currentCard?.entry && cardView === 'event') {
-            setCardView('result');
-            return;
-        }
-
-        if (currentCard && cardView === 'event') return;
+    const prepareNextTurn = useCallback((): PreparedTurn | null => {
+        if (simState.status !== 'running' || pendingChoice) return null;
+        if (currentCard && cardView === 'event') return null;
 
         const nextDay = simState.day + 1;
         const season = getSeasonLabel(nextDay, language);
@@ -2829,7 +2855,6 @@ export default function SimulationClient() {
         let money = simState.money;
         const responseNotes: string[] = [];
 
-        // 매일 식량 -1 소모
         if (nextDay > 0) {
             food -= 1;
             const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
@@ -2846,12 +2871,9 @@ export default function SimulationClient() {
             }
             if (food < 0) {
                 food = 0;
-                hp -= 1; // 식량 없으면 체력 -1
+                hp -= 1;
                 responseNotes.push(language === 'ko' ? '식량이 부족하여 체력이 저하되었습니다.' : 'Lack of food decreased your HP.');
             }
-            // else {
-            //     responseNotes.push(language === 'ko' ? '식량을 소비했습니다.' : 'Consumed food.');
-            // }
         }
 
         hp = clampStat(hp);
@@ -2859,14 +2881,18 @@ export default function SimulationClient() {
         meds = clampStat(meds, 30);
         money = clampStat(money, 30);
 
-        // 소비가 적용된 시점을 이벤트의 시작점(dayStart)으로 잡아야 선택지의 효과가 정확히 보임
         const dayStart = { hp, food, meds, money };
+        if (hp <= 0) return null;
 
-        if (hp <= 0) {
-            return;
-        }
+        const baseSimState: SimState = {
+            ...simState,
+            day: nextDay,
+            hp,
+            food,
+            meds,
+            money
+        };
 
-        let event: SimEvent;
         if (nextDay >= SHIP_BUILD_DAY && !hasShipBuilt) {
             const endingEvent: SimEvent = {
                 id: 'ship_built',
@@ -2894,40 +2920,37 @@ export default function SimulationClient() {
                     }
                 ]
             };
-            setHasShipBuilt(true);
-            setShowEndingCard(true);
-            setPendingChoice({
-                day: nextDay,
-                season,
-                event: endingEvent,
-                dayStart,
-                baseAfter: { hp, food, meds, money },
-                responseNotes
-            });
-            setSimState(prev => ({
-                ...prev,
-                day: nextDay,
-                hp,
-                food,
-                meds,
-                money,
-                daysSinceDanger: (prev.daysSinceDanger ?? 0) + 1
-            }));
-            setCurrentCard({
-                day: nextDay,
-                season,
-                event: endingEvent
-            });
-            setCardView('event');
-            return;
+            return {
+                simState: {
+                    ...baseSimState,
+                    daysSinceDanger: (simState.daysSinceDanger ?? 0) + 1
+                },
+                pendingChoice: {
+                    day: nextDay,
+                    season,
+                    event: endingEvent,
+                    dayStart,
+                    baseAfter: { hp, food, meds, money },
+                    responseNotes
+                },
+                currentCard: {
+                    day: nextDay,
+                    season,
+                    event: endingEvent
+                },
+                cardView: 'event',
+                hasShipBuilt: true,
+                showEndingCard: true
+            };
         }
 
+        let event: SimEvent;
+        let serumTraderShown = simState.serumTraderShown;
         if (nextDay === 7) {
-            // Day 7: Danger event forced
             const filteredDanger = events.filter(e => e.category === 'danger');
             event = filteredDanger.length > 0 ? pickWeightedEvent(filteredDanger) : pickWeightedEvent(events);
         } else if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
-            const serumEvent: SimEvent = {
+            event = {
                 id: 'resurrector_trader',
                 title: language === 'ko' ? '부활 혈청 상인' : 'Resurrector Serum Trader',
                 description: language === 'ko'
@@ -2954,8 +2977,7 @@ export default function SimulationClient() {
                     }
                 ]
             };
-            event = serumEvent;
-            setSimState(prev => ({ ...prev, serumTraderShown: true }));
+            serumTraderShown = true;
         } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
@@ -2967,7 +2989,6 @@ export default function SimulationClient() {
             wNonCombat = wNonCombat * 0.8;
             const wDanger = dangerChance;
             const totalSetWeight = wQuiet + wNonCombat + wMind + wDanger;
-
             const roll = Math.random() * totalSetWeight;
             let selectedCat: SimEventCategory = 'quiet';
             if (roll <= wQuiet) selectedCat = 'quiet';
@@ -2977,32 +2998,21 @@ export default function SimulationClient() {
 
             const filteredEvents = events.filter(e => {
                 if (e.category !== selectedCat) return false;
-
-                // Asexual settlers don't receive romance events
                 if (traitIds.has('asexual') && (e.id === 'breakup' || e.id === 'marriage' || e.id === 'divorce')) return false;
-
-                // Count-based filtering
                 if (e.id === 'pet_death' && simState.petCount <= 0) return false;
                 if (e.id === 'breakup' && simState.loverCount <= 0) return false;
                 if (e.id === 'marriage' && (simState.loverCount <= 0 || simState.spouseCount > 0)) return false;
                 if (e.id === 'divorce' && simState.spouseCount <= 0) return false;
-
                 return true;
             });
-            if (filteredEvents.length > 0) {
-                event = pickWeightedEvent(filteredEvents);
-            } else {
-                event = pickWeightedEvent(events); // Fallback
-            }
-
-            // Debug log for danger curve
-            console.log(`[Sim] Day ${nextDay} DangerChance: ${dangerChance.toFixed(1)}%, Roll: ${roll.toFixed(1)}/${totalSetWeight.toFixed(1)}, Cat: ${selectedCat}`);
+            event = filteredEvents.length > 0 ? pickWeightedEvent(filteredEvents) : pickWeightedEvent(events);
         }
 
         event = applyTraitChoices(event!, traitIds, skillMap, language);
         const nextDaysSinceDanger = event.category === 'danger'
             ? 0
             : (simState.daysSinceDanger ?? 0) + 1;
+
         if (event.choices && event.choices.length > 0) {
             const available = event.choices
                 .filter(choice => meetsRequirements(choice, { food, meds, money }))
@@ -3019,43 +3029,34 @@ export default function SimulationClient() {
                     }
                     return choice;
                 });
-            if (available.length === 0) {
-                event = { ...event, choices: undefined };
-            } else {
-                event = { ...event, choices: available };
-            }
+            event = available.length === 0 ? { ...event, choices: undefined } : { ...event, choices: available };
         }
 
         if (event.choices && event.choices.length > 0) {
-            const isSpecial = SPECIAL_EVENT_IDS.includes(event.id);
-            setPendingChoice({
-                day: nextDay,
-                season,
-                event,
-                dayStart,
-                baseAfter: { hp, food, meds, money },
-                responseNotes
-            });
-            setSimState(prev => ({
-                ...prev,
-                day: nextDay,
-                hp,
-                food,
-                meds,
-                money,
-                daysSinceDanger: nextDaysSinceDanger
-            }));
-            setCurrentCard({
-                day: nextDay,
-                season,
-                event
-            });
-            setCardView('event');
-            return;
+            return {
+                simState: {
+                    ...baseSimState,
+                    daysSinceDanger: nextDaysSinceDanger,
+                    serumTraderShown
+                },
+                pendingChoice: {
+                    day: nextDay,
+                    season,
+                    event,
+                    dayStart,
+                    baseAfter: { hp, food, meds, money },
+                    responseNotes
+                },
+                currentCard: {
+                    day: nextDay,
+                    season,
+                    event
+                },
+                cardView: 'event'
+            };
         }
 
         const resolved = resolveEvent(event, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
-
         let finalHp = resolved.after.hp;
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
@@ -3082,38 +3083,55 @@ export default function SimulationClient() {
             response: finalResponse,
             responseCard: finalResponseCard,
             delta: resolved.delta,
+            eventDelta: resolved.eventOutcomeDelta,
             after: { ...resolved.after, hp: finalHp },
             status: entryStatus
         };
 
-        setSimState(prev => {
-            const log = [entry, ...prev.log].slice(0, 60);
-            return {
-                ...prev,
-                day: nextDay,
+        return {
+            simState: {
+                ...baseSimState,
                 hp: finalHp,
                 food: resolved.after.food,
                 meds: resolved.after.meds,
                 money: resolved.after.money,
-                // Update counts
                 petCount: resolved.counts.petCount,
                 loverCount: resolved.counts.loverCount,
                 spouseCount: resolved.counts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
+                serumTraderShown,
                 skillProgress: resolved.skillProgress,
                 daysSinceDanger: nextDaysSinceDanger,
-                log
-            };
-        });
-        setCurrentCard({
-            day: nextDay,
-            season,
-            event,
-            entry
-        });
-        setCardView('event');
-    }, [simState, pendingChoice, language, events, traitIds, getTraitScore, getSkillBonus, currentCard, cardView, hasShipBuilt]);
+                log: [entry, ...simState.log].slice(0, 60)
+            },
+            pendingChoice: null,
+            currentCard: {
+                day: nextDay,
+                season,
+                event,
+                entry
+            },
+            cardView: 'event'
+        };
+    }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage]);
+
+    const applyPreparedTurn = useCallback((nextTurn: PreparedTurn) => {
+        setSimState(nextTurn.simState);
+        setPendingChoice(nextTurn.pendingChoice);
+        setCurrentCard(nextTurn.currentCard);
+        setCardView(nextTurn.cardView);
+        if (nextTurn.hasShipBuilt !== undefined) setHasShipBuilt(nextTurn.hasShipBuilt);
+        if (nextTurn.showEndingCard !== undefined) setShowEndingCard(nextTurn.showEndingCard);
+        if (nextTurn.allowContinue !== undefined) setAllowContinue(nextTurn.allowContinue);
+        if (nextTurn.canBoardShip !== undefined) setCanBoardShip(nextTurn.canBoardShip);
+    }, []);
+
+    const advanceDay = useCallback(() => {
+        const nextTurn = prepareNextTurn();
+        if (!nextTurn) return;
+        applyPreparedTurn(nextTurn);
+    }, [prepareNextTurn, applyPreparedTurn]);
 
     useEffect(() => {
         if (!startQueued) return;
@@ -3149,6 +3167,7 @@ export default function SimulationClient() {
                         response: choice.response || '',
                         responseCard: choice.response || '',
                         delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        eventDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
                         status: 'neutral'
                     }
@@ -3199,6 +3218,7 @@ export default function SimulationClient() {
             response: finalResponse,
             responseCard: finalResponseCard,
             delta: resolved.delta,
+            eventDelta: resolved.eventOutcomeDelta,
             after: { ...resolved.after, hp: finalHp },
             status: entryStatus
         };
@@ -3306,8 +3326,11 @@ export default function SimulationClient() {
 
     useEffect(() => {
         return () => {
-            if (advanceTimerRef.current !== null) {
-                window.clearTimeout(advanceTimerRef.current);
+            if (prepareTimerRef.current !== null) {
+                window.clearTimeout(prepareTimerRef.current);
+            }
+            if (animateTimerRef.current !== null) {
+                window.clearTimeout(animateTimerRef.current);
             }
         };
     }, []);
@@ -3352,18 +3375,33 @@ export default function SimulationClient() {
     const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
     const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
-    const canAdvanceDay = simState.status === 'running' && !pendingChoice && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
+    const canAdvanceDay = simState.status === 'running' && !pendingChoice && turnPhase === 'idle' && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = hasShipBuilt && simState.status === 'running';
 
     const handleAdvanceDay = () => {
-        if (!canAdvanceDay || isAdvancingCard) return;
-        setIsAdvancingCard(true);
-        advanceTimerRef.current = window.setTimeout(() => {
-            advanceDay();
-            setIsAdvancingCard(false);
-            advanceTimerRef.current = null;
-        }, 240);
+        if (turnPhase !== 'idle') return;
+        if (currentCard?.entry && cardView === 'event') {
+            setCardView('result');
+            return;
+        }
+        if (!canAdvanceDay) return;
+
+        const nextTurn = prepareNextTurn();
+        if (!nextTurn) return;
+
+        setPreparedTurn(nextTurn);
+        setTurnPhase('preparing');
+        prepareTimerRef.current = window.setTimeout(() => {
+            setTurnPhase('animating');
+            animateTimerRef.current = window.setTimeout(() => {
+                applyPreparedTurn(nextTurn);
+                setPreparedTurn(null);
+                setTurnPhase('idle');
+                animateTimerRef.current = null;
+            }, 280);
+            prepareTimerRef.current = null;
+        }, 150);
     };
 
     const getVagueDeltaText = (label: string, delta: number) => {
@@ -3378,7 +3416,8 @@ export default function SimulationClient() {
 
     const renderDeltaItems = (entry: SimLogEntry) => {
         if (!entry) return null;
-        const { delta, after } = entry;
+        const delta = entry.eventDelta ?? entry.delta;
+        const { after } = entry;
         const items = [];
         if (delta.hp !== 0) items.push({ label: 'HP', value: after.hp, delta: delta.hp, color: 'red' });
         if (delta.food !== 0) items.push({ label: language === 'ko' ? '식량' : 'Food', value: after.food, delta: delta.food, color: 'brown' });
@@ -3453,10 +3492,24 @@ export default function SimulationClient() {
                 <div className="relative w-full flex items-center justify-center">
                     <div className="relative">
                         <div aria-hidden className="reigns-card-stack reigns-card-stack--back-2" />
-                        <div aria-hidden className="reigns-card-stack reigns-card-stack--back-1" />
+                        <div aria-hidden className={`reigns-card-stack reigns-card-stack--back-1 ${preparedTurn ? 'reigns-card-stack--preview' : ''}`}>
+                            {preparedTurn && (
+                                <div className="reigns-card-stack-content">
+                                    <div className="reigns-card-stack-meta">
+                                        {`Day ${preparedTurn.currentCard.day} • ${preparedTurn.currentCard.season}`}
+                                    </div>
+                                    <div className="reigns-card-stack-title">{preparedTurn.currentCard.event.title}</div>
+                                    <div className="reigns-card-stack-body">
+                                        {turnPhase === 'preparing'
+                                            ? (language === 'ko' ? '다음 일차를 준비 중...' : 'Preparing next day...')
+                                            : preparedTurn.currentCard.event.description}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <div
                             key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${isAdvancingCard ? 'reigns-card--advance' : ''}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'animating' ? 'reigns-card--advance' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
@@ -3673,8 +3726,8 @@ export default function SimulationClient() {
                         {simState.status === 'running' && (
                             <button
                                 onClick={handleAdvanceDay}
-                                disabled={!canAdvanceDay || isAdvancingCard}
-                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay && !isAdvancingCard
+                                disabled={!canAdvanceDay}
+                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay
                                     ? 'bg-[var(--sim-accent)] hover:brightness-110 text-white border-[var(--sim-accent)] shadow-[0_4px_14px_rgba(0,0,0,0.28)] hover:scale-105 active:scale-95 animate-bounce-x'
                                     : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                     }`}
@@ -3809,9 +3862,9 @@ export default function SimulationClient() {
                     )}
                 >
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                            {result.traits.map((tr: any) => {
-                                const trId = typeof tr === 'string' ? tr : tr.id;
-                                const trName = typeof tr === 'string' ? tr : tr.name;
+                            {result.traits.map((tr: SimTraitLike) => {
+                                const trId = typeof tr === 'string' ? tr : (tr.id ?? tr.name ?? 'unknown_trait');
+                                const trName = typeof tr === 'string' ? tr : (tr.name ?? tr.id ?? 'Unknown Trait');
                                 const effect = TRAIT_EFFECTS[trId];
                                 return (
                                     <div key={trId} className="sim-card p-3">
