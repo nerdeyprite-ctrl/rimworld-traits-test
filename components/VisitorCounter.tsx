@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '@/app/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 // Use a unique namespace for your app
 const NAMESPACE = 'rimworld-traits-test';
