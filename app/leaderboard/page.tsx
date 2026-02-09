@@ -96,17 +96,42 @@ export default function LeaderboardPage() {
             : (language === 'ko' ? '역대' : 'All Time');
 
     const buildDistribution = (entries: LeaderboardEntry[]) => {
-        const bucketSize = 10;
+        const earlyMax = 100;
+        const earlyStep = 5;
+        const lateStep = 100;
         const tailStart = 1000;
         const counts = new Map<number, number>();
         for (const entry of entries) {
             const day = Math.max(0, Math.floor(entry.day_count));
-            const bucket = day >= tailStart ? tailStart : Math.floor(day / bucketSize) * bucketSize;
+            let bucket = 0;
+            if (day >= tailStart) {
+                bucket = tailStart;
+            } else if (day < earlyMax) {
+                bucket = Math.floor(day / earlyStep) * earlyStep;
+            } else {
+                bucket = Math.floor(day / lateStep) * lateStep;
+            }
             counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
         }
         const rows = Array.from(counts.entries()).sort((a, b) => a[0] - b[0]);
-        const maxCount = rows.reduce((max, [, count]) => Math.max(max, count), 1);
-        return { rows, maxCount, bucketSize, tailStart };
+        const filledRows: Array<[number, number]> = [];
+        for (let bucket = 0; bucket < earlyMax; bucket += earlyStep) {
+            filledRows.push([bucket, counts.get(bucket) ?? 0]);
+        }
+        for (let bucket = earlyMax; bucket < tailStart; bucket += lateStep) {
+            filledRows.push([bucket, counts.get(bucket) ?? 0]);
+        }
+        filledRows.push([tailStart, counts.get(tailStart) ?? 0]);
+        let maxCount = 0;
+        let peakBucket = filledRows.length > 0 ? filledRows[0][0] : 0;
+        for (const [bucket, count] of filledRows) {
+            if (count > maxCount) {
+                maxCount = count;
+                peakBucket = bucket;
+            }
+        }
+        if (maxCount === 0) maxCount = 1;
+        return { rows: filledRows, maxCount, tailStart, peakBucket, earlyMax, earlyStep, lateStep };
     };
 
     const renderLeaderboardTable = (entries: LeaderboardEntry[]) => {
@@ -186,7 +211,7 @@ export default function LeaderboardPage() {
             );
         }
 
-        const { rows, maxCount, bucketSize, tailStart } = buildDistribution(entries);
+        const { rows, maxCount, tailStart, peakBucket, earlyMax, earlyStep, lateStep } = buildDistribution(entries);
         if (rows.length === 0) {
             return (
                 <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
@@ -202,11 +227,24 @@ export default function LeaderboardPage() {
         const chartW = width - padX * 2;
         const chartH = height - padY * 2;
         const maxX = rows.length - 1;
-        const labelStep = rows.length > 100 ? 10 : rows.length > 60 ? 5 : rows.length > 30 ? 2 : 1;
+        const shouldShowLabel = (bucket: number) => {
+            if (bucket >= tailStart) return true;
+            if (bucket < earlyMax) return bucket % 10 === 0;
+            return bucket % 100 === 0;
+        };
 
         const toX = (i: number) => padX + (maxX === 0 ? 0 : (i / maxX) * chartW);
         const toY = (count: number) => padY + (1 - (maxCount === 0 ? 0 : count / maxCount)) * chartH;
         const points = rows.map(([, count], i) => `${toX(i)},${toY(count)}`).join(' ');
+        const getBucketLabel = (bucket: number) => {
+            if (bucket >= tailStart) return `${tailStart}+`;
+            return `${bucket}`;
+        };
+        const getBucketRangeText = (bucket: number) => {
+            if (bucket >= tailStart) return `${tailStart}+일차`;
+            const size = bucket < earlyMax ? earlyStep : lateStep;
+            return `${bucket}-${bucket + size - 1}일차`;
+        };
 
         return (
             <div className="border border-[#333] rounded-xl bg-[#111] shadow-2xl p-6">
@@ -231,8 +269,8 @@ export default function LeaderboardPage() {
                             />
                         ))}
                         {rows.map(([day], i) => {
-                            if (i % labelStep !== 0) return null;
-                            const label = day >= tailStart ? `${tailStart}+` : `${day}-${day + bucketSize - 1}`;
+                            if (!shouldShowLabel(day)) return null;
+                            const label = getBucketLabel(day);
                             return (
                                 <text
                                     key={`label-${day}`}
@@ -253,7 +291,11 @@ export default function LeaderboardPage() {
                 </div>
                 <div className="mt-3 text-[10px] text-slate-500 flex items-center justify-between">
                     <span>{language === 'ko' ? `총 기록: ${entries.length}` : `Total records: ${entries.length}`}</span>
-                    <span>{language === 'ko' ? `최대 종료 수: ${maxCount}` : `Peak count: ${maxCount}`}</span>
+                    <span>
+                        {language === 'ko'
+                            ? `최다 구간 인원: ${getBucketRangeText(peakBucket)} ${maxCount}명`
+                            : `Peak bin: ${peakBucket >= tailStart ? `${tailStart}+ days` : `${peakBucket}-${peakBucket + (peakBucket < earlyMax ? earlyStep : lateStep) - 1} days`} ${maxCount}`}
+                    </span>
                 </div>
             </div>
         );
