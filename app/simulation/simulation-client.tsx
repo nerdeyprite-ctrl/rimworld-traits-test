@@ -91,6 +91,22 @@ type PendingChoice = {
     responseNotes: string[];
 };
 
+type SimState = {
+    status: SimStatus;
+    day: number;
+    hp: number;
+    food: number;
+    meds: number;
+    money: number;
+    campLevel: number;
+    petCount: number;
+    loverCount: number;
+    spouseCount: number;
+    log: SimLogEntry[];
+    hasSerum: boolean;
+    serumTraderShown: boolean;
+};
+
 type ExitType = 'death' | 'escape' | 'stay';
 
 type CurrentCard = {
@@ -875,6 +891,39 @@ const buildSimEvents = (language: string): SimEvent[] => {
             ]
         },
         {
+            id: 'marriage',
+            title: isKo ? '결혼식' : 'Marriage Ceremony',
+            description: isKo ? '연인과 평생을 함께하기로 약속했습니다. 축복 속에서 결혼식이 열립니다.' : 'You and your lover promised to be together forever. A wedding is held amidst blessings.',
+            category: 'quiet',
+            weight: 2,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'celebrate',
+                    label: isKo ? '축하한다' : 'Celebrate',
+                    description: isKo ? '모두가 기뻐합니다.' : 'Everyone is happy.',
+                    delta: { hp: 2, food: -5, meds: 0, money: 0 },
+                    response: isKo ? '행복한 결혼식이었습니다. 기분이 매우 좋습니다.' : 'It was a happy wedding. Mood is very good.'
+                }
+            ]
+        },
+        {
+            id: 'divorce',
+            title: isKo ? '이혼' : 'Divorce',
+            description: isKo ? '배우자와의 관계가 돌이킬 수 없이 악화되었습니다. 결국 각자의 길을 가기로 했습니다.' : 'Relationship with spouse has deteriorated irreversibly. You decided to go separate ways.',
+            category: 'noncombat',
+            weight: 2,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'accept_divorce',
+                    label: isKo ? '받아들인다' : 'Accept',
+                    delta: { hp: -2, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '씁쓸하지만 어쩔 수 없습니다. 마음이 아픕니다.' : 'Bitter but inevitable. Heartbroken.'
+                }
+            ]
+        },
+        {
             id: 'pet_death',
             title: isKo ? '반려동물의 죽음' : 'Death of a Pet',
             description: isKo ? '기지에서 오랫동안 함께한 애정하는 반려동물이 세상을 떠났습니다.' : 'Your beloved bonded pet has passed away.',
@@ -1578,18 +1627,7 @@ export default function SimulationClient() {
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
 
 
-    const [simState, setSimState] = useState<{
-        status: SimStatus;
-        day: number;
-        hp: number;
-        food: number;
-        meds: number;
-        money: number;
-        campLevel: number;
-        log: SimLogEntry[];
-        hasSerum?: boolean;
-        serumTraderShown?: boolean;
-    }>({
+    const [simState, setSimState] = useState<SimState>({
         status: 'idle',
         day: 0,
         hp: START_STATS.hp,
@@ -1597,6 +1635,9 @@ export default function SimulationClient() {
         meds: START_STATS.meds,
         money: START_STATS.money,
         campLevel: 0,
+        petCount: 1,
+        loverCount: 1,
+        spouseCount: 0,
         log: [],
         hasSerum: false,
         serumTraderShown: false
@@ -1929,6 +1970,9 @@ export default function SimulationClient() {
             meds: startMeds,
             money: startMoney,
             campLevel: 0,
+            petCount: 1,
+            loverCount: 1,
+            spouseCount: 0,
             log: [{
                 day: 0,
                 season: getSeasonLabel(0, language),
@@ -1983,6 +2027,21 @@ export default function SimulationClient() {
         let food = baseAfter.food;
         let meds = baseAfter.meds;
         let money = baseAfter.money;
+        let petCount = simState.petCount;
+        let loverCount = simState.loverCount;
+        let spouseCount = simState.spouseCount;
+
+        // Apply count changes based on event ID
+        if (event.id === 'pet_death') {
+            petCount = Math.max(0, petCount - 1);
+        } else if (event.id === 'breakup') {
+            loverCount = Math.max(0, loverCount - 1);
+        } else if (event.id === 'marriage') {
+            loverCount = Math.max(0, loverCount - 1);
+            spouseCount += 1;
+        } else if (event.id === 'divorce') {
+            spouseCount = Math.max(0, spouseCount - 1);
+        }
 
         const baseDelta = choice?.delta || { hp: 0, food: 0, meds: 0, money: 0 };
         let hpDelta = event.base.hp + baseDelta.hp;
@@ -2081,6 +2140,7 @@ export default function SimulationClient() {
 
         return {
             after: { hp, food, meds, money },
+            counts: { petCount, loverCount, spouseCount },
             delta,
             responseText,
             status: hp <= 0 ? 'dead' : 'running'
@@ -2279,7 +2339,17 @@ export default function SimulationClient() {
             else if (roll <= wQuiet + wNonCombat) selectedCat = 'noncombat';
             else selectedCat = 'danger';
 
-            const filteredEvents = events.filter(e => e.category === selectedCat);
+            const filteredEvents = events.filter(e => {
+                if (e.category !== selectedCat) return false;
+
+                // Count-based filtering
+                if (e.id === 'pet_death' && simState.petCount <= 0) return false;
+                if (e.id === 'breakup' && simState.loverCount <= 0) return false;
+                if (e.id === 'marriage' && (simState.loverCount <= 0 || simState.spouseCount > 0)) return false;
+                if (e.id === 'divorce' && simState.spouseCount <= 0) return false;
+
+                return true;
+            });
             if (filteredEvents.length > 0) {
                 event = pickWeightedEvent(filteredEvents);
             } else {
@@ -2448,6 +2518,7 @@ export default function SimulationClient() {
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
         let finalHasSerum = simState.hasSerum;
+        const finalCounts = resolved.counts;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -2482,6 +2553,10 @@ export default function SimulationClient() {
                 food: resolved.after.food,
                 meds: resolved.after.meds,
                 money: resolved.after.money,
+                // Update counts
+                petCount: finalCounts.petCount,
+                loverCount: finalCounts.loverCount,
+                spouseCount: finalCounts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
                 log
