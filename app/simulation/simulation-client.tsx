@@ -2522,18 +2522,32 @@ export default function SimulationClient() {
         setShowEndingConfirm(false);
     }, [language]);
 
-    const buildResponseText = (baseNotes: string[], traitNotes: string[], skillNote: string, choiceResponse?: string, systemNote?: string) => {
+    const buildResponseText = (
+        baseNotes: string[],
+        traitNotes: string[],
+        skillNote: string,
+        choiceResponse?: string,
+        systemNote?: string,
+        lineBreaks?: boolean
+    ) => {
         const parts = [] as string[];
         if (baseNotes.includes(BASE_NOTE_OVERRIDE)) {
             const onlyNotes = baseNotes.filter(n => n && n !== BASE_NOTE_OVERRIDE);
-            return onlyNotes.join(' ') || (language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.');
+            return onlyNotes.join(lineBreaks ? '\n' : ' ') || (language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.');
         }
         if (choiceResponse) parts.push(choiceResponse);
-        if (systemNote) parts.push(systemNote);
-        if (skillNote) parts.push(skillNote);
-        if (traitNotes.length > 0) parts.push(...traitNotes);
-        if (baseNotes.length > 0) parts.push(...baseNotes);
-        return parts.filter(Boolean).join(' ') || (language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.');
+        const systemParts: string[] = [];
+        if (systemNote) systemParts.push(systemNote);
+        if (skillNote) systemParts.push(skillNote);
+        if (traitNotes.length > 0) systemParts.push(...traitNotes);
+        if (baseNotes.length > 0) systemParts.push(...baseNotes);
+        const sep = lineBreaks ? '\n' : ' ';
+        if (parts.length > 0 && systemParts.length > 0) {
+            return `${parts.join(' ')}${sep}${systemParts.join(sep)}`;
+        }
+        if (parts.length > 0) return parts.join(' ');
+        if (systemParts.length > 0) return systemParts.join(sep);
+        return language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.';
     };
 
     const resolveEvent = (
@@ -2585,8 +2599,8 @@ export default function SimulationClient() {
             medsDelta += resultDelta.meds;
             moneyDelta += resultDelta.money;
             systemNote = language === 'ko'
-                ? `시스템: ${choice.skillCheck.label} ${great ? '대성공' : (success ? '성공' : '실패')} (확률 ${chance}%${greatChance ? `, 대성공 ${greatChance}%` : ''})`
-                : `System: ${choice.skillCheck.label} ${great ? 'Great Success' : (success ? 'Success' : 'Fail')} (${chance}%${greatChance ? `, Great ${greatChance}%` : ''})`;
+                ? `${choice.skillCheck.label} ${great ? '대성공' : (success ? '성공' : '실패')} (확률 ${chance}%${greatChance ? `, 대성공 ${greatChance}%` : ''})`
+                : `${choice.skillCheck.label} ${great ? 'Great Success' : (success ? 'Success' : 'Fail')} (${chance}%${greatChance ? `, Great ${greatChance}%` : ''})`;
             if (great && choice.skillCheck.greatSuccessText) choiceResponse = choice.skillCheck.greatSuccessText;
             if (!great && success && choice.skillCheck.successText) choiceResponse = choice.skillCheck.successText;
             if (!success && choice.skillCheck.failText) choiceResponse = choice.skillCheck.failText;
@@ -2688,7 +2702,7 @@ export default function SimulationClient() {
         });
 
         const responseText = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse, systemNote);
-        const responseTextCard = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse);
+        const responseTextCard = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse, systemNote, true);
 
         return {
             after: { hp, food, meds, money },
@@ -3570,7 +3584,7 @@ export default function SimulationClient() {
                                                 {language === 'ko' ? '사건 결과' : 'Event Result'}
                                             </div>
                                             <div className="flex-1 flex flex-col justify-center overflow-y-auto px-2">
-                                                <div className="text-sm md:text-base text-slate-200 leading-relaxed font-medium mb-4">
+                                                <div className="text-sm md:text-base text-slate-200 leading-relaxed font-medium mb-4 whitespace-pre-line">
                                                     {currentCard?.entry?.responseCard || currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
                                                 </div>
                                                 {currentCard?.entry && renderDeltaItems(currentCard.entry)}

@@ -134,6 +134,15 @@ export default function LeaderboardPage() {
         return { rows: filledRows, maxCount, tailStart, peakBucket, earlyMax, earlyStep, lateStep };
     };
 
+    const getPercentileStage = (entries: LeaderboardEntry[], p: number) => {
+        if (entries.length === 0) return 0;
+        const sorted = entries
+            .map((entry) => Math.max(0, Math.floor(entry.day_count)))
+            .sort((a, b) => a - b);
+        const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+        return sorted[idx];
+    };
+
     const renderLeaderboardTable = (entries: LeaderboardEntry[]) => {
         if (entries.length === 0) {
             return (
@@ -212,6 +221,9 @@ export default function LeaderboardPage() {
         }
 
         const { rows, maxCount, tailStart, peakBucket, earlyMax, earlyStep, lateStep } = buildDistribution(entries);
+        const p50 = getPercentileStage(entries, 50);
+        const p90 = getPercentileStage(entries, 90);
+        const p99 = getPercentileStage(entries, 99);
         if (rows.length === 0) {
             return (
                 <div className="text-center py-16 bg-[#111] border border-[#222] rounded-xl text-slate-500 italic">
@@ -248,6 +260,20 @@ export default function LeaderboardPage() {
 
         return (
             <div className="border border-[#333] rounded-xl bg-[#111] shadow-2xl p-6">
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                    <div className="rounded border border-[#3a3a3a] bg-black/30 px-3 py-2">
+                        <div className="text-[10px] text-slate-500 uppercase">P50</div>
+                        <div className="text-sm font-mono text-[#e7c07a]">{p50}</div>
+                    </div>
+                    <div className="rounded border border-[#3a3a3a] bg-black/30 px-3 py-2">
+                        <div className="text-[10px] text-slate-500 uppercase">P90</div>
+                        <div className="text-sm font-mono text-[#e7c07a]">{p90}</div>
+                    </div>
+                    <div className="rounded border border-[#3a3a3a] bg-black/30 px-3 py-2">
+                        <div className="text-[10px] text-slate-500 uppercase">P99</div>
+                        <div className="text-sm font-mono text-[#e7c07a]">{p99}</div>
+                    </div>
+                </div>
                 <div className="w-full overflow-x-auto">
                     <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[680px]">
                         <polyline
