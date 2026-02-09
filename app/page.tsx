@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import VisitorCounter from '../components/VisitorCounter';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { hashPassword } from '../lib/auth';
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -29,15 +30,6 @@ export default function Home() {
   }, [resetTest]);
 
   const canUseSupabase = useMemo(() => isSupabaseConfigured(), []);
-
-  const hashPassword = async (value: string) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(value);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  };
 
   const handleLogin = async () => {
     if (!canUseSupabase) {
@@ -63,14 +55,7 @@ export default function Home() {
       }
 
       if (!data) {
-        const { error: insertError } = await supabase
-          .from('settler_accounts')
-          .insert({ id: loginId.trim(), password_hash: passwordHash });
-        if (insertError) throw insertError;
-        localStorage.setItem('settler_account_id', loginId.trim());
-        window.dispatchEvent(new Event('accountIdChanged'));
-        setAccountId(loginId.trim());
-        setLoginMessage(language === 'ko' ? '계정이 생성되었습니다.' : 'Account created.');
+        setLoginMessage(language === 'ko' ? '계정이 없습니다. 가입해주세요.' : 'Account not found. Please sign up.');
         return;
       }
 
@@ -277,12 +262,20 @@ export default function Home() {
               <div>
                 {language === 'ko' ? '로그인됨' : 'Logged in'}: <span className="text-white font-bold">{accountId}</span>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-[#333] hover:bg-[#444] text-white border border-gray-600 text-xs"
-              >
-                {language === 'ko' ? '로그아웃' : 'Logout'}
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-[#333] hover:bg-[#444] text-white border border-gray-600 text-xs"
+                >
+                  {language === 'ko' ? '로그아웃' : 'Logout'}
+                </button>
+                <button
+                  onClick={() => router.push('/account/settings')}
+                  className="px-4 py-2 bg-[#1c3d5a] hover:bg-[#2c5282] text-white border border-blue-900 text-xs"
+                >
+                  {language === 'ko' ? '계정 정보' : 'Account Settings'}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">
@@ -306,8 +299,14 @@ export default function Home() {
                   ? 'bg-[#333] border-[#2a2a2a] text-gray-400 cursor-not-allowed'
                   : 'bg-[#6e4e1e] hover:bg-[#856026] border-[#9f752a]'}`}
               >
-                {language === 'ko' ? '로그인 / 가입' : 'Login / Register'}
+                {language === 'ko' ? '로그인' : 'Login'}
               </button>
+              <a
+                href="/signup"
+                className="block text-center text-xs text-[#9f752a] hover:text-[#e2c178] underline"
+              >
+                {language === 'ko' ? '가입하기' : 'Sign up'}
+              </a>
             </div>
           )}
           {loginMessage && (

@@ -105,6 +105,7 @@ type SimState = {
     log: SimLogEntry[];
     hasSerum: boolean;
     serumTraderShown: boolean;
+    skillProgress: Record<string, { level: number; xp: number }>; // 숙련도 시스템
 };
 
 type ExitType = 'death' | 'escape' | 'stay';
@@ -249,11 +250,72 @@ const getHealAmount = (medicineLevel: number) => {
     return 4;
 };
 
-const getSkillChance = (level: number) => {
-    if (level <= 3) return 30;
-    if (level <= 6) return 60;
-    if (level <= 10) return 80;
-    return 95;
+// 일반 선택지 성공 확률 (Lv 0: 20%, Lv 15+: 95%)
+const getSkillChance = (level: number, isAdvanced: boolean = false) => {
+    if (isAdvanced) {
+        // 고급 선택지 (Lv 15-20): 50% → 95%
+        if (level < 15) return 0; // 레벨 15 미만은 선택 불가
+        const chance = 50 + ((level - 15) * 9);
+        return Math.min(95, chance);
+    } else {
+        // 일반 선택지 (Lv 0-20): 20% → 95%
+        const chance = 20 + (level * 5);
+        return Math.min(95, chance);
+    }
+};
+
+// 대성공 확률 (Lv 6: 5%, Lv 15: 50%, Lv 20: 60%)
+const getGreatSuccessChance = (level: number) => {
+    if (level < 6) return 0;
+    if (level <= 15) {
+        const chance = 5 + (level - 6) * 5;
+        return Math.min(50, chance);
+    }
+    const chance = 50 + (level - 15) * 2;
+    return Math.min(60, chance);
+};
+
+// 레벨업에 필요한 경험치 계산
+const getXpForLevel = (level: number) => {
+    return 100 + (level * 20); // Lv 0→1: 100, Lv 1→2: 120, Lv 2→3: 140...
+};
+
+// 열정에 따른 경험치 배율
+const getPassionMultiplier = (passions: Record<string, number>, skill: string): number => {
+    const passion = passions[skill] || 0;
+    if (passion >= 2) return 1.5; // 불꽃 (Major)
+    if (passion === 1) return 1.0; // 관심 (Minor)
+    return 0.5; // 없음
+};
+
+// 경험치 획득 및 레벨업 처리
+const gainSkillXp = (
+    currentProgress: Record<string, { level: number; xp: number }>,
+    skill: string,
+    baseXp: number,
+    passions: Record<string, number>
+): { level: number; xp: number; leveledUp: boolean } => {
+    const current = currentProgress[skill] || { level: 0, xp: 0 };
+    const multiplier = getPassionMultiplier(passions, skill);
+    const gainedXp = Math.floor(baseXp * multiplier);
+
+    let newXp = current.xp + gainedXp;
+    let newLevel = current.level;
+    let leveledUp = false;
+
+    // 레벨업 체크 (최대 레벨 20)
+    while (newLevel < 20 && newXp >= getXpForLevel(newLevel)) {
+        newXp -= getXpForLevel(newLevel);
+        newLevel++;
+        leveledUp = true;
+    }
+
+    // 레벨 20에 도달하면 XP는 0으로
+    if (newLevel >= 20) {
+        newXp = 0;
+    }
+
+    return { level: newLevel, xp: newXp, leveledUp };
 };
 
 const buildSupplyEvent = (language: string, money: number, food: number, meds: number): SimEvent => {
@@ -373,8 +435,22 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     }
                 },
                 {
+                    id: 'quiet_hunting',
+                    label: isKo ? '3. 사냥' : '3. Hunting',
+                    description: isKo ? '사격/격투 기술 체크' : 'Shooting/Melee skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    skillCheck: {
+                        label: isKo ? '사냥' : 'Hunting',
+                        group: ['Shooting', 'Melee'],
+                        successDelta: { hp: 0, food: 1, meds: 0, money: 0 },
+                        failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        successText: isKo ? '사냥에 성공해 식량을 확보했습니다.' : 'You successfully hunted and secured food.',
+                        failText: isKo ? '사냥에 실패해 소득이 없었습니다.' : 'You failed to hunt anything.'
+                    }
+                },
+                {
                     id: 'quiet_mining',
-                    label: isKo ? '3. 광물 채광' : '3. Mining',
+                    label: isKo ? '4. 광물 채광' : '4. Mining',
                     description: isKo ? '채굴/연구 기술 체크' : 'Mining/Intellectual skill check',
                     delta: { hp: 0, food: 0, meds: 0, money: 0 },
                     skillCheck: {
@@ -1640,7 +1716,8 @@ export default function SimulationClient() {
         spouseCount: 0,
         log: [],
         hasSerum: false,
-        serumTraderShown: false
+        serumTraderShown: false,
+        skillProgress: {} // 숙련도는 빈 객체로 시작
     });
 
     // 임시저장 데이터 로드 체크
@@ -1839,6 +1916,17 @@ export default function SimulationClient() {
         return map;
     }, [result]);
 
+    const passions = useMemo(() => {
+        const map: Record<string, number> = {};
+        if (result?.skills) {
+            result.skills.forEach(skill => {
+                const passionValue = typeof skill.passion === 'string' ? parseInt(skill.passion, 10) : (skill.passion || 0);
+                map[skill.name] = passionValue;
+            });
+        }
+        return map;
+    }, [result]);
+
     const events = useMemo(() => buildSimEvents(language), [language]);
 
     const getTraitScore = useCallback((mod?: TraitMod) => {
@@ -1864,12 +1952,15 @@ export default function SimulationClient() {
         group.forEach(g => {
             const pool = SKILL_GROUPS[g] || [g];
             pool.forEach(name => {
-                total += skillMap[name] ?? 0;
+                // 정착민 기본 스킬 + 게임 내 숙련도 레벨
+                const baseSkill = skillMap[name] ?? 0;
+                const progressLevel = simState.skillProgress[name]?.level ?? 0;
+                total += baseSkill + progressLevel;
                 count++;
             });
         });
         return total / count;
-    }, [skillMap]);
+    }, [skillMap, simState.skillProgress]);
 
     const getSkillBonus = useCallback((group?: string[]) => {
         if (!group || group.length === 0) return { bonus: 0, note: '' };
@@ -1984,7 +2075,11 @@ export default function SimulationClient() {
                 status: 'neutral'
             }],
             hasSerum: false,
-            serumTraderShown: false
+            serumTraderShown: false,
+            skillProgress: ALL_SKILLS.reduce((acc, skill) => {
+                acc[skill] = { level: 0, xp: 0 };
+                return acc;
+            }, {} as Record<string, { level: number; xp: number }>)
         });
         setPendingChoice(null);
         setCurrentCard(null);
@@ -2052,6 +2147,8 @@ export default function SimulationClient() {
         let systemNote = '';
         let choiceResponse = choice?.response;
 
+        let skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
+
         if (choice?.skillCheck) {
             const { success, chance } = rollSkillCheck(choice.skillCheck);
             const resultDelta = success ? choice.skillCheck.successDelta : choice.skillCheck.failDelta;
@@ -2064,6 +2161,20 @@ export default function SimulationClient() {
                 : `System: ${choice.skillCheck.label} ${success ? 'Success' : 'Fail'} (${chance}%)`;
             if (success && choice.skillCheck.successText) choiceResponse = choice.skillCheck.successText;
             if (!success && choice.skillCheck.failText) choiceResponse = choice.skillCheck.failText;
+
+            // 경험치 획득 로직
+            const baseXp = 10; // 기본 경험치
+            const successBonus = success ? 5 : 0; // 성공 시 추가 경험치
+            const totalXp = baseXp + successBonus;
+
+            // 관련 스킬들에 경험치 부여
+            choice.skillCheck.group.forEach(groupName => {
+                const skills = SKILL_GROUPS[groupName] || [groupName];
+                skills.forEach(skill => {
+                    const result = gainSkillXp(simState.skillProgress, skill, totalXp, passions);
+                    skillXpGains.push({ skill, newLevel: result.level, newXp: result.xp, leveledUp: result.leveledUp });
+                });
+            });
         }
 
         if (event.traitMods?.hp && (event.base.hp !== 0 || baseDelta.hp !== 0)) {
@@ -2136,6 +2247,17 @@ export default function SimulationClient() {
             money: money - dayStart.money
         };
 
+        // Skill Progress 업데이트 및 알림
+        const updatedSkillProgress = { ...simState.skillProgress };
+        skillXpGains.forEach(gain => {
+            updatedSkillProgress[gain.skill] = { level: gain.newLevel, xp: gain.newXp };
+            if (gain.leveledUp) {
+                traitNotes.push(language === 'ko'
+                    ? `🎉 ${gain.skill} 레벨 UP! (Lv.${gain.newLevel})`
+                    : `🎉 ${gain.skill} Level UP! (Lv.${gain.newLevel})`);
+            }
+        });
+
         const responseText = buildResponseText(baseNotes, traitNotes, skillNote, choiceResponse, systemNote);
 
         return {
@@ -2143,7 +2265,8 @@ export default function SimulationClient() {
             counts: { petCount, loverCount, spouseCount },
             delta,
             responseText,
-            status: hp <= 0 ? 'dead' : 'running'
+            status: hp <= 0 ? 'dead' : 'running',
+            skillProgress: updatedSkillProgress
         };
     };
 
@@ -2214,6 +2337,17 @@ export default function SimulationClient() {
         // 2일마다 식량 -1 소모 (홀수일 -> 짝수일 넘어갈 때 소모)
         if (nextDay > 0 && nextDay % 2 === 0) {
             food -= 1;
+            const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
+            const greatChance = getGreatSuccessChance(foodSkillAvg);
+            if (greatChance > 0) {
+                const roll = Math.random() * 100;
+                if (roll < greatChance) {
+                    food += 2;
+                    responseNotes.push(language === 'ko'
+                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다. (+2)'
+                        : 'Great success! Skilled cooking/farming secured extra food. (+2)');
+                }
+            }
             if (food < 0) {
                 food = 0;
                 hp -= 1; // 식량 없으면 체력 -1
@@ -2448,8 +2582,13 @@ export default function SimulationClient() {
                 food: resolved.after.food,
                 meds: resolved.after.meds,
                 money: resolved.after.money,
+                // Update counts
+                petCount: resolved.counts.petCount,
+                loverCount: resolved.counts.loverCount,
+                spouseCount: resolved.counts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
+                skillProgress: resolved.skillProgress,
                 log
             };
         });
@@ -2559,6 +2698,7 @@ export default function SimulationClient() {
                 spouseCount: finalCounts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
+                skillProgress: resolved.skillProgress,
                 log
             };
         });
@@ -3149,17 +3289,61 @@ export default function SimulationClient() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                         <div className="bg-[#1c3d5a] p-4 flex justify-between items-center border-b border-[#102a43]">
-                            <h3 className="text-sm font-black text-blue-100 uppercase tracking-widest flex items-center gap-2">📊 {language === 'ko' ? '기술 수치' : 'Skills'}</h3>
+                            <h3 className="text-sm font-black text-blue-100 uppercase tracking-widest flex items-center gap-2">📊 {language === 'ko' ? '기술/숙련도' : 'Skills & Proficiency'}</h3>
                             <button onClick={() => setShowSkillsModal(false)} className="text-blue-300 hover:text-white transition-colors">✕</button>
                         </div>
-                        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+                        <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
                             {ALL_SKILLS.map(skill => {
-                                const level = skillMap[skill] || 0;
+                                const baseLevel = skillMap[skill] || 0;
+                                const progress = simState.skillProgress[skill] || { level: 0, xp: 0 };
+                                const totalLevel = baseLevel + progress.level;
+                                const passion = passions[skill] || 0;
                                 const skillName = language === 'ko' ? (SKILL_NAMES_KO[skill] || skill) : skill;
+                                const xpNeeded = progress.level >= 20 ? 0 : getXpForLevel(progress.level);
+                                const xpPercent = progress.level >= 20 || xpNeeded === 0
+                                    ? 100
+                                    : Math.min(100, Math.floor((progress.xp / xpNeeded) * 100));
+
+                                const passionLabel = passion >= 2
+                                    ? (language === 'ko' ? '불꽃' : 'Major')
+                                    : passion === 1
+                                        ? (language === 'ko' ? '관심' : 'Minor')
+                                        : (language === 'ko' ? '없음' : 'None');
+
+                                const passionColor = passion >= 2
+                                    ? 'bg-red-900/40 text-red-300 border-red-700/50'
+                                    : passion === 1
+                                        ? 'bg-amber-900/40 text-amber-300 border-amber-700/50'
+                                        : 'bg-slate-900/40 text-slate-400 border-slate-700/50';
+
                                 return (
-                                    <div key={skill} className="bg-black/40 border border-[#222] p-2 px-3 rounded-lg flex items-center justify-between">
-                                        <div className="text-xs font-bold text-slate-300">{skillName}</div>
-                                        <div className="text-sm font-black text-blue-400">{level}</div>
+                                    <div key={skill} className="bg-black/40 border border-[#222] p-3 rounded-xl space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold text-slate-200">{skillName}</div>
+                                            <div className="text-xs font-black text-blue-300 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
+                                                {language === 'ko' ? '총합' : 'Total'} {totalLevel}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
+                                                {language === 'ko' ? '기본' : 'Base'} {baseLevel}
+                                            </div>
+                                            <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
+                                                {language === 'ko' ? '숙련' : 'Proficiency'} Lv {progress.level}
+                                            </div>
+                                            <div className={`text-[10px] font-bold border px-2 py-1 rounded ${passionColor}`}>
+                                                {language === 'ko' ? '열정' : 'Passion'} {passionLabel} {passion >= 2 ? '🔥🔥' : passion === 1 ? '🔥' : ''}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between text-[10px] text-slate-400">
+                                                <span>{language === 'ko' ? '숙련 경험치' : 'Proficiency XP'}</span>
+                                                <span>{progress.level >= 20 ? 'MAX' : `${progress.xp}/${xpNeeded}`}</span>
+                                            </div>
+                                            <div className="h-2 bg-[#111] border border-[#2a2a2a] rounded">
+                                                <div className="h-full bg-gradient-to-r from-blue-700 to-cyan-400 rounded" style={{ width: `${xpPercent}%` }} />
+                                            </div>
+                                        </div>
                                     </div>
                                 );
                             })}
