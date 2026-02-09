@@ -3304,6 +3304,14 @@ export default function SimulationClient() {
         submitScore('escape', simState.day, false);
     }, [simState.status, simState.day, submittedOnExit, submitScore]);
 
+    useEffect(() => {
+        return () => {
+            if (advanceTimerRef.current !== null) {
+                window.clearTimeout(advanceTimerRef.current);
+            }
+        };
+    }, []);
+
 
     if (loading) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
@@ -3348,7 +3356,7 @@ export default function SimulationClient() {
     const allChoices = pendingChoice?.event.choices ?? [];
     const canBoardNow = hasShipBuilt && simState.status === 'running';
 
-    const handleAdvanceDay = useCallback(() => {
+    const handleAdvanceDay = () => {
         if (!canAdvanceDay || isAdvancingCard) return;
         setIsAdvancingCard(true);
         advanceTimerRef.current = window.setTimeout(() => {
@@ -3356,15 +3364,7 @@ export default function SimulationClient() {
             setIsAdvancingCard(false);
             advanceTimerRef.current = null;
         }, 240);
-    }, [canAdvanceDay, isAdvancingCard, advanceDay]);
-
-    useEffect(() => {
-        return () => {
-            if (advanceTimerRef.current !== null) {
-                window.clearTimeout(advanceTimerRef.current);
-            }
-        };
-    }, []);
+    };
 
     const getVagueDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
