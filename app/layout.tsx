@@ -4,6 +4,19 @@ import { Providers } from "./providers";
 import Layout from "../components/Layout";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { Sora, Noto_Sans_KR } from "next/font/google";
+
+const displayFont = Sora({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-display",
+});
+
+const bodyFont = Noto_Sans_KR({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-body",
+});
 
 const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -102,7 +115,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body className={`${displayFont.variable} ${bodyFont.variable} font-[var(--font-body)]`}>
         <Providers>
           <Layout>
             {children}

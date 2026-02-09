@@ -163,15 +163,15 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in-up relative">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-10 sm:space-y-12 animate-fade-in-up relative">
       {/* Update Notification Bell */}
-      <div className="fixed top-20 right-6 z-40">
+      <div className="fixed bottom-4 right-4 sm:bottom-auto sm:top-20 sm:right-6 z-40">
         <button
           onClick={() => setShowUpdates(true)}
-          className="relative p-3 bg-[#111] border border-[#333] hover:border-[#9f752a] text-[#9f752a] transition-all group overflow-hidden"
+          className="relative p-3 bg-[#111] border border-[#333] hover:border-[#9f752a] text-[#9f752a] transition-all group overflow-hidden shadow-lg"
         >
           <div className="absolute inset-0 bg-[#9f752a]/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-          <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 4.36 6 6.92 6 10v5l-2 2v1h16v-1l-2-2z" />
           </svg>
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-[#111] animate-pulse"></span>
@@ -214,18 +214,18 @@ export default function Home() {
         </div>
       )}
       <section className="text-center space-y-6">
-        <h1 className="text-4xl md:text-6xl font-bold text-[var(--rimworld-highlight)] tracking-wider uppercase drop-shadow-md">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-[var(--font-display)] font-bold text-[var(--rimworld-highlight)] tracking-wider uppercase drop-shadow-md">
           {t('app_title')}
         </h1>
-        <p className="text-sm md:text-base text-gray-400 mb-8 max-w-2xl mx-auto whitespace-pre-line leading-relaxed">
+        <p className="text-sm sm:text-base text-gray-400 mb-8 max-w-xl sm:max-w-2xl mx-auto whitespace-pre-line leading-relaxed">
           {t('landing_subtitle')}
         </p>
 
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
           <a
             href="/test/intro"
-            className="inline-block px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]"
+            className="inline-block w-full sm:w-auto px-8 sm:px-12 py-4 bg-[#8b5a2b] hover:bg-[#a06b35] text-white font-bold text-base sm:text-lg shadow-[0_4px_0_#5a3a1a] active:shadow-none active:translate-y-1 transition-all border border-[#5a3a1a]"
           >
             {t('start_test')}
           </a>
@@ -242,19 +242,19 @@ export default function Home() {
                 }, 100);
               }
             }}
-            className="inline-block px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
+            className="inline-block w-full sm:w-auto px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-base sm:text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
           >
             {language === 'ko' ? '시뮬레이션 시작' : 'Start Simulation'}
           </button>
           <a
             href="/leaderboard"
-            className="inline-block px-8 py-4 bg-[#2d6a4f] hover:bg-[#40916c] border-[#1b4332] text-white font-bold text-lg shadow-[0_4px_0_#0d1f17] active:shadow-none active:translate-y-1 transition-all border"
+            className="inline-block w-full sm:w-auto px-8 py-4 bg-[#2d6a4f] hover:bg-[#40916c] border-[#1b4332] text-white font-bold text-base sm:text-lg shadow-[0_4px_0_#0d1f17] active:shadow-none active:translate-y-1 transition-all border"
           >
             {language === 'ko' ? '리더보드 보기' : 'View Leaderboard'}
           </a>
         </div>
-        <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-4 text-left space-y-3">
-          <div className="text-sm font-bold text-[#9f752a]">
+        <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-3 sm:p-4 text-left space-y-3">
+          <div className="text-sm font-bold text-[#9f752a] font-[var(--font-display)]">
             {language === 'ko' ? '정착민 로그인' : 'Settler Login'}
           </div>
           {accountId ? (
@@ -317,11 +317,11 @@ export default function Home() {
       </section>
 
       {/* Theme Section: Skills & Traits */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mt-12">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 w-full max-w-4xl mt-10 sm:mt-12">
         {/* Traits Panel */}
-        <div className="bg-[var(--rimworld-panel)] p-6 border border-[var(--rimworld-border)] relative">
+        <div className="bg-[var(--rimworld-panel)] p-4 sm:p-6 border border-[var(--rimworld-border)] relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-[var(--rimworld-border)] opacity-50"></div>
-          <h2 className="text-2xl font-bold mb-4 text-[var(--rimworld-highlight)] flex items-center">
+          <h2 className="text-xl sm:text-2xl font-[var(--font-display)] font-bold mb-4 text-[var(--rimworld-highlight)] flex items-center">
             {t('landing_traits_title')}
           </h2>
           <p className="text-gray-300 mb-4 text-sm whitespace-pre-line">
@@ -346,9 +346,9 @@ export default function Home() {
         </div>
 
         {/* Skills Panel */}
-        <div className="bg-[var(--rimworld-panel)] p-6 border border-[var(--rimworld-border)] relative">
+        <div className="bg-[var(--rimworld-panel)] p-4 sm:p-6 border border-[var(--rimworld-border)] relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-[var(--rimworld-border)] opacity-50"></div>
-          <h2 className="text-2xl font-bold mb-4 text-[var(--rimworld-highlight)] flex items-center">
+          <h2 className="text-xl sm:text-2xl font-[var(--font-display)] font-bold mb-4 text-[var(--rimworld-highlight)] flex items-center">
             {t('landing_skills_title')}
           </h2>
           <p className="text-gray-300 mb-4 text-sm whitespace-pre-line">
@@ -373,7 +373,7 @@ export default function Home() {
       </section>
 
       {/* Info Section (Bottom) */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-6 text-xs md:text-sm text-[#9f752a] font-medium mt-16 bg-[#111] p-3 border border-[#333] inline-block mx-auto rounded opacity-80 hover:opacity-100 transition-opacity">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 text-xs sm:text-sm text-[#9f752a] font-medium mt-12 sm:mt-16 bg-[#111] p-3 border border-[#333] inline-block mx-auto rounded opacity-80 hover:opacity-100 transition-opacity">
         <span>⏱ {t('estimated_time')}</span>
         <span className="hidden md:inline text-gray-600"> | </span>
         <span>📝 {t('questions_count')}</span>
