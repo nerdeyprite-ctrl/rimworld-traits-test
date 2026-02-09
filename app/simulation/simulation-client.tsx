@@ -3804,7 +3804,6 @@ export default function SimulationClient() {
             <div className="flex flex-col items-center gap-4">
                 <div className="relative w-full flex items-center justify-center">
                     <div className="relative">
-                        <div aria-hidden className="reigns-card-stack reigns-card-stack--back-2" />
                         <div aria-hidden className={`reigns-card-stack reigns-card-stack--back-1 ${preparedTurn ? 'reigns-card-stack--preview' : ''}`}>
                             {preparedTurn && (
                                 <div className={`reigns-card-stack-content ${isPreparedDangerCard ? 'reigns-card-stack-content--danger' : ''} ${preparedTurn.currentCard.event.isRainbow ? 'rainbow-glow' : ''}`}>

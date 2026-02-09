@@ -141,7 +141,7 @@ body {
 }
 
 .reigns-card-stack--back-1 {
-  transform: translateY(9px) scale(0.985);
+  transform: translateY(0) scale(0.992);
   z-index: 10;
   opacity: 0.72;
 }
@@ -149,12 +149,6 @@ body {
 .reigns-card-stack--preview {
   overflow: hidden;
   padding: 24px;
-}
-
-.reigns-card-stack--back-2 {
-  transform: translateY(17px) scale(0.97);
-  z-index: 0;
-  opacity: 0.46;
 }
 
 .reigns-card-stack-content {
