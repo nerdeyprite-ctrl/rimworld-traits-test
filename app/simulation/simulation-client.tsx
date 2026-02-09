@@ -24,6 +24,8 @@ type SkillCheck = {
     fixedChance?: number;
     chanceMultiplier?: number;
     advanced?: boolean;
+    greatSuccessDelta?: SimDelta;
+    greatSuccessText?: string;
     successDelta: SimDelta;
     failDelta: SimDelta;
     successText?: string;
@@ -121,6 +123,7 @@ type CurrentCard = {
 
 const MAX_DAYS = 60;
 const TEMP_SAVE_KEY = 'rimworld_sim_temp_save';
+const BASE_NOTE_OVERRIDE = '__BASE_NOTE_OVERRIDE__';
 
 const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
@@ -460,8 +463,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         label: isKo ? '정비' : 'Maintenance',
                         group: ['Construction', 'Crafting', 'Medicine'],
                         successDelta: { hp: 1, food: 0, meds: 0, money: 0 },
+                        greatSuccessDelta: { hp: 2, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '충분한 정비를 하며 기력을 회복했습니다.' : 'You recovered energy through maintenance.',
+                        greatSuccessText: isKo ? '대성공! 정비가 완벽하게 끝나 몸과 장비가 최상의 상태가 되었습니다.' : 'Great success! Perfect maintenance restored you and the gear.',
                         failText: isKo ? '정비를 시도했으나 별다른 성과가 없었습니다.' : 'You tried to maintain the base, but failed to recover.'
                     }
                 },
@@ -474,8 +479,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         label: isKo ? '농사' : 'Farming',
                         group: ['Plants', 'Animals'],
                         successDelta: { hp: 0, food: 1, meds: 0, money: 0 },
+                        greatSuccessDelta: { hp: 0, food: 3, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '밭을 일구어 신선한 식량을 확보했습니다.' : 'You secured fresh food by farming.',
+                        greatSuccessText: isKo ? '대성공! 풍작으로 식량을 넉넉히 확보했습니다.' : 'Great success! A bumper crop filled the stores.',
                         failText: isKo ? '열심히 일했으나 이번 수확은 허탕이었습니다.' : 'You worked hard, but the harvest was poor.'
                     }
                 },
@@ -488,8 +495,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         label: isKo ? '사냥' : 'Hunting',
                         group: ['Shooting', 'Melee'],
                         successDelta: { hp: 0, food: 1, meds: 0, money: 0 },
+                        greatSuccessDelta: { hp: 0, food: 3, meds: 0, money: 0 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '사냥에 성공해 식량을 확보했습니다.' : 'You successfully hunted and secured food.',
+                        greatSuccessText: isKo ? '대성공! 큰 사냥감으로 식량을 대량 확보했습니다.' : 'Great success! A big catch brought in plenty of food.',
                         failText: isKo ? '사냥에 실패해 소득이 없었습니다.' : 'You failed to hunt anything.'
                     }
                 },
@@ -502,8 +511,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         label: isKo ? '채광' : 'Mining',
                         group: ['Mining', 'Intellectual'],
                         successDelta: { hp: 0, food: 0, meds: 0, money: 1 },
+                        greatSuccessDelta: { hp: 0, food: 0, meds: 0, money: 3 },
                         failDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         successText: isKo ? '근처 암석에서 유용한 광물을 성공적으로 채굴했습니다.' : 'You successfully mined useful minerals.',
+                        greatSuccessText: isKo ? '대성공! 고품질 광맥을 찾아 은을 넉넉히 확보했습니다.' : 'Great success! You hit a rich vein and secured plenty of silver.',
                         failText: isKo ? '하루 종일 곡갱이질을 했으나 소득이 없었습니다.' : 'You spent all day mining with no gain.'
                     }
                 }
@@ -2377,6 +2388,7 @@ export default function SimulationClient() {
     const rollSkillCheck = useCallback((check: SkillCheck) => {
         const avg = getGroupAverage(check.group);
         let chance = check.fixedChance ?? getSkillChance(avg, check.advanced);
+        let greatChance = check.greatSuccessDelta ? getGreatSuccessChance(avg) : 0;
 
         // 확률 배율 적용
         if (check.chanceMultiplier) {
@@ -2401,8 +2413,16 @@ export default function SimulationClient() {
         chance = Math.round(chance);
         chance = Math.max(5, Math.min(95, chance));
 
+        if (greatChance > 0) {
+            greatChance = Math.round(greatChance);
+            greatChance = Math.max(0, Math.min(greatChance, chance));
+        }
+
         const roll = Math.random() * 100;
-        return { success: roll < chance, chance };
+        if (greatChance > 0 && roll < greatChance) {
+            return { success: true, great: true, chance, greatChance };
+        }
+        return { success: roll < chance, great: false, chance, greatChance };
     }, [getGroupAverage, traitIds]);
 
     const startSimulation = useCallback(() => {
@@ -2476,6 +2496,10 @@ export default function SimulationClient() {
 
     const buildResponseText = (baseNotes: string[], traitNotes: string[], skillNote: string, choiceResponse?: string, systemNote?: string) => {
         const parts = [] as string[];
+        if (baseNotes.includes(BASE_NOTE_OVERRIDE)) {
+            const onlyNotes = baseNotes.filter(n => n && n !== BASE_NOTE_OVERRIDE);
+            return onlyNotes.join(' ') || (language === 'ko' ? '무난하게 하루를 버텼다.' : 'You made it through the day.');
+        }
         if (choiceResponse) parts.push(choiceResponse);
         if (systemNote) parts.push(systemNote);
         if (skillNote) parts.push(skillNote);
@@ -2524,16 +2548,19 @@ export default function SimulationClient() {
         let skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
 
         if (choice?.skillCheck) {
-            const { success, chance } = rollSkillCheck(choice.skillCheck);
-            const resultDelta = success ? choice.skillCheck.successDelta : choice.skillCheck.failDelta;
+            const { success, great, chance, greatChance } = rollSkillCheck(choice.skillCheck);
+            const resultDelta = great && choice.skillCheck.greatSuccessDelta
+                ? choice.skillCheck.greatSuccessDelta
+                : (success ? choice.skillCheck.successDelta : choice.skillCheck.failDelta);
             hpDelta += resultDelta.hp;
             foodDelta += resultDelta.food;
             medsDelta += resultDelta.meds;
             moneyDelta += resultDelta.money;
             systemNote = language === 'ko'
-                ? `시스템: ${choice.skillCheck.label} ${success ? '성공' : '실패'} (확률 ${chance}%)`
-                : `System: ${choice.skillCheck.label} ${success ? 'Success' : 'Fail'} (${chance}%)`;
-            if (success && choice.skillCheck.successText) choiceResponse = choice.skillCheck.successText;
+                ? `시스템: ${choice.skillCheck.label} ${great ? '대성공' : (success ? '성공' : '실패')} (확률 ${chance}%${greatChance ? `, 대성공 ${greatChance}%` : ''})`
+                : `System: ${choice.skillCheck.label} ${great ? 'Great Success' : (success ? 'Success' : 'Fail')} (${chance}%${greatChance ? `, Great ${greatChance}%` : ''})`;
+            if (great && choice.skillCheck.greatSuccessText) choiceResponse = choice.skillCheck.greatSuccessText;
+            if (!great && success && choice.skillCheck.successText) choiceResponse = choice.skillCheck.successText;
             if (!success && choice.skillCheck.failText) choiceResponse = choice.skillCheck.failText;
 
             // 경험치 획득 로직
@@ -2717,9 +2744,10 @@ export default function SimulationClient() {
                 const roll = Math.random() * 100;
                 if (roll < greatChance) {
                     food += 2;
+                    responseNotes.push(BASE_NOTE_OVERRIDE);
                     responseNotes.push(language === 'ko'
-                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다. (+2)'
-                        : 'Great success! Skilled cooking/farming secured extra food. (+2)');
+                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다.'
+                        : 'Great success! Skilled cooking/farming secured extra food.');
                 }
             }
             if (food < 0) {
@@ -3450,15 +3478,22 @@ export default function SimulationClient() {
                                                                 if (choice.skillCheck) {
                                                                     const avg = getGroupAverage(choice.skillCheck.group);
                                                                     let chance = choice.skillCheck.fixedChance ?? getSkillChance(avg, choice.skillCheck.advanced);
+                                                                    let greatChance = choice.skillCheck.greatSuccessDelta ? getGreatSuccessChance(avg) : 0;
                                                                     if (choice.skillCheck.chanceMultiplier) chance *= choice.skillCheck.chanceMultiplier;
                                                                     chance = Math.max(5, Math.min(95, chance));
                                                                     chance = Math.round(chance);
                                                                     chance = Math.max(5, Math.min(95, chance));
+                                                                    if (greatChance > 0) {
+                                                                        greatChance = Math.round(greatChance);
+                                                                        greatChance = Math.max(0, Math.min(greatChance, chance));
+                                                                    }
                                                                     chanceText = language === 'ko' ? `${chance}%` : `${chance}%`;
                                                                     const sText = getExpectation(choice.skillCheck.successDelta).join(', ');
                                                                     const fText = getExpectation(choice.skillCheck.failDelta).join(', ');
+                                                                    const gText = choice.skillCheck.greatSuccessDelta ? getExpectation(choice.skillCheck.greatSuccessDelta).join(', ') : '';
                                                                     if (sText) outcomeInfo.push(language === 'ko' ? `성공: ${sText}` : `S: ${sText}`);
                                                                     if (fText) outcomeInfo.push(language === 'ko' ? `실패: ${fText}` : `F: ${fText}`);
+                                                                    if (gText) outcomeInfo.push(language === 'ko' ? `대성공: ${gText}` : `G: ${gText}`);
                                                                 } else {
                                                                     const info = getExpectation(choice.delta).join(', ');
                                                                     if (info) outcomeInfo.push(info);
