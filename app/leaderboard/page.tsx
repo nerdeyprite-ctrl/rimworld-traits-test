@@ -13,6 +13,7 @@ type LeaderboardEntry = {
     settler_name: string;
     day_count: number;
     exit_type: 'death' | 'escape' | 'stay';
+    death_context?: 'evac_failed' | null;
     account_id: string;
     traits?: Trait[];
     skills?: Skill[];
@@ -61,15 +62,18 @@ export default function LeaderboardPage() {
         fetchLeaderboard();
     }, [language]);
 
-    const getExitTypeLabel = (type: string) => {
+    const getExitTypeLabel = (entry: LeaderboardEntry) => {
+        const type = entry.exit_type;
+        const deathContext = entry.death_context;
         if (language === 'ko') {
             switch (type) {
                 case 'escape': return '창공으로의 탈출';
-                case 'death': return '변방계의 거름';
+                case 'death': return deathContext === 'evac_failed' ? '탈출을 갈망하다 사망' : '변방계의 거름';
                 case 'stay': return '영원한 정착';
                 default: return type;
             }
         }
+        if (type === 'death' && deathContext === 'evac_failed') return 'Died yearning for escape';
         return type.charAt(0).toUpperCase() + type.slice(1);
     };
 
@@ -190,7 +194,7 @@ export default function LeaderboardPage() {
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`text-xs font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
-                                        {getExitTypeLabel(entry.exit_type)}
+                                        {getExitTypeLabel(entry)}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right text-[10px] text-slate-500 font-mono">
@@ -473,7 +477,7 @@ export default function LeaderboardPage() {
                                     </div>
                                     <div className="mt-1">
                                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase ${getExitTypeColor(selectedEntry.exit_type)}`}>
-                                            {getExitTypeLabel(selectedEntry.exit_type)} - {selectedEntry.day_count} DAYS
+                                            {getExitTypeLabel(selectedEntry)} - {selectedEntry.day_count} DAYS
                                         </span>
                                     </div>
                                 </div>
@@ -516,14 +520,14 @@ export default function LeaderboardPage() {
                                                     <div className="bg-[#222] p-3 border border-[#333]">
                                                         <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">{language === 'ko' ? '유년기' : 'Childhood'}</div>
                                                         <div className="text-sm font-bold text-slate-200 mb-1">{selectedEntry.backstory_childhood.title}</div>
-                                                        <div className="text-xs text-slate-400 leading-relaxed italic">"{selectedEntry.backstory_childhood.description}"</div>
+                                                        <div className="text-xs text-slate-400 leading-relaxed italic">&quot;{selectedEntry.backstory_childhood.description}&quot;</div>
                                                     </div>
                                                 )}
                                                 {selectedEntry.backstory_adulthood && (
                                                     <div className="bg-[#222] p-3 border border-[#333]">
                                                         <div className="text-[10px] text-slate-500 uppercase font-mono mb-1">{language === 'ko' ? '성인기' : 'Adulthood'}</div>
                                                         <div className="text-sm font-bold text-slate-200 mb-1">{selectedEntry.backstory_adulthood.title}</div>
-                                                        <div className="text-xs text-slate-400 leading-relaxed italic">"{selectedEntry.backstory_adulthood.description}"</div>
+                                                        <div className="text-xs text-slate-400 leading-relaxed italic">&quot;{selectedEntry.backstory_adulthood.description}&quot;</div>
                                                     </div>
                                                 )}
                                             </div>

@@ -111,10 +111,15 @@ type SimState = {
     hasSerum: boolean;
     serumTraderShown: boolean;
     daysSinceDanger: number;
+    evacActive: boolean;
+    evacCountdown: number;
+    evacForceThreatNextDay: boolean;
+    deathDuringEvac: boolean;
     skillProgress: Record<string, { level: number; xp: number }>; // 숙련도 시스템
 };
 
 type ExitType = 'death' | 'escape' | 'stay';
+type DeathContext = 'evac_failed' | null;
 
 type CurrentCard = {
     day: number;
@@ -143,6 +148,8 @@ const BASE_NOTE_OVERRIDE = '__BASE_NOTE_OVERRIDE__';
 const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
+const EVAC_SURVIVAL_DAYS = 15;
+const SIEGE_EVENT_IDS = new Set(['siege_emp_lockdown', 'siege_breach_wave', 'siege_supply_burn']);
 
 const SKILL_GROUPS: Record<string, string[]> = {
     '전투': ['Shooting', 'Melee'],
@@ -320,6 +327,22 @@ const getDangerChance = (day: number, daysSinceDanger: number) => {
     const n = Math.max(0, daysSinceDanger);
     const raw = 0.1875 * n * n + 1.375 * n - 2.5;
     return Math.round(raw);
+};
+
+const getEra = (day: number) => Math.max(0, Math.floor(day / 100));
+
+const getFailPenaltyMultiplier = (day: number) => {
+    const era = getEra(day);
+    if (era <= 0) return 1.0;
+    if (era === 1) return 1.12;
+    if (era === 2) return 1.26;
+    if (era === 3) return 1.42;
+    return 1.6;
+};
+
+const scaleNegativeDelta = (value: number, multiplier: number) => {
+    if (value >= 0) return value;
+    return -Math.ceil(Math.abs(value) * multiplier);
 };
 
 // 대성공 확률 (Lv 6: 5%, Lv 15: 50%, Lv 20: 60%)
@@ -996,6 +1019,135 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         fixedChance: 70,
                         successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -4, food: 0, meds: 0, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'siege_emp_lockdown',
+            title: isKo ? '공성: EMP 봉쇄' : 'Siege: EMP Lockdown',
+            description: isKo ? '전자장비가 동시에 마비되며 공성 포격이 시작됩니다.' : 'Electronics fail at once while siege bombardment begins.',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'siege_emp_push',
+                    label: isKo ? '발전기실 돌파' : 'Push Generator Room',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '정전 구역을 뚫고 발전기를 재가동하려 합니다.' : 'You force your way into the blackout zone.',
+                    skillCheck: {
+                        label: isKo ? '재가동 돌파' : 'Restart Push',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -3, food: 0, meds: 0, money: 1 },
+                        failDelta: { hp: -6, food: -1, meds: -1, money: -2 }
+                    }
+                },
+                {
+                    id: 'siege_emp_isolate',
+                    label: isKo ? '구역 격리' : 'Sector Isolation',
+                    description: isKo ? '체력 -4, 식량 -2, 돈 -2' : 'HP -4, Food -2, Money -2',
+                    delta: { hp: -4, food: -2, meds: 0, money: -2 },
+                    response: isKo ? '핵심 구역만 남기고 봉쇄해 손실을 제한합니다.' : 'You isolate critical sectors to cap losses.'
+                },
+                {
+                    id: 'siege_emp_rewire',
+                    label: isKo ? '수동 배선' : 'Manual Rewire',
+                    description: isKo ? '제작/연구 기술 체크' : 'Crafting/Intellectual skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '임시 배선으로 시스템을 최소한으로 복구합니다.' : 'You manually rewire a minimal power grid.',
+                    skillCheck: {
+                        label: isKo ? '수동 복구' : 'Manual Restore',
+                        group: ['제작', '연구'],
+                        successDelta: { hp: -2, food: 0, meds: 0, money: -1 },
+                        failDelta: { hp: -5, food: -1, meds: 0, money: -3 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'siege_breach_wave',
+            title: isKo ? '공성: 방벽 돌파 웨이브' : 'Siege: Breach Waves',
+            description: isKo ? '연속 웨이브가 방벽의 약점을 집요하게 두드립니다.' : 'Successive waves hammer the weakest points of your walls.',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'siege_breach_front',
+                    label: isKo ? '전면 저지' : 'Frontline Stop',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '정면 화력으로 웨이브를 끊으려 합니다.' : 'You attempt to break the wave head-on.',
+                    skillCheck: {
+                        label: isKo ? '정면 저지' : 'Frontline',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -2, food: -1, meds: 0, money: 2 },
+                        failDelta: { hp: -6, food: -2, meds: -1, money: -1 }
+                    }
+                },
+                {
+                    id: 'siege_breach_fallback',
+                    label: isKo ? '후퇴 방어선' : 'Fallback Line',
+                    description: isKo ? '체력 -5, 식량 -2, 돈 -1' : 'HP -5, Food -2, Money -1',
+                    delta: { hp: -5, food: -2, meds: 0, money: -1 },
+                    response: isKo ? '외곽을 포기하고 내부 방어선으로 물러납니다.' : 'You concede the outer wall and retreat inward.'
+                },
+                {
+                    id: 'siege_breach_patch',
+                    label: isKo ? '응급 보수' : 'Emergency Patch',
+                    description: isKo ? '제작 기술 체크' : 'Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '틈을 급히 메우며 시간을 법니다.' : 'You patch the breach to buy time.',
+                    skillCheck: {
+                        label: isKo ? '응급 보수' : 'Patch',
+                        group: ['제작'],
+                        successDelta: { hp: -2, food: -1, meds: 0, money: -1 },
+                        failDelta: { hp: -5, food: -2, meds: 0, money: -3 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'siege_supply_burn',
+            title: isKo ? '공성: 보급고 화재' : 'Siege: Supply Fire',
+            description: isKo ? '포격으로 보급고에 불이 붙었습니다. 물자와 생존 사이를 선택해야 합니다.' : 'Shelling ignites your supply depot. You must choose between goods and survival.',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'siege_supply_rescue',
+                    label: isKo ? '보급고 구조' : 'Depot Rescue',
+                    description: isKo ? '의학/제작 기술 체크' : 'Medicine/Crafting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '화염 속에서 최대한 물자를 건져냅니다.' : 'You salvage supplies from the flames.',
+                    skillCheck: {
+                        label: isKo ? '화재 구조' : 'Fire Rescue',
+                        group: ['의학', '제작'],
+                        successDelta: { hp: -2, food: 1, meds: 1, money: -1 },
+                        failDelta: { hp: -5, food: -2, meds: -1, money: -3 }
+                    }
+                },
+                {
+                    id: 'siege_supply_abandon',
+                    label: isKo ? '보급고 포기' : 'Abandon Depot',
+                    description: isKo ? '체력 -4, 식량 -3, 치료제 -1, 돈 -2' : 'HP -4, Food -3, Meds -1, Money -2',
+                    delta: { hp: -4, food: -3, meds: -1, money: -2 },
+                    response: isKo ? '인명 피해를 막기 위해 보급고를 포기합니다.' : 'You abandon the depot to avoid casualties.'
+                },
+                {
+                    id: 'siege_supply_counter',
+                    label: isKo ? '역포격' : 'Counter Bombard',
+                    description: isKo ? '사격/연구 기술 체크' : 'Shooting/Intellectual skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '적 포대를 제압해 화재 확산을 멈추려 합니다.' : 'You counter-bombard to stop further spread.',
+                    skillCheck: {
+                        label: isKo ? '역포격' : 'Counter Fire',
+                        group: ['사격', '연구'],
+                        successDelta: { hp: -2, food: -1, meds: 0, money: 1 },
+                        failDelta: { hp: -6, food: -3, meds: -1, money: -2 }
                     }
                 }
             ]
@@ -2173,6 +2325,10 @@ export default function SimulationClient() {
         hasSerum: false,
         serumTraderShown: false,
         daysSinceDanger: 0,
+        evacActive: false,
+        evacCountdown: 0,
+        evacForceThreatNextDay: false,
+        deathDuringEvac: false,
         skillProgress: {} // 숙련도는 빈 객체로 시작
     });
 
@@ -2225,7 +2381,11 @@ export default function SimulationClient() {
             const data = JSON.parse(saved);
             setSimState({
                 ...data.simState,
-                daysSinceDanger: data.simState?.daysSinceDanger ?? 0
+                daysSinceDanger: data.simState?.daysSinceDanger ?? 0,
+                evacActive: data.simState?.evacActive ?? false,
+                evacCountdown: data.simState?.evacCountdown ?? 0,
+                evacForceThreatNextDay: data.simState?.evacForceThreatNextDay ?? false,
+                deathDuringEvac: data.simState?.deathDuringEvac ?? false
             });
             setPendingChoice(data.pendingChoice);
             setCurrentCard(data.currentCard);
@@ -2559,6 +2719,10 @@ export default function SimulationClient() {
             hasSerum: false,
             serumTraderShown: false,
             daysSinceDanger: 0,
+            evacActive: false,
+            evacCountdown: 0,
+            evacForceThreatNextDay: false,
+            deathDuringEvac: false,
             skillProgress: ALL_SKILLS.reduce((acc, skill) => {
                 acc[skill] = { level: 0, xp: 0 };
                 return acc;
@@ -2615,6 +2779,7 @@ export default function SimulationClient() {
 
     const resolveEvent = useCallback((
         event: SimEvent,
+        eventDay: number,
         dayStart: { hp: number; food: number; meds: number; money: number },
         baseAfter: { hp: number; food: number; meds: number; money: number },
         baseNotes: string[],
@@ -2649,11 +2814,13 @@ export default function SimulationClient() {
         const traitNotes: string[] = [];
         let systemNote = '';
         let choiceResponse = choice?.response;
+        let skillOutcome: 'great' | 'success' | 'fail' | null = null;
 
         const skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
 
         if (choice?.skillCheck) {
             const { success, great, chance, greatChance } = rollSkillCheck(choice.skillCheck);
+            skillOutcome = great ? 'great' : (success ? 'success' : 'fail');
             const resultDelta = great && choice.skillCheck.greatSuccessDelta
                 ? choice.skillCheck.greatSuccessDelta
                 : (success ? choice.skillCheck.successDelta : choice.skillCheck.failDelta);
@@ -2715,6 +2882,14 @@ export default function SimulationClient() {
                 if (target === 'money') moneyDelta += bonus;
             });
             skillNote = note;
+        }
+
+        if (event.category === 'danger' && skillOutcome === 'fail') {
+            const failMult = getFailPenaltyMultiplier(eventDay);
+            hpDelta = scaleNegativeDelta(hpDelta, failMult);
+            foodDelta = scaleNegativeDelta(foodDelta, failMult);
+            medsDelta = scaleNegativeDelta(medsDelta, failMult);
+            moneyDelta = scaleNegativeDelta(moneyDelta, failMult);
         }
 
         if (event.category === 'danger' && campLevel > 0 && hpDelta < 0) {
@@ -2806,7 +2981,7 @@ export default function SimulationClient() {
         return true;
     };
 
-    const submitScore = useCallback(async (exitType: ExitType, dayCount: number, penalize: boolean) => {
+    const submitScore = useCallback(async (exitType: ExitType, dayCount: number, penalize: boolean, deathContext: DeathContext = null) => {
         if (!isSupabaseConfigured()) {
             setSubmitMessage(language === 'ko' ? '리더보드 제출에 실패했습니다. (DB 미설정)' : 'Leaderboard submission failed. (DB not configured)');
             return;
@@ -2818,11 +2993,12 @@ export default function SimulationClient() {
         }
         const finalDay = penalize ? Math.floor(dayCount * 0.9) : dayCount;
         try {
-            const { error } = await supabase.from('leaderboard_scores').insert({
+            const payload = {
                 account_id: accountId,
                 settler_name: userInfo?.name || '정착민',
                 day_count: finalDay,
                 exit_type: exitType,
+                death_context: deathContext,
                 traits: result?.traits || [],
                 skills: result?.skills || [],
                 mbti: result?.mbti || '',
@@ -2831,7 +3007,14 @@ export default function SimulationClient() {
                 incapabilities: result?.incapabilities || [],
                 age: userInfo?.age || 20,
                 gender: userInfo?.gender || 'Male'
-            });
+            };
+            let { error } = await supabase.from('leaderboard_scores').insert(payload);
+            // Backward compatibility: if schema isn't migrated yet, retry without death_context.
+            if (error && deathContext) {
+                const fallbackPayload = { ...payload };
+                delete (fallbackPayload as Record<string, unknown>).death_context;
+                ({ error } = await supabase.from('leaderboard_scores').insert(fallbackPayload));
+            }
             if (error) throw error;
             setSubmitMessage(language === 'ko'
                 ? `리더보드에 기록되었습니다. (일차 ${finalDay})`
@@ -2905,11 +3088,11 @@ export default function SimulationClient() {
                 base: { hp: 0, food: 0, meds: 0, money: 0 },
                 choices: [
                     {
-                        id: 'escape_now',
-                        label: language === 'ko' ? '지금 탈출하기' : 'Escape Now',
-                        description: language === 'ko' ? '즉시 우주선에 탑승한다.' : 'Board the ship immediately.',
+                        id: 'begin_evac',
+                        label: language === 'ko' ? '탈출 준비 개시' : 'Start Evacuation',
+                        description: language === 'ko' ? `탈출 카운트다운 ${EVAC_SURVIVAL_DAYS}일 시작` : `Start ${EVAC_SURVIVAL_DAYS}-day evacuation countdown`,
                         delta: { hp: 0, food: 0, meds: 0, money: 0 },
-                        response: language === 'ko' ? '지금 탈출을 선택했다.' : 'You choose to escape now.'
+                        response: language === 'ko' ? `우주선 시동을 걸었습니다. ${EVAC_SURVIVAL_DAYS}일만 더 버티면 탈출합니다.` : `Ship startup initiated. Survive ${EVAC_SURVIVAL_DAYS} more days to escape.`
                     },
                     {
                         id: 'stay_longer',
@@ -2946,7 +3129,42 @@ export default function SimulationClient() {
 
         let event: SimEvent;
         let serumTraderShown = simState.serumTraderShown;
-        if (nextDay === 7) {
+        let evacForceThreatNextDay = simState.evacForceThreatNextDay;
+        if (simState.evacActive) {
+            const dangerPool = events.filter(e => e.category === 'danger' && !SIEGE_EVENT_IDS.has(e.id));
+            const siegePool = events.filter(e => e.category === 'danger' && SIEGE_EVENT_IDS.has(e.id));
+            const nonCombatPool = events.filter(e => e.category === 'noncombat');
+            const quietPool = events.filter(e => e.category === 'quiet');
+
+            let selectedCat: SimEventCategory;
+            if (simState.evacForceThreatNextDay) {
+                selectedCat = 'danger';
+                evacForceThreatNextDay = false;
+            } else {
+                const roll = Math.random() * 100;
+                if (roll < 60) selectedCat = 'danger';
+                else if (roll < 80) selectedCat = 'noncombat';
+                else selectedCat = 'quiet';
+            }
+
+            if (selectedCat === 'danger') {
+                const preferSiege = Math.random() < 0.5;
+                if (preferSiege && siegePool.length > 0) {
+                    event = pickWeightedEvent(siegePool);
+                } else if (dangerPool.length > 0) {
+                    event = pickWeightedEvent(dangerPool);
+                } else if (siegePool.length > 0) {
+                    event = pickWeightedEvent(siegePool);
+                } else {
+                    event = pickWeightedEvent(events.filter(e => e.category === 'danger'));
+                }
+            } else if (selectedCat === 'noncombat') {
+                event = nonCombatPool.length > 0 ? pickWeightedEvent(nonCombatPool) : pickWeightedEvent(events);
+            } else {
+                event = quietPool.length > 0 ? pickWeightedEvent(quietPool) : pickWeightedEvent(events);
+                evacForceThreatNextDay = true;
+            }
+        } else if (nextDay === 7) {
             const filteredDanger = events.filter(e => e.category === 'danger');
             event = filteredDanger.length > 0 ? pickWeightedEvent(filteredDanger) : pickWeightedEvent(events);
         } else if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
@@ -2998,6 +3216,7 @@ export default function SimulationClient() {
 
             const filteredEvents = events.filter(e => {
                 if (e.category !== selectedCat) return false;
+                if (SIEGE_EVENT_IDS.has(e.id) && nextDay < 100) return false;
                 if (traitIds.has('asexual') && (e.id === 'breakup' || e.id === 'marriage' || e.id === 'divorce')) return false;
                 if (e.id === 'pet_death' && simState.petCount <= 0) return false;
                 if (e.id === 'breakup' && simState.loverCount <= 0) return false;
@@ -3037,7 +3256,9 @@ export default function SimulationClient() {
                 simState: {
                     ...baseSimState,
                     daysSinceDanger: nextDaysSinceDanger,
-                    serumTraderShown
+                    serumTraderShown,
+                    evacForceThreatNextDay,
+                    deathDuringEvac: false
                 },
                 pendingChoice: {
                     day: nextDay,
@@ -3056,12 +3277,14 @@ export default function SimulationClient() {
             };
         }
 
-        const resolved = resolveEvent(event, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
+        const resolved = resolveEvent(event, nextDay, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
         let finalHp = resolved.after.hp;
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
         let finalResponseCard = resolved.responseTextCard;
         let finalHasSerum = simState.hasSerum;
+        let finalEvacCountdown = simState.evacCountdown;
+        let finalDeathDuringEvac = false;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -3072,6 +3295,31 @@ export default function SimulationClient() {
                 : ' However, the Resurrector Serum activated and brought you back to life!';
             finalResponse += reviveText;
             finalResponseCard += reviveText;
+        }
+
+        if (simState.evacActive && finalStatus === 'running') {
+            finalEvacCountdown = Math.max(0, simState.evacCountdown - 1);
+            if (finalEvacCountdown === 0) {
+                finalStatus = 'success';
+                finalResponse += language === 'ko'
+                    ? ' 탈출 카운트다운을 끝까지 버텨 우주선 발진에 성공했습니다!'
+                    : ' You survived the evacuation countdown and launched the ship!';
+                finalResponseCard += language === 'ko'
+                    ? '\n탈출 카운트다운 완료! 우주선 발진 성공.'
+                    : '\nEvacuation countdown complete! Ship launch successful.';
+            }
+        } else if (!simState.evacActive) {
+            finalEvacCountdown = 0;
+        }
+
+        if (finalStatus === 'dead' && simState.evacActive && simState.evacCountdown > 0) {
+            finalDeathDuringEvac = true;
+            finalResponse += language === 'ko'
+                ? ' 탈출을 갈망하다 사망했습니다.'
+                : ' You died yearning for escape.';
+            finalResponseCard += language === 'ko'
+                ? '\n탈출을 갈망하다 사망했습니다.'
+                : '\nDied yearning for escape.';
         }
 
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
@@ -3101,6 +3349,10 @@ export default function SimulationClient() {
                 status: finalStatus,
                 hasSerum: finalHasSerum,
                 serumTraderShown,
+                evacActive: simState.evacActive && finalStatus !== 'success',
+                evacCountdown: finalStatus === 'success' ? 0 : finalEvacCountdown,
+                evacForceThreatNextDay: finalStatus === 'success' ? false : evacForceThreatNextDay,
+                deathDuringEvac: finalDeathDuringEvac,
                 skillProgress: resolved.skillProgress,
                 daysSinceDanger: nextDaysSinceDanger,
                 log: [entry, ...simState.log].slice(0, 60)
@@ -3146,8 +3398,36 @@ export default function SimulationClient() {
         if (!choice) return;
 
         if (pendingChoice.event.id === 'ship_built') {
-            if (choice.id === 'escape_now') {
-                setShowEndingConfirm(true);
+            if (choice.id === 'begin_evac') {
+                setAllowContinue(true);
+                setCanBoardShip(false);
+                setShowEndingCard(false);
+                setPendingChoice(null);
+                setSimState(prev => ({
+                    ...prev,
+                    evacActive: true,
+                    evacCountdown: EVAC_SURVIVAL_DAYS,
+                    evacForceThreatNextDay: false,
+                    deathDuringEvac: false
+                }));
+                setCurrentCard({
+                    day: pendingChoice.day,
+                    season: pendingChoice.season,
+                    event: pendingChoice.event,
+                    entry: {
+                        day: pendingChoice.day,
+                        season: pendingChoice.season,
+                        title: pendingChoice.event.title,
+                        description: pendingChoice.event.description,
+                        response: choice.response || '',
+                        responseCard: choice.response || '',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        eventDelta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        after: { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
+                        status: 'neutral'
+                    }
+                });
+                setCardView('result');
                 return;
             }
             if (choice.id === 'stay_longer') {
@@ -3179,6 +3459,7 @@ export default function SimulationClient() {
 
         const resolved = resolveEvent(
             pendingChoice.event,
+            pendingChoice.day,
             // Use current state as baseline to include any changes made while pending (e.g. using meds)
             { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
             { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
@@ -3193,6 +3474,8 @@ export default function SimulationClient() {
         let finalResponseCard = resolved.responseTextCard;
         let finalHasSerum = simState.hasSerum;
         const finalCounts = resolved.counts;
+        let finalEvacCountdown = simState.evacCountdown;
+        let finalDeathDuringEvac = false;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -3207,6 +3490,31 @@ export default function SimulationClient() {
 
         if (pendingChoice.event.id === 'resurrector_trader' && choice.id === 'buy_serum') {
             finalHasSerum = true;
+        }
+
+        if (simState.evacActive && finalStatus === 'running') {
+            finalEvacCountdown = Math.max(0, simState.evacCountdown - 1);
+            if (finalEvacCountdown === 0) {
+                finalStatus = 'success';
+                finalResponse += language === 'ko'
+                    ? ' 탈출 카운트다운을 끝까지 버텨 우주선 발진에 성공했습니다!'
+                    : ' You survived the evacuation countdown and launched the ship!';
+                finalResponseCard += language === 'ko'
+                    ? '\n탈출 카운트다운 완료! 우주선 발진 성공.'
+                    : '\nEvacuation countdown complete! Ship launch successful.';
+            }
+        } else if (!simState.evacActive) {
+            finalEvacCountdown = 0;
+        }
+
+        if (finalStatus === 'dead' && simState.evacActive && simState.evacCountdown > 0) {
+            finalDeathDuringEvac = true;
+            finalResponse += language === 'ko'
+                ? ' 탈출을 갈망하다 사망했습니다.'
+                : ' You died yearning for escape.';
+            finalResponseCard += language === 'ko'
+                ? '\n탈출을 갈망하다 사망했습니다.'
+                : '\nDied yearning for escape.';
         }
 
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
@@ -3237,6 +3545,9 @@ export default function SimulationClient() {
                 spouseCount: finalCounts.spouseCount,
                 status: finalStatus,
                 hasSerum: finalHasSerum,
+                evacActive: simState.evacActive && finalStatus !== 'success',
+                evacCountdown: finalStatus === 'success' ? 0 : finalEvacCountdown,
+                deathDuringEvac: finalDeathDuringEvac,
                 skillProgress: resolved.skillProgress,
                 log
             };
@@ -3315,8 +3626,8 @@ export default function SimulationClient() {
     useEffect(() => {
         if (simState.status !== 'dead' || submittedOnDeath) return;
         setSubmittedOnDeath(true);
-        submitScore('death', simState.day, true);
-    }, [simState.status, simState.day, submittedOnDeath, submitScore]);
+        submitScore('death', simState.day, true, simState.deathDuringEvac ? 'evac_failed' : null);
+    }, [simState.status, simState.day, simState.deathDuringEvac, submittedOnDeath, submitScore]);
 
     useEffect(() => {
         if (simState.status !== 'success' || submittedOnExit) return;
@@ -3377,7 +3688,7 @@ export default function SimulationClient() {
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canAdvanceDay = simState.status === 'running' && !pendingChoice && turnPhase === 'idle' && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
-    const canBoardNow = hasShipBuilt && simState.status === 'running';
+    const canBoardNow = hasShipBuilt && simState.status === 'running' && !simState.evacActive;
 
     const handleAdvanceDay = () => {
         if (turnPhase !== 'idle') return;
@@ -3509,7 +3820,7 @@ export default function SimulationClient() {
                         </div>
                         <div
                             key={`card-${simState.status}-${currentCard?.day ?? 'idle'}`}
-                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'animating' ? 'reigns-card--advance' : ''}`}
+                            className={`reigns-card reigns-card-enter ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'animating' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)] animate-pulse' : ''}`}
                         >
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
@@ -3517,7 +3828,9 @@ export default function SimulationClient() {
                                         <div className="text-[var(--sim-danger)] text-3xl font-black tracking-tighter">GAME OVER</div>
                                         <div className="text-5xl">💀</div>
                                         <div className="text-[var(--sim-text-main)] text-lg font-bold">
-                                            {language === 'ko' ? `${simState.day}일차에 사망` : `Died on Day ${simState.day}`}
+                                            {simState.deathDuringEvac
+                                                ? (language === 'ko' ? '탈출을 갈망하다 사망' : 'Died yearning for escape')
+                                                : (language === 'ko' ? `${simState.day}일차에 사망` : `Died on Day ${simState.day}`)}
                                         </div>
                                         <div className="text-[var(--sim-text-sub)] text-xs leading-relaxed px-4">
                                             {language === 'ko'
@@ -3550,12 +3863,12 @@ export default function SimulationClient() {
                                         <div className="text-[var(--sim-success)] text-3xl font-black tracking-tighter">VICTORY</div>
                                         <div className="text-5xl">🚀</div>
                                         <div className="text-[var(--sim-text-main)] text-lg font-bold">
-                                            {language === 'ko' ? '변방계 탈출 성공!' : 'Escaped the Rim!'}
+                                            {language === 'ko' ? '탈출 카운트다운 생존 성공!' : 'Evacuation Survival Success!'}
                                         </div>
                                         <div className="text-[var(--sim-text-sub)] text-xs leading-relaxed px-4">
                                             {language === 'ko'
-                                                ? '60일간의 사투 끝에 무사히 행성을 떠납니다. 점수가 리더보드에 기록되었습니다.'
-                                                : 'Safely left the planet after 60 days. Score recorded on leaderboard.'}
+                                                ? '탈출 준비 이후 15일을 버텨 우주선을 발진시켰습니다. 점수가 리더보드에 기록되었습니다.'
+                                                : 'You survived 15 evacuation days and launched the ship. Score recorded on leaderboard.'}
                                         </div>
                                         <div className="flex flex-row w-full gap-2 mt-4 px-2">
                                             <button
@@ -3587,6 +3900,13 @@ export default function SimulationClient() {
                                                         ? `Day ${currentCard.day} • ${currentCard.season}`
                                                         : (language === 'ko' ? '시뮬레이션 대기 중' : 'Simulation Standby')}
                                                 </div>
+                                                {simState.evacActive && simState.status === 'running' && (
+                                                    <div className="mt-2 text-[11px] font-black text-red-300 tracking-wide">
+                                                        {language === 'ko'
+                                                            ? `탈출까지 ${simState.evacCountdown}일 남음!`
+                                                            : `${simState.evacCountdown} days until escape!`}
+                                                    </div>
+                                                )}
                                                 <div className="mt-4 text-2xl md:text-3xl font-bold text-[var(--sim-text-main)] leading-tight">
                                                     {currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game')}
                                                 </div>
@@ -3755,6 +4075,13 @@ export default function SimulationClient() {
                     <SimStatTile label={language === 'ko' ? '치료제' : 'Meds'} value={`${simState.meds} / 30`} labelClassName="text-pink-500" />
                     <SimStatTile label={language === 'ko' ? '돈' : 'Money'} value={`${simState.money} / 30`} labelClassName="text-green-500" />
                 </div>
+                {simState.evacActive && simState.status === 'running' && (
+                    <div className="text-center text-xs font-bold text-red-300 bg-red-900/20 border border-red-500/40 rounded-lg px-3 py-2">
+                        {language === 'ko'
+                            ? `긴급 탈출 카운트다운 진행 중: ${simState.evacCountdown}일 남음`
+                            : `Emergency evacuation countdown active: ${simState.evacCountdown} days remaining`}
+                    </div>
+                )}
 
                 <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[var(--sim-border)]">
                     <div className="flex flex-wrap gap-2">
@@ -3791,7 +4118,9 @@ export default function SimulationClient() {
                                 : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                 }`}
                         >
-                            {language === 'ko' ? '🛸 우주선 탑승' : '🛸 Board Ship'}
+                            {simState.evacActive
+                                ? (language === 'ko' ? `🛸 탈출 준비 중 (${simState.evacCountdown}일)` : `🛸 Evac Active (${simState.evacCountdown}d)`)
+                                : (language === 'ko' ? `🛸 탈출 준비 시작 (${EVAC_SURVIVAL_DAYS}일)` : `🛸 Start Evac (${EVAC_SURVIVAL_DAYS}d)`)}
                         </button>
                     </div>
 
@@ -3952,8 +4281,8 @@ export default function SimulationClient() {
                                         ? '정말 떠나시겠습니까? 계속 생존하여 더 높은 기록을 세울 수 있습니다.'
                                         : 'Do you really want to leave? You can continue to survive for a higher record.')
                                     : (language === 'ko'
-                                        ? '정말 우주선에 탑승하시겠습니까? 돌이킬 수 없습니다.'
-                                        : 'Are you sure you want to board the ship? There is no turning back.')
+                                        ? `우주선 시동을 걸면 ${EVAC_SURVIVAL_DAYS}일 버텨야 탈출합니다. 시작하시겠습니까?`
+                                        : `Starting ship launch requires surviving ${EVAC_SURVIVAL_DAYS} more days. Start now?`)
                                 }
                             </p>
                         </div>
@@ -3969,16 +4298,20 @@ export default function SimulationClient() {
                             </button>
                             <button
                                 onClick={() => {
-                                    submitScore('escape', simState.day, false);
-                                    setSubmittedOnExit(true);
-                                    setSimState(prev => ({ ...prev, status: 'success' }));
+                                    setSimState(prev => ({
+                                        ...prev,
+                                        evacActive: true,
+                                        evacCountdown: EVAC_SURVIVAL_DAYS,
+                                        evacForceThreatNextDay: false,
+                                        deathDuringEvac: false
+                                    }));
                                     setShowBoardConfirm(false);
                                     setShowEndingConfirm(false);
                                     setPendingChoice(null); // Ensure pending choice is cleared if any
                                 }}
                                 className="sim-btn sim-btn-danger flex-1 py-3 text-sm"
                             >
-                                {showEndingConfirm ? (language === 'ko' ? '지금 탈출하기' : 'Escape Now') : (language === 'ko' ? '탑승하기' : 'Board Now')}
+                                {showEndingConfirm ? (language === 'ko' ? '지금 탈출하기' : 'Escape Now') : (language === 'ko' ? '탈출 준비 시작' : 'Start Evac')}
                             </button>
                         </div>
                     </div>
