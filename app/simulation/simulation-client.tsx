@@ -2821,7 +2821,7 @@ export default function SimulationClient() {
         let moneyDelta = event.base.money + baseDelta.money;
         const traitNotes: string[] = [];
         let systemNote = '';
-        let choiceResponse = choice?.response;
+        let choiceResponse = choice?.skillCheck ? undefined : choice?.response;
         let skillOutcome: 'great' | 'success' | 'fail' | null = null;
 
         const skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
@@ -2842,6 +2842,7 @@ export default function SimulationClient() {
             if (great && choice.skillCheck.greatSuccessText) choiceResponse = choice.skillCheck.greatSuccessText;
             if (!great && success && choice.skillCheck.successText) choiceResponse = choice.skillCheck.successText;
             if (!success && choice.skillCheck.failText) choiceResponse = choice.skillCheck.failText;
+            if (success && !choiceResponse && choice.response) choiceResponse = choice.response;
 
             // 경험치 획득 로직
             const baseXp = 10; // 기본 경험치
@@ -4057,7 +4058,7 @@ export default function SimulationClient() {
                                                                     <div key={choice.id} className="group relative">
                                                                         <button
                                                                             onClick={() => resolveChoice(choice.id)}
-                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'border-[var(--sim-accent)]' : 'border-[var(--sim-border)]'))} flex flex-col items-center justify-center min-h-[50px]`}
+                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'sim-choice--special' : 'border-[var(--sim-border)]'))} flex flex-col items-center justify-center min-h-[50px]`}
                                                                         >
                                                                             <div className="font-bold">{choice.label}</div>
                                                                             {chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
