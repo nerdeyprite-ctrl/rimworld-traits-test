@@ -105,6 +105,7 @@ type SimState = {
     log: SimLogEntry[];
     hasSerum: boolean;
     serumTraderShown: boolean;
+    daysSinceDanger: number;
     skillProgress: Record<string, { level: number; xp: number }>; // 숙련도 시스템
 };
 
@@ -262,6 +263,15 @@ const getSkillChance = (level: number, isAdvanced: boolean = false) => {
         const chance = 20 + (level * 5);
         return Math.min(95, chance);
     }
+};
+
+const getDangerChance = (day: number, daysSinceDanger: number) => {
+    if (day <= 6) return 0;
+    if (day >= 8 && day <= 10) return 5;
+    if (daysSinceDanger >= 1 && daysSinceDanger <= 3) return 5;
+    const n = Math.max(0, daysSinceDanger);
+    const raw = 0.1875 * n * n + 1.375 * n - 2.5;
+    return Math.round(raw);
 };
 
 // 대성공 확률 (Lv 6: 5%, Lv 15: 50%, Lv 20: 60%)
@@ -1717,6 +1727,7 @@ export default function SimulationClient() {
         log: [],
         hasSerum: false,
         serumTraderShown: false,
+        daysSinceDanger: 0,
         skillProgress: {} // 숙련도는 빈 객체로 시작
     });
 
@@ -1767,7 +1778,10 @@ export default function SimulationClient() {
         if (!saved) return;
         try {
             const data = JSON.parse(saved);
-            setSimState(data.simState);
+            setSimState({
+                ...data.simState,
+                daysSinceDanger: data.simState?.daysSinceDanger ?? 0
+            });
             setPendingChoice(data.pendingChoice);
             setCurrentCard(data.currentCard);
             setCardView(data.cardView);
@@ -1920,7 +1934,18 @@ export default function SimulationClient() {
         const map: Record<string, number> = {};
         if (result?.skills) {
             result.skills.forEach(skill => {
-                const passionValue = typeof skill.passion === 'string' ? parseInt(skill.passion, 10) : (skill.passion || 0);
+                let passionValue = 0;
+                if (typeof skill.passion === 'string') {
+                    if (skill.passion === 'Major') passionValue = 2;
+                    else if (skill.passion === 'Minor') passionValue = 1;
+                    else if (skill.passion === 'None') passionValue = 0;
+                    else {
+                        const parsed = parseInt(skill.passion, 10);
+                        passionValue = Number.isNaN(parsed) ? 0 : parsed;
+                    }
+                } else {
+                    passionValue = skill.passion || 0;
+                }
                 map[skill.name] = passionValue;
             });
         }
@@ -3320,16 +3345,16 @@ export default function SimulationClient() {
                                     <div key={skill} className="bg-black/40 border border-[#222] p-3 rounded-xl space-y-2">
                                         <div className="flex items-center justify-between">
                                             <div className="text-sm font-bold text-slate-200">{skillName}</div>
-                                            <div className="text-xs font-black text-blue-300 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
-                                                {language === 'ko' ? '총합' : 'Total'} {totalLevel}
+                                            <div className="text-sm font-black text-blue-200 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
+                                                <span className="text-base leading-none">{totalLevel}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
-                                                {language === 'ko' ? '기본' : 'Base'} {baseLevel}
+                                                {language === 'ko' ? '기본' : 'Base'} <span className="text-xs font-black">{baseLevel}</span>
                                             </div>
                                             <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
-                                                {language === 'ko' ? '숙련' : 'Proficiency'} Lv {progress.level}
+                                                {language === 'ko' ? '숙련' : 'Proficiency'} Lv <span className="text-xs font-black">{progress.level}</span>
                                             </div>
                                             <div className={`text-[10px] font-bold border px-2 py-1 rounded ${passionColor}`}>
                                                 {language === 'ko' ? '열정' : 'Passion'} {passionLabel} {passion >= 2 ? '🔥🔥' : passion === 1 ? '🔥' : ''}
