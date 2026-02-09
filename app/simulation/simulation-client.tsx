@@ -1764,6 +1764,59 @@ interface HelpModalProps {
     language: 'ko' | 'en';
 }
 
+interface SimModalShellProps {
+    title: string;
+    icon: string;
+    accentClassName?: string;
+    maxWidthClassName?: string;
+    onClose: () => void;
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+}
+
+interface SimStatTileProps {
+    label: string;
+    value: string;
+    labelClassName?: string;
+    valueClassName?: string;
+}
+
+function SimStatTile({ label, value, labelClassName = '', valueClassName = '' }: SimStatTileProps) {
+    return (
+        <div className="sim-stat-tile flex flex-col items-center">
+            <div className={`text-[10px] text-[var(--sim-text-muted)] font-bold uppercase leading-none mb-1 ${labelClassName}`}>{label}</div>
+            <div className={`text-[var(--sim-text-main)] font-black text-base ${valueClassName}`}>{value}</div>
+        </div>
+    );
+}
+
+function SimModalShell({
+    title,
+    icon,
+    accentClassName = 'text-[var(--sim-accent)]',
+    maxWidthClassName = 'max-w-2xl',
+    onClose,
+    children,
+    footer
+}: SimModalShellProps) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <div className={`sim-modal-shell flex flex-col max-h-[85vh] ${maxWidthClassName}`}>
+                <div className="bg-[var(--sim-surface-3)]/70 p-4 flex justify-between items-center border-b border-[var(--sim-border)]">
+                    <h3 className={`text-base md:text-lg font-black uppercase tracking-[0.14em] flex items-center gap-2 ${accentClassName}`}>
+                        <span>{icon}</span>{title}
+                    </h3>
+                    <button onClick={onClose} className="sim-btn sim-btn-ghost h-8 w-8 flex items-center justify-center text-sm">✕</button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 text-[var(--sim-text-sub)]">
+                    {children}
+                </div>
+                {footer && <div className="p-4 border-t border-[var(--sim-border)] bg-[var(--sim-surface-1)]/75">{footer}</div>}
+            </div>
+        </div>
+    );
+}
+
 function HelpModal({ onClose, language }: HelpModalProps) {
     const [activeTab, setActiveTab] = useState<'system' | 'event' | 'trait' | 'skill'>('system');
 
@@ -1775,24 +1828,28 @@ function HelpModal({ onClose, language }: HelpModalProps) {
     ] as const;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]">
-                <div className="bg-[#1c1c1c] p-4 flex justify-between items-center border-b border-[#333]">
-                    <h3 className="text-lg font-black text-[#e7c07a] uppercase tracking-widest flex items-center gap-2">
-                        📖 {language === 'ko' ? '생존 가이드' : 'Survival Guide'}
-                    </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">✕</button>
+        <SimModalShell
+            title={language === 'ko' ? '생존 가이드' : 'Survival Guide'}
+            icon="📖"
+            onClose={onClose}
+            maxWidthClassName="max-w-3xl"
+            footer={(
+                <div className="text-center">
+                    <button onClick={onClose} className="sim-btn sim-btn-primary px-8 py-2 text-xs">
+                        {language === 'ko' ? '닫기' : 'Close'}
+                    </button>
                 </div>
-
-                <div className="flex border-b border-[#333] bg-[#111]">
+            )}
+        >
+                <div className="flex border-b border-[var(--sim-border)] bg-[var(--sim-surface-1)] -mt-2 mb-4">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2
+                            className={`flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-[0.12em] transition-all flex items-center justify-center gap-2
                                 ${activeTab === tab.id
-                                    ? 'bg-[#2a2a2a] text-[#e7c07a] border-b-2 border-[#e7c07a]'
-                                    : 'text-slate-500 hover:text-slate-300 hover:bg-[#222]'
+                                    ? 'bg-[var(--sim-surface-3)] text-[var(--sim-accent)] border-b-2 border-[var(--sim-accent)]'
+                                    : 'text-[var(--sim-text-muted)] hover:text-[var(--sim-text-main)] hover:bg-[var(--sim-surface-2)]'
                                 }`}
                         >
                             <span>{tab.icon}</span>
@@ -1801,19 +1858,18 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                     ))}
                 </div>
 
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#111]/50">
                     {activeTab === 'system' && (
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '기지 강화' : 'Base Upgrades'}
                                 </h4>
-                                <p className="text-slate-300 text-xs leading-relaxed">
+                                <p className="text-[var(--sim-text-sub)] text-xs leading-relaxed">
                                     {language === 'ko'
                                         ? '기지 레벨이 오를 때마다 정착지가 더 안전해집니다. 강화된 기지는 위험 이벤트에서 받는 피해를 줄여줍니다.'
                                         : 'Upgrading your base makes the settlement safer. Fortifications reduce damage during danger events.'}
                                 </p>
-                                <ul className="space-y-1 text-xs text-slate-400 list-disc list-inside bg-black/20 p-3 rounded-lg border border-[#222]">
+                                <ul className="space-y-1 text-xs text-[var(--sim-text-muted)] list-disc list-inside bg-[var(--sim-surface-1)]/70 p-3 rounded-lg border border-[var(--sim-border)]">
                                     <li>{language === 'ko' ? '레벨 0: 기본 상태' : 'Level 0: Basic'}</li>
                                     <li>{language === 'ko' ? '레벨 1: 위험 이벤트 피해 -1' : 'Level 1: Danger damage -1'}</li>
                                     <li>{language === 'ko' ? '레벨 2: 위험 이벤트 피해 -2 (최대)' : 'Level 2: Danger damage -2 (max)'}</li>
@@ -1821,10 +1877,10 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '생존 규칙' : 'Survival Rules'}
                                 </h4>
-                                <ul className="space-y-2 text-xs text-slate-300">
+                                <ul className="space-y-2 text-xs text-[var(--sim-text-sub)]">
                                     <li>
                                         <span className="text-red-400 font-bold">{language === 'ko' ? '식량:' : 'Food:'}</span>
                                         {language === 'ko'
@@ -1853,10 +1909,10 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '자원 한도' : 'Resource Caps'}
                                 </h4>
-                                <ul className="space-y-2 text-xs text-slate-300">
+                                <ul className="space-y-2 text-xs text-[var(--sim-text-sub)]">
                                     <li>
                                         {language === 'ko'
                                             ? '체력 최대 20, 식량/치료제/돈은 최대 30까지 저장됩니다.'
@@ -1871,10 +1927,10 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '우주선 / 엔딩' : 'Ship / Ending'}
                                 </h4>
-                                <ul className="space-y-2 text-xs text-slate-300">
+                                <ul className="space-y-2 text-xs text-[var(--sim-text-sub)]">
                                     <li>
                                         {language === 'ko'
                                             ? '60일차에 우주선이 완성됩니다. 즉시 탈출하거나 계속 생존을 선택할 수 있습니다.'
@@ -1889,10 +1945,10 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '부활 혈청' : 'Resurrector Serum'}
                                 </h4>
-                                <ul className="space-y-2 text-xs text-slate-300">
+                                <ul className="space-y-2 text-xs text-[var(--sim-text-sub)]">
                                     <li>
                                         {language === 'ko'
                                             ? '보유한 은이 충분하면 낮은 확률로 혈청 상인이 등장합니다.'
@@ -1911,37 +1967,37 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                     {activeTab === 'event' && (
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '이벤트 종류' : 'Event Types'}
                                 </h4>
                                 <div className="grid gap-3">
-                                    <div className="bg-red-900/10 border border-red-900/30 p-3 rounded-lg">
+                                    <div className="sim-card p-3">
                                         <div className="text-red-400 font-bold text-xs mb-1">⚔️ {language === 'ko' ? '위협 (Danger)' : 'Danger'}</div>
-                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                        <div className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                             {language === 'ko'
                                                 ? '습격/공격성 사건입니다. 전투 기술이 중요합니다.'
                                                 : 'Raid-style threats. Combat skills matter most.'}
                                         </div>
                                     </div>
-                                    <div className="bg-purple-900/10 border border-purple-900/30 p-3 rounded-lg">
+                                    <div className="sim-card p-3">
                                         <div className="text-purple-400 font-bold text-xs mb-1">🧠 {language === 'ko' ? '정신 (Mind)' : 'Mind'}</div>
-                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                        <div className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                             {language === 'ko'
                                                 ? '관계, 상실, 심령 파동 등 정신적 사건입니다. 감정적 피해/회복이 중심입니다.'
                                                 : 'Relationships, loss, and psychic waves. Emotional impact and recovery.'}
                                         </div>
                                     </div>
-                                    <div className="bg-blue-900/10 border border-blue-900/30 p-3 rounded-lg">
+                                    <div className="sim-card p-3">
                                         <div className="text-blue-400 font-bold text-xs mb-1">📦 {language === 'ko' ? '자원 (Resource)' : 'Resource'}</div>
-                                        <div className="text-slate-400 text-[10px] leading-relaxed">
+                                        <div className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                             {language === 'ko'
                                                 ? '자원/비전투 사건입니다. 사교나 기술이 도움이 됩니다.'
                                                 : 'Resource and non-combat events. Social or technical skills help.'}
                                         </div>
                                     </div>
-                                    <div className="bg-slate-800/30 border border-slate-700/30 p-3 rounded-lg">
-                                        <div className="text-slate-300 font-bold text-xs mb-1">☁️ {language === 'ko' ? '일상 (Daily)' : 'Daily'}</div>
-                                        <div className="text-slate-500 text-[10px] leading-relaxed">
+                                    <div className="sim-card p-3">
+                                        <div className="text-[var(--sim-text-sub)] font-bold text-xs mb-1">☁️ {language === 'ko' ? '일상 (Daily)' : 'Daily'}</div>
+                                        <div className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                             {language === 'ko'
                                                 ? '조용한 하루입니다. 정착민의 주 기술에 따라 자원을 채집하거나 기지를 보수합니다.'
                                                 : 'A quiet day. Settlers use main skills to gather or maintain.'}
@@ -1954,18 +2010,18 @@ function HelpModal({ onClose, language }: HelpModalProps) {
 
                     {activeTab === 'trait' && (
                         <div className="space-y-4">
-                            <div className="text-xs text-slate-400 mb-2">
+                            <div className="text-xs text-[var(--sim-text-muted)] mb-2">
                                 {language === 'ko'
                                     ? '보유한 특성에 따라 게임 내에서 지속적인 효과를 받거나, 특정 이벤트에서 선택지가 추가됩니다.'
                                     : 'Traits provide passive effects or unlock special choices in events.'}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {Object.entries(TRAIT_EFFECTS).map(([id, effect]) => (
-                                    <div key={id} className="bg-black/40 border border-[#222] p-2 rounded flex flex-col justify-center">
-                                        <span className="text-[#e7c07a] font-bold text-xs mb-1 capitalize">
+                                    <div key={id} className="sim-card p-2 flex flex-col justify-center">
+                                        <span className="text-[var(--sim-accent)] font-bold text-xs mb-1 capitalize">
                                             {language === 'ko' ? (TRAIT_NAMES_KO[id] || id.replace(/_/g, ' ')) : id.replace(/_/g, ' ')}
                                         </span>
-                                        <span className="text-[10px] text-slate-400 leading-tight">{language === 'ko' ? effect.ko : effect.en}</span>
+                                        <span className="text-[10px] text-[var(--sim-text-muted)] leading-tight">{language === 'ko' ? effect.ko : effect.en}</span>
                                     </div>
                                 ))}
                             </div>
@@ -1975,44 +2031,44 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                     {activeTab === 'skill' && (
                         <div className="space-y-6">
                             <div className="space-y-4">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '의학 기술 (Medicine)' : 'Medicine Skill'}
                                 </h4>
-                                <p className="text-slate-300 text-xs mb-2">
+                                <p className="text-[var(--sim-text-sub)] text-xs mb-2">
                                     {language === 'ko'
                                         ? '의학 레벨이 높을수록 치료제 사용 시 회복량이 증가합니다.'
                                         : 'Higher Medicine level increases HP restored by meds.'}
                                 </p>
                                 <div className="grid grid-cols-4 gap-2 text-center">
-                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
-                                        <div className="text-[10px] text-slate-500">Lv 0-3</div>
+                                    <div className="sim-card p-2">
+                                        <div className="text-[10px] text-[var(--sim-text-muted)]">Lv 0-3</div>
                                         <div className="text-green-400 font-bold text-sm">+1 HP</div>
                                     </div>
-                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
-                                        <div className="text-[10px] text-slate-500">Lv 4-6</div>
+                                    <div className="sim-card p-2">
+                                        <div className="text-[10px] text-[var(--sim-text-muted)]">Lv 4-6</div>
                                         <div className="text-green-400 font-bold text-sm">+2 HP</div>
                                     </div>
-                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
-                                        <div className="text-[10px] text-slate-500">Lv 7-10</div>
+                                    <div className="sim-card p-2">
+                                        <div className="text-[10px] text-[var(--sim-text-muted)]">Lv 7-10</div>
                                         <div className="text-green-400 font-bold text-sm">+3 HP</div>
                                     </div>
-                                    <div className="bg-[#111] p-2 rounded border border-[#333]">
-                                        <div className="text-[10px] text-slate-500">Lv 11+</div>
+                                    <div className="sim-card p-2">
+                                        <div className="text-[10px] text-[var(--sim-text-muted)]">Lv 11+</div>
                                         <div className="text-green-400 font-bold text-sm">+4 HP</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '기술 체크' : 'Skill Checks'}
                                 </h4>
-                                <p className="text-slate-300 text-xs">
+                                <p className="text-[var(--sim-text-sub)] text-xs">
                                     {language === 'ko'
                                         ? '이벤트 발생 시 관련 기술 평균 레벨로 성공 확률이 결정됩니다. 성공 확률은 5~95% 범위로 제한됩니다.'
                                         : 'Skill checks use the average level of the related skills. Chances are clamped to 5~95%.'}
                                 </p>
-                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                <p className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                     {language === 'ko'
                                         ? '기본 확률은 레벨 0 기준 20%에서 시작해 레벨 1마다 5%씩 증가합니다. 고정 확률 이벤트는 이동 특성(재빠른 걸음/민첩 +10, 신속 +20, 느림보 -20)의 보정을 받습니다.'
                                         : 'Base chance starts at 20% at level 0 and increases by 5% per level. Fixed-chance events are modified by movement traits (+10 each for Fast Walker/Nimble, +20 for Jogger, -20 for Slowpoke).'}
@@ -2020,15 +2076,15 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '기술 보너스' : 'Skill Bonuses'}
                                 </h4>
-                                <p className="text-slate-300 text-xs">
+                                <p className="text-[var(--sim-text-sub)] text-xs">
                                     {language === 'ko'
                                         ? '스킬 체크가 없는 이벤트는 관련 기술 평균에 따라 결과가 보정됩니다.'
                                         : 'Events without skill checks get a bonus based on the related skill average.'}
                                 </p>
-                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                <p className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                     {language === 'ko'
                                         ? '평균 레벨 3 이하: -1, 8 이상: +1, 13 이상: +2'
                                         : 'Avg ≤ 3: -1, Avg ≥ 8: +1, Avg ≥ 13: +2'}
@@ -2036,15 +2092,15 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-[#e7c07a] font-bold text-sm border-b border-[#333] pb-1 mb-2">
+                                <h4 className="sim-section-title border-b border-[var(--sim-border)] pb-1 mb-2">
                                     {language === 'ko' ? '숙련도 & 경험치' : 'Proficiency & XP'}
                                 </h4>
-                                <p className="text-slate-300 text-xs">
+                                <p className="text-[var(--sim-text-sub)] text-xs">
                                     {language === 'ko'
                                         ? '스킬 체크가 발생하면 관련 기술에 경험치가 누적됩니다.'
                                         : 'Skill checks grant XP to the related skills.'}
                                 </p>
-                                <p className="text-slate-400 text-[10px] leading-relaxed">
+                                <p className="text-[var(--sim-text-muted)] text-[10px] leading-relaxed">
                                     {language === 'ko'
                                         ? '기본 10 XP + 성공 보너스 5 XP, 열정에 따라 배율(없음 0.5 / 관심 1.0 / 불꽃 1.5)이 적용됩니다.'
                                         : 'Base 10 XP + 5 on success, multiplied by passion (None 0.5 / Minor 1.0 / Major 1.5).'}
@@ -2052,15 +2108,7 @@ function HelpModal({ onClose, language }: HelpModalProps) {
                             </div>
                         </div>
                     )}
-                </div>
-
-                <div className="p-4 bg-[#111] border-t border-[#333] text-center">
-                    <button onClick={onClose} className="px-8 py-2 bg-[#9f752a] hover:bg-[#b08535] text-white rounded font-bold text-xs transition-colors shadow">
-                        {language === 'ko' ? '닫기' : 'Close'}
-                    </button>
-                </div>
-            </div>
-        </div>
+        </SimModalShell>
     );
 }
 
@@ -2459,7 +2507,7 @@ export default function SimulationClient() {
             : 'How many days can your character survive?';
 
         let startHp = START_STATS.hp;
-        let startFood = START_STATS.food;
+        const startFood = START_STATS.food;
         let startMeds = START_STATS.meds;
         let startMoney = START_STATS.money;
 
@@ -2587,7 +2635,7 @@ export default function SimulationClient() {
         let systemNote = '';
         let choiceResponse = choice?.response;
 
-        let skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
+        const skillXpGains: Array<{ skill: string; newLevel: number; newXp: number; leveledUp: boolean }> = [];
 
         if (choice?.skillCheck) {
             const { success, great, chance, greatChance } = rollSkillCheck(choice.skillCheck);
@@ -3267,11 +3315,11 @@ export default function SimulationClient() {
 
     if (!canSimulate) {
         return (
-            <div className="max-w-2xl mx-auto text-center bg-[#1b1b1b] border border-[#6b6b6b] p-8">
-                <h1 className="text-2xl font-bold text-white mb-4">
+            <div className="max-w-2xl mx-auto text-center sim-panel p-8">
+                <h1 className="text-2xl font-bold text-[var(--sim-text-main)] mb-4">
                     {language === 'ko' ? '시뮬레이션 이용 불가' : 'Simulation Locked'}
                 </h1>
-                <p className="text-gray-400 mb-6">
+                <p className="text-[var(--sim-text-sub)] mb-6">
                     {language === 'ko'
                         ? '스킬 설문까지 완료해야 시뮬레이션이 가능합니다.'
                         : 'You need to complete the skill test to run the simulation.'}
@@ -3279,7 +3327,7 @@ export default function SimulationClient() {
                 {(s || contextTestPhase === 'skill') && (
                     <button
                         onClick={() => router.push('/test/intro')}
-                        className="px-6 py-3 bg-[#1c3d5a] hover:bg-[#2c5282] text-white font-bold border border-[#102a43]"
+                        className="sim-btn sim-btn-secondary px-6 py-3"
                     >
                         {language === 'ko' ? '테스트 다시 시작' : 'Start Test'}
                     </button>
@@ -3318,7 +3366,7 @@ export default function SimulationClient() {
         if (delta.money !== 0) items.push({ label: language === 'ko' ? '돈' : 'Money', value: after.money, delta: delta.money, color: 'green' });
 
         if (items.length === 0) return (
-            <div className="mt-6 py-5 px-8 rounded-xl border border-slate-700 bg-slate-800/20 text-slate-400 text-sm font-medium">
+            <div className="mt-6 py-4 px-6 rounded-xl border border-[var(--sim-border)] bg-[var(--sim-surface-1)]/70 text-[var(--sim-text-muted)] text-sm font-medium">
                 {language === 'ko' ? '자원 변화 없음' : 'No resource changes'}
             </div>
         );
@@ -3331,7 +3379,7 @@ export default function SimulationClient() {
         };
 
         return (
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {items.map((item, idx) => {
                     const c = colorMap[item.color];
                     return (
@@ -3344,7 +3392,7 @@ export default function SimulationClient() {
                                 borderWidth: '2px',
                                 borderStyle: 'solid'
                             }}
-                            className="px-6 py-4 rounded-2xl flex flex-col items-center justify-center min-w-[120px] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.3)] transition-all hover:scale-105"
+                            className="px-4 py-3 rounded-xl flex flex-col items-center justify-center min-w-[110px] shadow-[0_10px_20px_-6px_rgba(0,0,0,0.25)] transition-all"
                         >
                             <span className="text-[11px] font-black opacity-80 uppercase tracking-widest mb-1">{item.label}</span>
                             <div className="flex flex-col items-center gap-0.5">
@@ -3363,21 +3411,21 @@ export default function SimulationClient() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 text-slate-100 pb-10">
+        <div className="max-w-5xl mx-auto space-y-8 pb-10 text-[var(--sim-text-main)]">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[#e7c07a] tracking-tight">
+                    <h1 className="text-2xl md:text-3xl font-black text-[var(--sim-accent)] tracking-tight">
                         {language === 'ko' ? '생존 시뮬레이션' : 'Survival Simulation'}
                     </h1>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-[var(--sim-text-sub)]">
                         {language === 'ko'
                             ? '4계절 × 15일 = 60일 생존 시 우주선 탈출 성공'
                             : '4 Seasons × 15 days = Escape if you survive 60 days'}
                     </p>
                 </div>
-                <div className="text-right text-xs text-slate-400">
+                <div className="text-right text-xs text-[var(--sim-text-sub)]">
                     {language === 'ko' ? '정착민' : 'Colonist'}:{' '}
-                    <span className="text-slate-100 font-semibold">{userInfo?.name || '정착민'}</span>
+                    <span className="sim-chip px-3 py-1 text-[var(--sim-text-main)]">{userInfo?.name || '정착민'}</span>
                 </div>
             </div>
 
@@ -3391,12 +3439,12 @@ export default function SimulationClient() {
                             <div className="reigns-card-inner">
                                 {simState.status === 'dead' ? (
                                     <div className="reigns-card-face reigns-card-front flex flex-col items-center justify-center text-center p-6 space-y-4">
-                                        <div className="text-red-500 text-3xl font-black tracking-tighter">GAME OVER</div>
+                                        <div className="text-[var(--sim-danger)] text-3xl font-black tracking-tighter">GAME OVER</div>
                                         <div className="text-5xl">💀</div>
-                                        <div className="text-red-200 text-lg font-bold">
+                                        <div className="text-[var(--sim-text-main)] text-lg font-bold">
                                             {language === 'ko' ? `${simState.day}일차에 사망` : `Died on Day ${simState.day}`}
                                         </div>
-                                        <div className="text-slate-400 text-xs leading-relaxed px-4">
+                                        <div className="text-[var(--sim-text-sub)] text-xs leading-relaxed px-4">
                                             {language === 'ko'
                                                 ? '사망으로 인해 최종 점수가 10% 감소되어 리더보드에 저장되었습니다.'
                                                 : 'Final score reduced by 10% due to death and saved to leaderboard.'}
@@ -3404,19 +3452,19 @@ export default function SimulationClient() {
                                         <div className="flex flex-row w-full gap-2 mt-4 px-2">
                                             <button
                                                 onClick={() => window.location.reload()}
-                                                className="flex-1 py-3 rounded-xl bg-red-900/40 hover:bg-red-800/60 text-white text-xs font-bold border border-red-700/50 transition-all"
+                                                className="sim-btn sim-btn-danger flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '재도전' : 'Restart'}
                                             </button>
                                             <button
                                                 onClick={() => router.push('/leaderboard')}
-                                                className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-600 transition-all"
+                                                className="sim-btn sim-btn-ghost flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '순위표' : 'Ranking'}
                                             </button>
                                             <button
                                                 onClick={() => router.push('/')}
-                                                className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-600 transition-all"
+                                                className="sim-btn sim-btn-ghost flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '홈으로' : 'Home'}
                                             </button>
@@ -3424,12 +3472,12 @@ export default function SimulationClient() {
                                     </div>
                                 ) : simState.status === 'success' ? (
                                     <div className="reigns-card-face reigns-card-front flex flex-col items-center justify-center text-center p-6 space-y-4">
-                                        <div className="text-green-500 text-3xl font-black tracking-tighter">VICTORY</div>
+                                        <div className="text-[var(--sim-success)] text-3xl font-black tracking-tighter">VICTORY</div>
                                         <div className="text-5xl">🚀</div>
-                                        <div className="text-green-100 text-lg font-bold">
+                                        <div className="text-[var(--sim-text-main)] text-lg font-bold">
                                             {language === 'ko' ? '변방계 탈출 성공!' : 'Escaped the Rim!'}
                                         </div>
-                                        <div className="text-slate-400 text-xs leading-relaxed px-4">
+                                        <div className="text-[var(--sim-text-sub)] text-xs leading-relaxed px-4">
                                             {language === 'ko'
                                                 ? '60일간의 사투 끝에 무사히 행성을 떠납니다. 점수가 리더보드에 기록되었습니다.'
                                                 : 'Safely left the planet after 60 days. Score recorded on leaderboard.'}
@@ -3437,19 +3485,19 @@ export default function SimulationClient() {
                                         <div className="flex flex-row w-full gap-2 mt-4 px-2">
                                             <button
                                                 onClick={() => window.location.reload()}
-                                                className="flex-1 py-3 rounded-xl bg-green-900/40 hover:bg-green-800/60 text-white text-xs font-bold border border-green-700/50 transition-all"
+                                                className="sim-btn sim-btn-primary flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '다시하기' : 'Restart'}
                                             </button>
                                             <button
                                                 onClick={() => router.push('/leaderboard')}
-                                                className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-600 transition-all"
+                                                className="sim-btn sim-btn-ghost flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '순위표' : 'Ranking'}
                                             </button>
                                             <button
                                                 onClick={() => router.push('/')}
-                                                className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-600 transition-all"
+                                                className="sim-btn sim-btn-ghost flex-1 py-3 text-xs"
                                             >
                                                 {language === 'ko' ? '홈으로' : 'Home'}
                                             </button>
@@ -3459,18 +3507,18 @@ export default function SimulationClient() {
                                     <>
                                         <div className={`reigns-card-face reigns-card-front flex flex-col text-center ${currentCard?.event.isRainbow ? 'rainbow-glow' : ''}`}>
                                             <div className="flex flex-col h-full">
-                                                <div className="text-xs text-slate-400">
+                                                <div className="text-xs text-[var(--sim-text-sub)]">
                                                     {currentCard
                                                         ? `Day ${currentCard.day} • ${currentCard.season}`
                                                         : (language === 'ko' ? '시뮬레이션 대기 중' : 'Simulation Standby')}
                                                 </div>
-                                                <div className="mt-4 text-2xl md:text-3xl font-bold text-white leading-tight">
+                                                <div className="mt-4 text-2xl md:text-3xl font-bold text-[var(--sim-text-main)] leading-tight">
                                                     {currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game')}
                                                 </div>
                                                 <div className="mt-4 text-5xl">
                                                     {getEventIcon(currentCard?.event)}
                                                 </div>
-                                                <div className="mt-4 text-sm md:text-base text-slate-300 leading-relaxed overflow-y-auto max-h-[120px] px-2">
+                                                <div className="mt-4 text-sm md:text-base text-[var(--sim-text-sub)] leading-relaxed overflow-y-auto max-h-[120px] px-2 custom-scrollbar">
                                                     {currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game')}
                                                 </div>
 
@@ -3478,13 +3526,13 @@ export default function SimulationClient() {
                                                     <div className="mt-auto pt-6 flex flex-col sm:flex-row gap-3 justify-center">
                                                         <button
                                                             onClick={resumeSimulation}
-                                                            className={`flex-1 px-6 py-3 rounded-xl bg-[#1c3d5a] hover:bg-[#2c5282] text-white text-sm font-bold border-2 border-[#102a43] transition-all ${!hasTempSave ? 'hidden' : ''}`}
+                                                            className={`sim-btn sim-btn-secondary flex-1 px-6 py-3 text-sm ${!hasTempSave ? 'hidden' : ''}`}
                                                         >
                                                             {language === 'ko' ? '이어하기' : 'Resume'}
                                                         </button>
                                                         <button
                                                             onClick={startSimulation}
-                                                            className="flex-1 px-6 py-3 rounded-xl bg-[#9f752a] hover:bg-[#b08535] text-white text-sm font-bold border-2 border-[#7a5a20] transition-all"
+                                                            className="sim-btn sim-btn-primary flex-1 px-6 py-3 text-sm"
                                                         >
                                                             {language === 'ko' ? (hasTempSave ? '새로 시작' : '시작하기') : (hasTempSave ? 'New Game' : 'Start')}
                                                         </button>
@@ -3529,7 +3577,7 @@ export default function SimulationClient() {
                                                                 };
 
                                                                 let chanceText = '';
-                                                                let outcomeInfo = [] as string[];
+                                                                const outcomeInfo = [] as string[];
                                                                 if (choice.skillCheck) {
                                                                     const avg = getGroupAverage(choice.skillCheck.group);
                                                                     let chance = choice.skillCheck.fixedChance ?? getSkillChance(avg, choice.skillCheck.advanced);
@@ -3558,16 +3606,16 @@ export default function SimulationClient() {
                                                                     <div key={choice.id} className="group relative">
                                                                         <button
                                                                             onClick={() => resolveChoice(choice.id)}
-                                                                            className={`w-full px-3 py-2.5 rounded-xl bg-[#1c3d5a] hover:bg-[#204a6e] text-white text-xs border ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isSpecial ? 'border-[#e7c07a]' : 'border-slate-700')} transition-all flex flex-col items-center justify-center min-h-[50px]`}
+                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isSpecial ? 'border-[var(--sim-accent)]' : 'border-[var(--sim-border)]')} flex flex-col items-center justify-center min-h-[50px]`}
                                                                         >
                                                                             <div className="font-bold">{choice.label}</div>
-                                                                            {chanceText && <div className="text-[10px] text-[#e7c07a] font-black">{chanceText}</div>}
+                                                                            {chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
                                                                         </button>
                                                                         {outcomeInfo.length > 0 && (
-                                                                            <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-[#0a192f] border border-blue-800 rounded-lg shadow-2xl text-[9px] text-slate-200 pointer-events-none opacity-0 group-hover:opacity-100 transition-all">
-                                                                                <div className="font-black text-[#e7c07a] border-b border-blue-800/30 pb-1 mb-1">{language === 'ko' ? '예상 결과' : 'Expectation'}</div>
+                                                                            <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 p-2 bg-[var(--sim-surface-1)] border border-[var(--sim-border)] rounded-lg shadow-2xl text-[9px] text-[var(--sim-text-sub)] pointer-events-none opacity-0 group-hover:opacity-100 transition-all">
+                                                                                <div className="font-black text-[var(--sim-accent)] border-b border-[var(--sim-border)] pb-1 mb-1">{language === 'ko' ? '예상 결과' : 'Expectation'}</div>
                                                                                 {outcomeInfo.map((info, i) => <div key={i}>{info}</div>)}
-                                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#0a192f]"></div>
+                                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[var(--sim-surface-1)]"></div>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -3580,17 +3628,17 @@ export default function SimulationClient() {
                                         </div>
 
                                         <div className="reigns-card-face reigns-card-back flex flex-col text-center p-6">
-                                            <div className="text-xs text-[#e7c07a] font-bold uppercase tracking-wider mb-2">
+                                            <div className="text-xs text-[var(--sim-accent)] font-bold uppercase tracking-wider mb-2">
                                                 {language === 'ko' ? '사건 결과' : 'Event Result'}
                                             </div>
                                             <div className="flex-1 flex flex-col justify-center overflow-y-auto px-2">
-                                                <div className="text-sm md:text-base text-slate-200 leading-relaxed font-medium mb-4 whitespace-pre-line">
+                                                <div className="text-sm md:text-base text-[var(--sim-text-main)] leading-relaxed font-medium mb-4 whitespace-pre-line">
                                                     {currentCard?.entry?.responseCard || currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
                                                 </div>
                                                 {currentCard?.entry && renderDeltaItems(currentCard.entry)}
                                             </div>
-                                            <div className="mt-4 pt-4 border-t border-slate-800">
-                                                <div className="text-[10px] text-slate-500 italic">
+                                            <div className="mt-4 pt-4 border-t border-[var(--sim-border)]">
+                                                <div className="text-[10px] text-[var(--sim-text-muted)] italic">
                                                     {language === 'ko' ? '화살표 버튼을 눌러 다음 날로 이동하세요' : 'Press the arrow to advance day'}
                                                 </div>
                                             </div>
@@ -3604,9 +3652,9 @@ export default function SimulationClient() {
                             <button
                                 onClick={advanceDay}
                                 disabled={!canAdvanceDay}
-                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-4 flex items-center justify-center transition-all z-20 ${canAdvanceDay
-                                    ? 'bg-[#9f752a] hover:bg-[#b08535] text-white border-[#7a5a20] shadow-[0_5px_15px_rgba(159,117,42,0.4)] hover:scale-110 active:scale-90 animate-bounce-x'
-                                    : 'bg-[#1a1a1a] text-gray-600 border-[#2a2a2a] cursor-not-allowed opacity-50'
+                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay
+                                    ? 'bg-[var(--sim-accent)] hover:brightness-110 text-white border-[var(--sim-accent)] shadow-[0_4px_14px_rgba(0,0,0,0.28)] hover:scale-105 active:scale-95 animate-bounce-x'
+                                    : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                     }`}
                                 title={language === 'ko' ? '다음 날로' : 'Next Day'}
                             >
@@ -3619,42 +3667,28 @@ export default function SimulationClient() {
                 </div>
             </div>
 
-            <div className="bg-[#0d0d0d]/80 backdrop-blur-md border border-[#2a2a2a] rounded-2xl shadow-xl p-4 md:p-6 space-y-6">
+            <div className="sim-panel p-4 md:p-6 space-y-6">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-slate-500 font-bold uppercase leading-none mb-1">{language === 'ko' ? 'Day' : 'Day'}</div>
-                        <div className="text-white font-black text-base">{simState.day} / {MAX_DAYS}</div>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-slate-500 font-bold uppercase leading-none mb-1">{language === 'ko' ? '계절' : 'Season'}</div>
-                        <div className="text-[#e7c07a] font-black text-base truncate w-full text-center">{getSeasonLabel(simState.day, language)}</div>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-red-500/80 font-bold uppercase leading-none mb-1">HP</div>
-                        <div className="text-white font-black text-base">{simState.hp} / 20</div>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-amber-600 font-bold uppercase leading-none mb-1">{language === 'ko' ? '식량' : 'Food'}</div>
-                        <div className="text-white font-black text-base">{simState.food} / 30</div>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-pink-500 font-bold uppercase leading-none mb-1">{language === 'ko' ? '치료제' : 'Meds'}</div>
-                        <div className="text-white font-black text-base">{simState.meds} / 30</div>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-3 flex flex-col items-center">
-                        <div className="text-[10px] text-green-500 font-bold uppercase leading-none mb-1">{language === 'ko' ? '돈' : 'Money'}</div>
-                        <div className="text-white font-black text-base">{simState.money} / 30</div>
-                    </div>
+                    <SimStatTile label={language === 'ko' ? 'Day' : 'Day'} value={`${simState.day} / ${MAX_DAYS}`} />
+                    <SimStatTile
+                        label={language === 'ko' ? '계절' : 'Season'}
+                        value={getSeasonLabel(simState.day, language)}
+                        valueClassName="text-[var(--sim-accent)] truncate w-full text-center"
+                    />
+                    <SimStatTile label="HP" value={`${simState.hp} / 20`} labelClassName="text-red-500/80" />
+                    <SimStatTile label={language === 'ko' ? '식량' : 'Food'} value={`${simState.food} / 30`} labelClassName="text-amber-600" />
+                    <SimStatTile label={language === 'ko' ? '치료제' : 'Meds'} value={`${simState.meds} / 30`} labelClassName="text-pink-500" />
+                    <SimStatTile label={language === 'ko' ? '돈' : 'Money'} value={`${simState.money} / 30`} labelClassName="text-green-500" />
                 </div>
 
-                <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[#222]">
+                <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[var(--sim-border)]">
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={handleUseMeds}
                             disabled={!canUseMeds}
-                            className={`px-4 py-2 text-xs font-black rounded-lg border-2 transition-all ${canUseMeds
-                                ? 'bg-green-900/40 hover:bg-green-800/60 text-green-100 border-green-700/50'
-                                : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed opacity-50'
+                            className={`sim-btn px-4 py-2 text-xs ${canUseMeds
+                                ? 'sim-btn-secondary'
+                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                 }`}
                         >
                             {language === 'ko' ? `💉 치료제 사용 (+${healAmount})` : `💉 Use Meds (+${healAmount})`}
@@ -3662,9 +3696,9 @@ export default function SimulationClient() {
                         <button
                             onClick={handleUpgradeBase}
                             disabled={!canUpgradeBase}
-                            className={`px-4 py-2 text-xs font-black rounded-lg border-2 transition-all ${canUpgradeBase
-                                ? 'bg-purple-900/40 hover:bg-purple-800/60 text-purple-100 border-purple-700/50'
-                                : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed opacity-50'
+                            className={`sim-btn px-4 py-2 text-xs ${canUpgradeBase
+                                ? 'sim-btn-primary'
+                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                 }`}
                         >
                             {language === 'ko'
@@ -3677,9 +3711,9 @@ export default function SimulationClient() {
                                 setShowBoardConfirm(true);
                             }}
                             disabled={!canBoardNow}
-                            className={`px-4 py-2 text-xs font-black rounded-lg border-2 transition-all ${canBoardNow
-                                ? 'bg-amber-900/40 hover:bg-amber-800/60 text-amber-100 border-amber-700/50'
-                                : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed opacity-50'
+                            className={`sim-btn px-4 py-2 text-xs ${canBoardNow
+                                ? 'sim-btn-danger'
+                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                 }`}
                         >
                             {language === 'ko' ? '🛸 우주선 탑승' : '🛸 Board Ship'}
@@ -3687,45 +3721,45 @@ export default function SimulationClient() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        <button onClick={() => setShowLog(!showLog)} className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-[10px] font-bold border border-slate-600 transition-all uppercase">
+                        <button onClick={() => setShowLog(!showLog)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
                             {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Logs') : (language === 'ko' ? '로그 보기' : 'Show Logs')}
                         </button>
-                        <button onClick={() => setShowTraitsModal(true)} className="px-3 py-2 rounded-lg bg-purple-900/30 hover:bg-purple-800/50 text-purple-200 text-[10px] font-bold border border-purple-700/40 transition-all uppercase">
+                        <button onClick={() => setShowTraitsModal(true)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
                             {language === 'ko' ? '특성' : 'Traits'}
                         </button>
-                        <button onClick={() => setShowSkillsModal(true)} className="px-3 py-2 rounded-lg bg-blue-900/30 hover:bg-blue-800/50 text-blue-200 text-[10px] font-bold border border-blue-700/40 transition-all uppercase">
+                        <button onClick={() => setShowSkillsModal(true)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
                             {language === 'ko' ? '기술' : 'Skills'}
                         </button>
-                        <button onClick={() => setShowHelpModal(true)} className="px-3 py-2 rounded-lg bg-[#9f752a]/20 hover:bg-[#9f752a]/40 text-[#e7c07a] text-[10px] font-bold border border-[#9f752a]/40 transition-all uppercase flex items-center gap-1">
+                        <button onClick={() => setShowHelpModal(true)} className="sim-btn sim-btn-primary px-3 py-2 text-[10px] uppercase flex items-center gap-1">
                             <span>?</span> {language === 'ko' ? '도움말' : 'Help'}
                         </button>
                     </div>
                 </div>
 
                 {submitMessage && (
-                    <div className="text-[10px] text-[#e7c07a] font-medium text-center animate-pulse">
+                    <div className="text-[10px] text-[var(--sim-accent)] font-medium text-center animate-pulse">
                         {submitMessage}
                     </div>
                 )}
             </div>
 
             {showLog && (
-                <div className="bg-[#0d0d0d] border border-[#2a2a2a] rounded-2xl p-5 shadow-2xl animate-in slide-in-from-bottom-5 duration-300">
-                    <h3 className="text-xs font-black text-[#e7c07a] mb-4 uppercase tracking-[0.2em]">
+                <div className="sim-panel p-5 animate-in slide-in-from-bottom-5 duration-300">
+                    <h3 className="text-xs font-black text-[var(--sim-accent)] mb-4 uppercase tracking-[0.2em]">
                         --- {language === 'ko' ? '정착지 생존 기록' : 'Colony Survival Chronicles'} ---
                     </h3>
                     <div className="max-h-[500px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-                        {simState.log.length === 0 && <div className="text-slate-600 text-xs italic text-center py-10">{language === 'ko' ? '아직 기록된 내용이 없습니다.' : 'Chronicles are empty.'}</div>}
+                        {simState.log.length === 0 && <div className="text-[var(--sim-text-muted)] text-xs italic text-center py-10">{language === 'ko' ? '아직 기록된 내용이 없습니다.' : 'Chronicles are empty.'}</div>}
                         {simState.log.map((entry, idx) => (
-                            <div key={`${entry.day}-${idx}`} className="rounded-xl border border-[#222] bg-black/40 p-4 space-y-3 hover:border-[#333] transition-colors">
-                                <div className="flex items-center justify-between border-b border-[#222] pb-2">
-                                    <div className="text-[10px] text-slate-500 font-bold">DAY {entry.day} • {entry.season}</div>
-                                    <div className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${entry.status === 'good' ? 'bg-green-900/30 text-green-400' : entry.status === 'bad' ? 'bg-red-900/30 text-red-400' : 'bg-slate-800 text-slate-400'}`}>
+                            <div key={`${entry.day}-${idx}`} className="sim-card p-4 space-y-3 hover:border-[var(--sim-accent)] transition-colors">
+                                <div className="flex items-center justify-between border-b border-[var(--sim-border)] pb-2">
+                                    <div className="text-[10px] text-[var(--sim-text-muted)] font-bold">DAY {entry.day} • {entry.season}</div>
+                                    <div className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${entry.status === 'good' ? 'bg-green-900/30 text-green-400' : entry.status === 'bad' ? 'bg-red-900/30 text-red-400' : 'bg-[var(--sim-surface-1)] text-[var(--sim-text-muted)] border border-[var(--sim-border)]'}`}>
                                         {entry.title}
                                     </div>
                                 </div>
-                                <div className="text-xs text-slate-300 leading-relaxed"><span className="text-[#e7c07a]/60 font-bold mr-1">{language === 'ko' ? '상황:' : 'Event:'}</span> {entry.description}</div>
-                                <div className="text-xs text-white font-medium bg-[#1a1a1a] p-2 rounded-lg border border-[#222]"><span className="text-[#e7c07a] font-bold mr-1">{language === 'ko' ? '대처:' : 'Response:'}</span> {entry.response}</div>
+                                <div className="text-xs text-[var(--sim-text-sub)] leading-relaxed"><span className="text-[var(--sim-accent)]/80 font-bold mr-1">{language === 'ko' ? '상황:' : 'Event:'}</span> {entry.description}</div>
+                                <div className="text-xs text-[var(--sim-text-main)] font-medium bg-[var(--sim-surface-1)] p-2 rounded-lg border border-[var(--sim-border)]"><span className="text-[var(--sim-accent)] font-bold mr-1">{language === 'ko' ? '대처:' : 'Response:'}</span> {entry.response}</div>
                                 <div className="pt-1">{renderDeltaItems(entry)}</div>
                             </div>
                         ))}
@@ -3739,40 +3773,50 @@ export default function SimulationClient() {
             )}
 
             {showTraitsModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                        <div className="bg-[#2c1d3f] p-4 flex justify-between items-center border-b border-[#3f2a56]">
-                            <h3 className="text-sm font-black text-purple-100 uppercase tracking-widest flex items-center gap-2">🧬 {language === 'ko' ? '특성 목록' : 'Traits'}</h3>
-                            <button onClick={() => setShowTraitsModal(false)} className="text-purple-300 hover:text-white transition-colors">✕</button>
+                <SimModalShell
+                    title={language === 'ko' ? '특성 목록' : 'Traits'}
+                    icon="🧬"
+                    maxWidthClassName="max-w-md"
+                    onClose={() => setShowTraitsModal(false)}
+                    footer={(
+                        <div className="flex justify-end">
+                            <button onClick={() => setShowTraitsModal(false)} className="sim-btn sim-btn-ghost px-6 py-2 text-xs">
+                                {language === 'ko' ? '확인' : 'OK'}
+                            </button>
                         </div>
-                        <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+                    )}
+                >
+                        <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             {result.traits.map((tr: any) => {
                                 const trId = typeof tr === 'string' ? tr : tr.id;
                                 const trName = typeof tr === 'string' ? tr : tr.name;
                                 const effect = TRAIT_EFFECTS[trId];
                                 return (
-                                    <div key={trId} className="p-3 bg-black/40 border border-[#222] rounded-xl">
-                                        <div className="font-bold text-purple-300 text-sm mb-1">{trName}</div>
-                                        {effect && <div className="text-[10px] text-slate-400 leading-relaxed">{language === 'ko' ? effect.ko : effect.en}</div>}
+                                    <div key={trId} className="sim-card p-3">
+                                        <div className="font-bold text-[var(--sim-accent)] text-sm mb-1">{trName}</div>
+                                        {effect && <div className="text-[10px] text-[var(--sim-text-muted)] leading-relaxed">{language === 'ko' ? effect.ko : effect.en}</div>}
                                     </div>
                                 );
                             })}
                         </div>
-                        <div className="p-4 bg-black/60 flex justify-end">
-                            <button onClick={() => setShowTraitsModal(false)} className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black transition-all">{language === 'ko' ? '확인' : 'OK'}</button>
-                        </div>
-                    </div>
-                </div>
+                </SimModalShell>
             )}
 
             {showSkillsModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                        <div className="bg-[#1c3d5a] p-4 flex justify-between items-center border-b border-[#102a43]">
-                            <h3 className="text-sm font-black text-blue-100 uppercase tracking-widest flex items-center gap-2">📊 {language === 'ko' ? '기술/숙련도' : 'Skills & Proficiency'}</h3>
-                            <button onClick={() => setShowSkillsModal(false)} className="text-blue-300 hover:text-white transition-colors">✕</button>
+                <SimModalShell
+                    title={language === 'ko' ? '기술/숙련도' : 'Skills & Proficiency'}
+                    icon="📊"
+                    maxWidthClassName="max-w-lg"
+                    onClose={() => setShowSkillsModal(false)}
+                    footer={(
+                        <div className="flex justify-end">
+                            <button onClick={() => setShowSkillsModal(false)} className="sim-btn sim-btn-ghost px-6 py-2 text-xs">
+                                {language === 'ko' ? '확인' : 'OK'}
+                            </button>
                         </div>
-                        <div className="p-6 space-y-2 max-h-[60vh] overflow-y-auto">
+                    )}
+                >
+                        <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             {ALL_SKILLS.map(skill => {
                                 const baseLevel = skillMap[skill] || 0;
                                 const progress = simState.skillProgress[skill] || { level: 0, xp: 0 };
@@ -3791,47 +3835,43 @@ export default function SimulationClient() {
                                         : `Next level ${xpPercent}%`;
 
                                 return (
-                                    <div key={skill} className="bg-black/40 border border-[#222] p-3 rounded-xl">
+                                    <div key={skill} className="sim-card p-3">
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <div className="text-sm font-bold text-slate-200 truncate">{skillName}</div>
-                                                <div className="text-[10px] text-slate-400 mt-0.5">{nextLevelText}</div>
+                                                <div className="text-sm font-bold text-[var(--sim-text-main)] truncate">{skillName}</div>
+                                                <div className="text-[10px] text-[var(--sim-text-muted)] mt-0.5">{nextLevelText}</div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <div className="text-[10px] font-bold text-slate-300 bg-[#111] border border-[#2a2a2a] px-2 py-1 rounded">
+                                                <div className="text-[10px] font-bold text-[var(--sim-text-sub)] bg-[var(--sim-surface-1)] border border-[var(--sim-border)] px-2 py-1 rounded">
                                                     {language === 'ko' ? '열정' : 'Passion'} <span className="text-xs font-black">{passionIcon}</span>
                                                 </div>
-                                                <div className="text-sm font-black text-blue-200 bg-blue-900/30 border border-blue-700/40 px-2 py-1 rounded">
+                                                <div className="text-sm font-black text-[var(--sim-info)] bg-[var(--sim-surface-1)] border border-[var(--sim-border)] px-2 py-1 rounded">
                                                     <span className="text-base leading-none">{totalLevel}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="mt-2 h-2 bg-[#111] border border-[#2a2a2a] rounded">
-                                            <div className="h-full bg-gradient-to-r from-blue-700 to-cyan-400 rounded" style={{ width: `${xpPercent}%` }} />
+                                        <div className="mt-2 h-2 bg-[var(--sim-surface-1)] border border-[var(--sim-border)] rounded">
+                                            <div className="h-full bg-gradient-to-r from-[var(--sim-info)] to-cyan-300 rounded" style={{ width: `${xpPercent}%` }} />
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
-                        <div className="p-4 bg-black/60 flex justify-end">
-                            <button onClick={() => setShowSkillsModal(false)} className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black transition-all">{language === 'ko' ? '확인' : 'OK'}</button>
-                        </div>
-                    </div>
-                </div>
+                </SimModalShell>
             )}
 
             {/* Confirmation Modals */}
             {(showBoardConfirm || showEndingConfirm) && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-                    <div className="bg-[#1a1a1a] border-2 border-[#e7c07a] rounded-2xl w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(231,192,122,0.3)] animate-in zoom-in-95 duration-200">
-                        <div className="bg-[#e7c07a]/10 p-6 text-center border-b border-[#e7c07a]/30">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in zoom-in-95 duration-200">
+                    <div className="sim-modal-shell w-full max-w-md border-2 border-[var(--sim-accent)]">
+                        <div className="bg-[var(--sim-accent)]/10 p-6 text-center border-b border-[var(--sim-border)]">
                             <div className="text-3xl mb-2">🚀</div>
-                            <h3 className="text-xl font-black text-[#e7c07a] uppercase tracking-widest">
+                            <h3 className="text-xl font-black text-[var(--sim-accent)] uppercase tracking-widest">
                                 {language === 'ko' ? '우주선 탑승' : 'Board Spaceship'}
                             </h3>
                         </div>
                         <div className="p-6 space-y-4">
-                            <p className="text-slate-300 text-sm leading-relaxed text-center font-medium">
+                            <p className="text-[var(--sim-text-sub)] text-sm leading-relaxed text-center font-medium">
                                 {showEndingConfirm
                                     ? (language === 'ko'
                                         ? '정말 떠나시겠습니까? 계속 생존하여 더 높은 기록을 세울 수 있습니다.'
@@ -3842,13 +3882,13 @@ export default function SimulationClient() {
                                 }
                             </p>
                         </div>
-                        <div className="p-4 bg-black/40 flex gap-3">
+                        <div className="p-4 bg-[var(--sim-surface-1)]/70 flex gap-3">
                             <button
                                 onClick={() => {
                                     setShowBoardConfirm(false);
                                     setShowEndingConfirm(false);
                                 }}
-                                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all"
+                                className="sim-btn sim-btn-ghost flex-1 py-3 text-sm"
                             >
                                 {showEndingConfirm ? (language === 'ko' ? '계속 도전하기' : 'Continue Challenge') : (language === 'ko' ? '취소' : 'Cancel')}
                             </button>
@@ -3861,7 +3901,7 @@ export default function SimulationClient() {
                                     setShowEndingConfirm(false);
                                     setPendingChoice(null); // Ensure pending choice is cleared if any
                                 }}
-                                className="flex-1 py-3 bg-[#9f752a] hover:bg-[#b08535] text-white rounded-xl text-sm font-bold border-2 border-[#7a5a20] transition-all"
+                                className="sim-btn sim-btn-danger flex-1 py-3 text-sm"
                             >
                                 {showEndingConfirm ? (language === 'ko' ? '지금 탈출하기' : 'Escape Now') : (language === 'ko' ? '탑승하기' : 'Board Now')}
                             </button>
