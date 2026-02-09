@@ -3059,6 +3059,10 @@ export default function SimulationClient() {
         const dayStart = { hp, food, meds, money };
 
         // 일일 식량 대성공 보너스는 dayStart 이후에 적용해 결과 delta에 반영
+        let dailyGreatSuccess = false;
+        const dailyGreatSuccessNote = language === 'ko'
+            ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다.'
+            : 'Great success! Skilled cooking/farming secured extra food.';
         if (nextDay > 0) {
             const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
             const greatChance = getGreatSuccessChance(foodSkillAvg);
@@ -3066,10 +3070,7 @@ export default function SimulationClient() {
                 const roll = Math.random() * 100;
                 if (roll < greatChance) {
                     food += 2;
-                    responseNotes.push(BASE_NOTE_OVERRIDE);
-                    responseNotes.push(language === 'ko'
-                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다.'
-                        : 'Great success! Skilled cooking/farming secured extra food.');
+                    dailyGreatSuccess = true;
                 }
             }
         }
@@ -3235,6 +3236,11 @@ export default function SimulationClient() {
                 return true;
             });
             event = filteredEvents.length > 0 ? pickWeightedEvent(filteredEvents) : pickWeightedEvent(events);
+        }
+
+        if (dailyGreatSuccess && event.id === 'quiet_day') {
+            responseNotes.push(BASE_NOTE_OVERRIDE);
+            responseNotes.push(dailyGreatSuccessNote);
         }
 
         event = applyTraitChoices(event!, traitIds, skillMap, language);
