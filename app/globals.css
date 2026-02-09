@@ -90,12 +90,13 @@ body {
   width: 100%;
   aspect-ratio: 5 / 7;
   transform-style: preserve-3d;
-  transform-origin: right center;
+  transform-origin: center center;
+  will-change: transform;
   transition: transform 0.5s ease;
 }
 
 .reigns-card--flipped .reigns-card-inner {
-  transform: rotateY(-180deg);
+  transform: rotateY(180deg);
 }
 
 .reigns-card-face {
@@ -114,7 +115,7 @@ body {
 }
 
 .reigns-card-back {
-  transform: rotateY(-180deg);
+  transform: rotateY(180deg);
   background: linear-gradient(145deg, var(--sim-surface-2), var(--sim-surface-1));
 }
 
@@ -182,8 +183,8 @@ body {
   line-height: 1;
 }
 
-.reigns-card--flipping .reigns-card-inner {
-  animation: reigns-card-flip-in-place 0.23s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+.reigns-card--advance .reigns-card-inner {
+  animation: reigns-card-advance 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 @keyframes reigns-card-enter {
@@ -198,14 +199,14 @@ body {
   }
 }
 
-@keyframes reigns-card-flip-in-place {
+@keyframes reigns-card-advance {
   0% {
     opacity: 1;
-    transform: rotateY(0deg);
+    transform: translateX(0) rotate(0deg) scale(1);
   }
   100% {
-    opacity: 0.92;
-    transform: rotateY(-180deg);
+    opacity: 0;
+    transform: translateX(-56%) rotate(-8deg) scale(0.98);
   }
 }
 
