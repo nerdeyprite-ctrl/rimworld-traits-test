@@ -49,6 +49,7 @@ type SimChoice = {
     isSpecial?: boolean;
     specialReason?: string;
     isRainbow?: boolean;
+    isRareSpawn?: boolean;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'mind' | 'danger';
@@ -1544,7 +1545,8 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 label: isKo ? '일한다' : 'Work',
                 description: isKo ? '돈 +3' : 'Money +3',
                 delta: { hp: 0, food: 0, meds: 0, money: 3 },
-                response: isKo ? '열심히 일해 은을 꽤 벌었습니다.' : 'You worked hard and earned quite a bit of silver.'
+                response: isKo ? '열심히 일해 은을 꽤 벌었습니다.' : 'You worked hard and earned quite a bit of silver.',
+                isRareSpawn: true
             });
         }
         if ((traitIds.has('industrious') || traitIds.has('hard_worker')) && Math.random() < 0.10) {
@@ -1556,6 +1558,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 response: isKo ? '야근으로 추가 물자를 확보했습니다.' : 'You work overtime for extra supplies.',
                 isSpecial: true,
                 specialReason: isKo ? (traitIds.has('hard_worker') ? '근면성실' : '일벌레') : 'Work Ethic',
+                isRareSpawn: true,
                 skillCheck: {
                     label: isKo ? '정진' : 'Hard Work',
                     group: ['제작'],
@@ -1574,6 +1577,7 @@ const applyTraitChoices = (event: SimEvent, traitIds: Set<string>, skillMap: Rec
                 response: isKo ? '휴식을 택해 체력을 회복했습니다.' : 'You rest and recover.',
                 isSpecial: true,
                 specialReason: isKo ? '게으름' : 'Lazy',
+                isRareSpawn: true,
                 skillCheck: {
                     label: isKo ? '휴식' : 'Rest',
                     group: ['의학'],
@@ -3040,18 +3044,6 @@ export default function SimulationClient() {
 
         if (nextDay > 0) {
             food -= 1;
-            const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
-            const greatChance = getGreatSuccessChance(foodSkillAvg);
-            if (greatChance > 0) {
-                const roll = Math.random() * 100;
-                if (roll < greatChance) {
-                    food += 2;
-                    responseNotes.push(BASE_NOTE_OVERRIDE);
-                    responseNotes.push(language === 'ko'
-                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다.'
-                        : 'Great success! Skilled cooking/farming secured extra food.');
-                }
-            }
             if (food < 0) {
                 food = 0;
                 hp -= 1;
@@ -3065,6 +3057,24 @@ export default function SimulationClient() {
         money = clampStat(money, 30);
 
         const dayStart = { hp, food, meds, money };
+
+        // 일일 식량 대성공 보너스는 dayStart 이후에 적용해 결과 delta에 반영
+        if (nextDay > 0) {
+            const foodSkillAvg = getGroupAverage(['Plants', 'Cooking']);
+            const greatChance = getGreatSuccessChance(foodSkillAvg);
+            if (greatChance > 0) {
+                const roll = Math.random() * 100;
+                if (roll < greatChance) {
+                    food += 2;
+                    responseNotes.push(BASE_NOTE_OVERRIDE);
+                    responseNotes.push(language === 'ko'
+                        ? '대성공! 숙련된 요리/재배로 식량을 추가 확보했습니다.'
+                        : 'Great success! Skilled cooking/farming secured extra food.');
+                }
+            }
+        }
+
+        food = clampStat(food, 30);
         if (hp <= 0) return null;
 
         const baseSimState: SimState = {
@@ -3691,6 +3701,7 @@ export default function SimulationClient() {
     const canBoardNow = hasShipBuilt && simState.status === 'running' && !simState.evacActive;
     const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
     const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
+    const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
 
     const handleAdvanceDay = () => {
         if (turnPhase !== 'idle') return;
@@ -4000,7 +4011,7 @@ export default function SimulationClient() {
                                                                     <div key={choice.id} className="group relative">
                                                                         <button
                                                                             onClick={() => resolveChoice(choice.id)}
-                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isSpecial ? 'border-[var(--sim-accent)]' : 'border-[var(--sim-border)]')} flex flex-col items-center justify-center min-h-[50px]`}
+                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'border-[var(--sim-accent)]' : 'border-[var(--sim-border)]'))} flex flex-col items-center justify-center min-h-[50px]`}
                                                                         >
                                                                             <div className="font-bold">{choice.label}</div>
                                                                             {chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
