@@ -3479,6 +3479,18 @@ export default function SimulationClient() {
 
         if (pendingChoice.event.id === 'ship_built') {
             if (choice.id === 'begin_evac') {
+                const ok = window.confirm(
+                    language === 'ko'
+                        ? `우주선 시동을 걸면 ${EVAC_SURVIVAL_DAYS}일 버텨야 탈출합니다. 곧 습격이 몰아닥칠 텐데 시작하시겠습니까?`
+                        : `Starting ship launch requires surviving ${EVAC_SURVIVAL_DAYS} more days. Raids will intensify—start now?`
+                );
+                if (!ok) return;
+                const finalOk = window.confirm(
+                    language === 'ko'
+                        ? '탈출 준비를 시작하면 습격이 몰아닥칠 수 있습니다. 마지막 확인입니다. 시작하시겠습니까?'
+                        : 'Starting evacuation can trigger heavy raids. Final confirmation—start now?'
+                );
+                if (!finalOk) return;
                 setAllowContinue(true);
                 setCanBoardShip(false);
                 setShowEndingCard(false);

@@ -77,10 +77,10 @@ export default function LeaderboardPage() {
         return type.charAt(0).toUpperCase() + type.slice(1);
     };
 
-    const getExitTypeColor = (type: string) => {
-        switch (type) {
+    const getExitTypeColor = (entry: LeaderboardEntry) => {
+        switch (entry.exit_type) {
             case 'escape': return 'text-green-400';
-            case 'death': return 'text-red-400';
+            case 'death': return entry.death_context === 'evac_failed' ? 'text-yellow-400' : 'text-red-400';
             case 'stay': return 'text-blue-400';
             default: return 'text-slate-400';
         }
@@ -182,7 +182,7 @@ export default function LeaderboardPage() {
                                 </div>
                             </div>
                             <div className="flex items-center justify-between gap-2">
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry)}`}>
                                     {getExitTypeLabel(entry)}
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-mono text-right">
@@ -234,7 +234,7 @@ export default function LeaderboardPage() {
                                     <span className="text-xs text-slate-500 ml-1">Days</span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry)}`}>
                                         {getExitTypeLabel(entry)}
                                     </span>
                                 </td>
@@ -517,7 +517,7 @@ export default function LeaderboardPage() {
                                         {selectedEntry.gender === 'Female' ? 'Female' : 'Male'}, {selectedEntry.age || 20} {language === 'ko' ? '세' : 'years old'} • {selectedEntry.mbti || 'Unknown'}
                                     </div>
                                     <div className="mt-1">
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase ${getExitTypeColor(selectedEntry.exit_type)}`}>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase ${getExitTypeColor(selectedEntry)}`}>
                                             {getExitTypeLabel(selectedEntry)} - {selectedEntry.day_count} DAYS
                                         </span>
                                     </div>
