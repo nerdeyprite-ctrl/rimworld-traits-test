@@ -3391,11 +3391,11 @@ export default function SimulationClient() {
         if (finalStatus === 'dead' && simState.evacActive && simState.evacCountdown > 0) {
             finalDeathDuringEvac = true;
             finalResponse += language === 'ko'
-                ? ' 탈출을 갈망하다 사망했습니다.'
-                : ' You died yearning for escape.';
+                ? ' 탈출 웨이브를 견뎌내지 못했습니다.'
+                : ' You failed to withstand the evacuation wave.';
             finalResponseCard += language === 'ko'
-                ? '\n탈출을 갈망하다 사망했습니다.'
-                : '\nDied yearning for escape.';
+                ? '\n탈출 웨이브를 견뎌내지 못했습니다.'
+                : '\nFailed to withstand the evacuation wave.';
         }
 
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
@@ -3594,11 +3594,11 @@ export default function SimulationClient() {
         if (finalStatus === 'dead' && simState.evacActive && simState.evacCountdown > 0) {
             finalDeathDuringEvac = true;
             finalResponse += language === 'ko'
-                ? ' 탈출을 갈망하다 사망했습니다.'
-                : ' You died yearning for escape.';
+                ? ' 탈출 웨이브를 견뎌내지 못했습니다.'
+                : ' You failed to withstand the evacuation wave.';
             finalResponseCard += language === 'ko'
-                ? '\n탈출을 갈망하다 사망했습니다.'
-                : '\nDied yearning for escape.';
+                ? '\n탈출 웨이브를 견뎌내지 못했습니다.'
+                : '\nFailed to withstand the evacuation wave.';
         }
 
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
@@ -3954,7 +3954,7 @@ export default function SimulationClient() {
                                         <div className="text-5xl">💀</div>
                                         <div className="text-[var(--sim-text-main)] text-lg font-bold">
                                             {simState.deathDuringEvac
-                                                ? (language === 'ko' ? '탈출을 갈망하다 사망' : 'Died yearning for escape')
+                                                ? (language === 'ko' ? '탈출 웨이브를 견뎌내지 못함' : 'Failed to withstand the evacuation wave')
                                                 : (language === 'ko' ? `${simState.day}일차에 사망` : `Died on Day ${simState.day}`)}
                                         </div>
                                         <div className="text-[var(--sim-text-sub)] text-xs leading-relaxed px-4">
@@ -4168,7 +4168,7 @@ export default function SimulationClient() {
                             </div>
                         </div>
 
-                        {simState.status === 'running' && (
+                        {(simState.status === 'running' || (simState.status === 'dead' && showDeathResult)) && (
                             <button
                                 onClick={handleAdvanceDay}
                                 disabled={!canAdvanceDay}
@@ -4505,6 +4505,12 @@ export default function SimulationClient() {
                                         );
                                         if (!shouldStartNow) return;
                                     }
+                                    const finalConfirm = window.confirm(
+                                        language === 'ko'
+                                            ? '탈출 준비를 시작하면 습격이 몰아닥칠 수 있습니다. 마지막 확인입니다. 시작하시겠습니까?'
+                                            : 'Starting evacuation can trigger heavy raids. Final confirmation—start now?'
+                                    );
+                                    if (!finalConfirm) return;
                                     setSimState(prev => ({
                                         ...prev,
                                         evacActive: true,

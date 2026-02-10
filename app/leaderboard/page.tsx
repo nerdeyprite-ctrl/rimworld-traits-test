@@ -68,12 +68,12 @@ export default function LeaderboardPage() {
         if (language === 'ko') {
             switch (type) {
                 case 'escape': return '창공으로의 탈출';
-                case 'death': return deathContext === 'evac_failed' ? '탈출을 갈망하다 사망' : '변방계의 거름';
+                case 'death': return deathContext === 'evac_failed' ? '탈출 웨이브를 견뎌내지 못함' : '변방계의 거름';
                 case 'stay': return '영원한 정착';
                 default: return type;
             }
         }
-        if (type === 'death' && deathContext === 'evac_failed') return 'Died yearning for escape';
+        if (type === 'death' && deathContext === 'evac_failed') return 'Failed to withstand the evacuation wave';
         return type.charAt(0).toUpperCase() + type.slice(1);
     };
 
