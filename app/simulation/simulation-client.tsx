@@ -142,6 +142,7 @@ type PreparedTurn = {
     allowContinue?: boolean;
     canBoardShip?: boolean;
     showLaunchReadyPrompt?: boolean;
+    showDeathResult?: boolean;
 };
 
 const MAX_DAYS = 60;
@@ -2311,6 +2312,7 @@ export default function SimulationClient() {
     const [showEndingConfirm, setShowEndingConfirm] = useState(false);
     const [showLaunchReadyPrompt, setShowLaunchReadyPrompt] = useState(false);
     const [showLaunchConfirm, setShowLaunchConfirm] = useState(false);
+    const [showDeathResult, setShowDeathResult] = useState(false);
     const [turnPhase, setTurnPhase] = useState<TurnPhase>('idle');
     const [preparedTurn, setPreparedTurn] = useState<PreparedTurn | null>(null);
     const prepareTimerRef = useRef<number | null>(null);
@@ -2757,6 +2759,7 @@ export default function SimulationClient() {
         setShowEndingConfirm(false);
         setShowLaunchReadyPrompt(false);
         setShowLaunchConfirm(false);
+        setShowDeathResult(false);
         setTurnPhase('idle');
         setPreparedTurn(null);
     }, [language, traitIds]);
@@ -3007,7 +3010,6 @@ export default function SimulationClient() {
                 settler_name: userInfo?.name || '정착민',
                 day_count: finalDay,
                 exit_type: exitType,
-                death_context: deathContext,
                 traits: result?.traits || [],
                 skills: result?.skills || [],
                 mbti: result?.mbti || '',
@@ -3017,9 +3019,12 @@ export default function SimulationClient() {
                 age: userInfo?.age || 20,
                 gender: userInfo?.gender || 'Male'
             };
+            if (deathContext) {
+                (payload as Record<string, unknown>).death_context = deathContext;
+            }
             let { error } = await supabase.from('leaderboard_scores').insert(payload);
             // Backward compatibility: if schema isn't migrated yet, retry without death_context.
-            if (error && deathContext) {
+            if (error && (deathContext || String((error as { message?: unknown }).message ?? '').includes('death_context'))) {
                 const fallbackPayload = { ...payload };
                 delete (fallbackPayload as Record<string, unknown>).death_context;
                 ({ error } = await supabase.from('leaderboard_scores').insert(fallbackPayload));
@@ -3135,7 +3140,8 @@ export default function SimulationClient() {
                     event: deathEvent,
                     entry
                 },
-                cardView: 'result'
+                cardView: 'result',
+                showDeathResult: true
             };
         }
 
@@ -3450,6 +3456,7 @@ export default function SimulationClient() {
         if (nextTurn.allowContinue !== undefined) setAllowContinue(nextTurn.allowContinue);
         if (nextTurn.canBoardShip !== undefined) setCanBoardShip(nextTurn.canBoardShip);
         if (nextTurn.showLaunchReadyPrompt) setShowLaunchReadyPrompt(true);
+        if (nextTurn.showDeathResult !== undefined) setShowDeathResult(nextTurn.showDeathResult);
     }, []);
 
     const advanceDay = useCallback(() => {
@@ -3783,7 +3790,10 @@ export default function SimulationClient() {
     const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
     const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
-    const canAdvanceDay = simState.status === 'running' && !pendingChoice && turnPhase === 'idle' && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
+    const canAdvanceDay = (simState.status === 'running' || (simState.status === 'dead' && showDeathResult))
+        && !pendingChoice
+        && turnPhase === 'idle'
+        && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
     const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady;
     const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive;
@@ -3799,6 +3809,10 @@ export default function SimulationClient() {
             } else {
                 return;
             }
+        }
+        if (simState.status === 'dead' && showDeathResult) {
+            setShowDeathResult(false);
+            return;
         }
         if (currentCard?.entry && cardView === 'event') {
             setCardView('result');
@@ -3934,7 +3948,7 @@ export default function SimulationClient() {
                                 />
                             )}
                             <div className="reigns-card-inner">
-                                {simState.status === 'dead' ? (
+                                {simState.status === 'dead' && !showDeathResult ? (
                                     <div className="reigns-card-face reigns-card-front flex flex-col items-center justify-center text-center p-6 space-y-4">
                                         <div className="text-[var(--sim-danger)] text-3xl font-black tracking-tighter">GAME OVER</div>
                                         <div className="text-5xl">💀</div>
