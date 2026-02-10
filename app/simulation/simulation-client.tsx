@@ -3188,7 +3188,7 @@ export default function SimulationClient() {
         } else if (nextDay === 7) {
             const filteredDanger = events.filter(e => e.category === 'danger');
             event = filteredDanger.length > 0 ? pickWeightedEvent(filteredDanger) : pickWeightedEvent(events);
-        } else if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.10) {
+        } else if (money >= 15 && !simState.serumTraderShown && Math.random() < 0.05) {
             event = {
                 id: 'resurrector_trader',
                 title: language === 'ko' ? '부활 혈청 상인' : 'Resurrector Serum Trader',
@@ -3695,6 +3695,12 @@ export default function SimulationClient() {
         };
     }, []);
 
+    useEffect(() => {
+        if (turnPhase !== 'idle' && prepareTimerRef.current === null && animateTimerRef.current === null) {
+            setTurnPhase('idle');
+        }
+    }, [turnPhase]);
+
 
     if (loading) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
@@ -3745,7 +3751,13 @@ export default function SimulationClient() {
     const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
 
     const handleAdvanceDay = () => {
-        if (turnPhase !== 'idle') return;
+        if (turnPhase !== 'idle') {
+            if (prepareTimerRef.current === null && animateTimerRef.current === null) {
+                setTurnPhase('idle');
+            } else {
+                return;
+            }
+        }
         if (currentCard?.entry && cardView === 'event') {
             setCardView('result');
             return;
