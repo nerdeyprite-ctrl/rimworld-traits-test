@@ -158,7 +158,48 @@ export default function LeaderboardPage() {
 
         return (
             <div className="overflow-hidden border border-[#333] rounded-xl bg-[#111] shadow-2xl">
-                <table className="w-full text-left border-collapse">
+                <div className="md:hidden divide-y divide-[#222]">
+                    {entries.map((entry, idx) => (
+                        <div key={entry.id} className={`p-4 space-y-2 ${idx < 3 ? 'bg-[#9f752a]/5' : ''}`}>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-base font-black ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-600'}`}>
+                                            #{idx + 1}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedEntry(entry)}
+                                            className="font-bold text-[#e2c178] hover:text-white text-sm transition-colors text-left break-words"
+                                        >
+                                            {entry.settler_name}
+                                        </button>
+                                    </div>
+                                    <div className="mt-1 text-[10px] text-slate-500 font-mono break-all">{entry.account_id}</div>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                    <div className="text-lg font-mono font-bold text-[#e7c07a] leading-none">{entry.day_count}</div>
+                                    <div className="text-[10px] text-slate-500 uppercase">Days</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded bg-black/40 border border-white/5 ${getExitTypeColor(entry.exit_type)}`}>
+                                    {getExitTypeLabel(entry)}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-mono text-right">
+                                    {new Date(entry.created_at).toLocaleString('ko-KR', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <table className="hidden md:table w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-[#1a1a1a] border-b border-[#333] text-[#9f752a] text-xs uppercase tracking-widest">
                             <th className="px-6 py-4 font-bold">{language === 'ko' ? '순위' : 'Rank'}</th>
@@ -186,7 +227,7 @@ export default function LeaderboardPage() {
                                     >
                                         {entry.settler_name}
                                     </button>
-                                    <div className="text-[10px] text-slate-500 uppercase font-mono">{entry.account_id}</div>
+                                    <div className="text-[10px] text-slate-500 uppercase font-mono break-all">{entry.account_id}</div>
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <span className="text-xl font-mono font-bold text-[#e7c07a]">{entry.day_count}</span>

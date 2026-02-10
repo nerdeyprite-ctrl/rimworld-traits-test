@@ -3086,8 +3086,6 @@ export default function SimulationClient() {
         }
 
         food = clampStat(food, 30);
-        if (hp <= 0) return null;
-
         const baseSimState: SimState = {
             ...simState,
             day: nextDay,
@@ -3096,6 +3094,50 @@ export default function SimulationClient() {
             meds,
             money
         };
+        if (hp <= 0) {
+            const deathEvent: SimEvent = {
+                id: 'starvation_death',
+                title: language === 'ko' ? '굶주림' : 'Starvation',
+                description: language === 'ko'
+                    ? '식량이 바닥나 끝내 쓰러졌습니다.'
+                    : 'You collapsed from lack of food.',
+                category: 'danger',
+                weight: 0,
+                base: { hp: 0, food: 0, meds: 0, money: 0 }
+            };
+            const resolved = resolveEvent(deathEvent, nextDay, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
+            const entry: SimLogEntry = {
+                day: nextDay,
+                season,
+                title: deathEvent.title,
+                description: deathEvent.description,
+                response: resolved.responseText,
+                responseCard: resolved.responseTextCard,
+                delta: resolved.delta,
+                eventDelta: resolved.eventOutcomeDelta,
+                after: { ...resolved.after, hp: 0 },
+                status: 'bad'
+            };
+            return {
+                simState: {
+                    ...baseSimState,
+                    status: 'dead',
+                    hp: 0,
+                    food: resolved.after.food,
+                    meds: resolved.after.meds,
+                    money: resolved.after.money,
+                    log: [entry, ...simState.log].slice(0, 60)
+                },
+                pendingChoice: null,
+                currentCard: {
+                    day: nextDay,
+                    season,
+                    event: deathEvent,
+                    entry
+                },
+                cardView: 'result'
+            };
+        }
 
         if (nextDay >= SHIP_BUILD_DAY && !hasShipBuilt) {
             const endingEvent: SimEvent = {
