@@ -3849,14 +3849,10 @@ export default function SimulationClient() {
         }, 140);
     };
 
-    const getVagueDeltaText = (label: string, delta: number) => {
+    const getExactDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
-        const abs = Math.abs(delta);
-        const isHpLabel = label === 'HP' || label === '체력';
-        const largeThreshold = delta < 0 && isHpLabel ? 5 : 3;
-        const isLarge = abs >= largeThreshold;
-        const symbol = delta > 0 ? (isLarge ? '++' : '+') : (isLarge ? '--' : '-');
-        return `${label} ${symbol}`;
+        const sign = delta > 0 ? '+' : '';
+        return `${label} ${sign}${delta}`;
     };
 
     const renderDeltaItems = (entry: SimLogEntry) => {
@@ -4101,10 +4097,10 @@ export default function SimulationClient() {
                                                                     }
 
                                                                     const res = [] as string[];
-                                                                    if (hpD !== 0) res.push(getVagueDeltaText('HP', hpD));
-                                                                    if (foodD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '식량' : 'Food', foodD));
-                                                                    if (medsD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '치료제' : 'Meds', medsD));
-                                                                    if (moneyD !== 0) res.push(getVagueDeltaText(language === 'ko' ? '돈' : 'Money', moneyD));
+                                                                    if (hpD !== 0) res.push(getExactDeltaText('HP', hpD));
+                                                                    if (foodD !== 0) res.push(getExactDeltaText(language === 'ko' ? '식량' : 'Food', foodD));
+                                                                    if (medsD !== 0) res.push(getExactDeltaText(language === 'ko' ? '치료제' : 'Meds', medsD));
+                                                                    if (moneyD !== 0) res.push(getExactDeltaText(language === 'ko' ? '돈' : 'Money', moneyD));
                                                                     return res;
                                                                 };
 
