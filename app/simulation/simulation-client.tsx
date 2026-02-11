@@ -3476,52 +3476,6 @@ export default function SimulationClient() {
         advanceDay();
     }, [startQueued, simState.status, simState.day, currentCard, pendingChoice, advanceDay]);
 
-    useEffect(() => {
-        const isTypingTarget = (target: EventTarget | null) => {
-            if (!(target instanceof HTMLElement)) return false;
-            const tag = target.tagName;
-            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
-        };
-        const onKeyDown = (e: KeyboardEvent) => {
-            if (isTypingTarget(e.target)) return;
-            if (pendingChoice) {
-                if (e.key >= '1' && e.key <= '6') {
-                    const idx = Number(e.key) - 1;
-                    const choice = allChoices[idx];
-                    if (choice) {
-                        e.preventDefault();
-                        resolveChoice(choice.id);
-                    }
-                }
-                if (e.key >= '7' && e.key <= '9') {
-                    const idx = Number(e.key) - 1;
-                    const choice = allChoices[idx];
-                    if (choice) {
-                        e.preventDefault();
-                        resolveChoice(choice.id);
-                    }
-                }
-                if (e.key === '0') {
-                    const idx = 9;
-                    const choice = allChoices[idx];
-                    if (choice) {
-                        e.preventDefault();
-                        resolveChoice(choice.id);
-                    }
-                }
-                return;
-            }
-            if (e.key === 'ArrowRight' || e.key === 'Enter') {
-                if (canAdvanceDay) {
-                    e.preventDefault();
-                    handleAdvanceDay();
-                }
-            }
-        };
-        window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
-    }, [pendingChoice, allChoices, canAdvanceDay, handleAdvanceDay]);
-
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
         const choice = pendingChoice.event.choices?.find(c => c.id === choiceId);
@@ -3898,6 +3852,52 @@ export default function SimulationClient() {
             prepareTimerRef.current = null;
         }, 140);
     };
+
+    useEffect(() => {
+        const isTypingTarget = (target: EventTarget | null) => {
+            if (!(target instanceof HTMLElement)) return false;
+            const tag = target.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (isTypingTarget(e.target)) return;
+            if (pendingChoice) {
+                if (e.key >= '1' && e.key <= '6') {
+                    const idx = Number(e.key) - 1;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                if (e.key >= '7' && e.key <= '9') {
+                    const idx = Number(e.key) - 1;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                if (e.key === '0') {
+                    const idx = 9;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                if (canAdvanceDay) {
+                    e.preventDefault();
+                    handleAdvanceDay();
+                }
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [pendingChoice, allChoices, canAdvanceDay, handleAdvanceDay, resolveChoice]);
 
     const getExactDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
