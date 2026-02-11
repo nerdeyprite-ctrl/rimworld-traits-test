@@ -105,6 +105,13 @@ export default function Home() {
 
   const updates = [
     {
+      date: '2026.02.11',
+      title: language === 'ko' ? '시뮬레이션 대규모 업데이트' : 'Simulation Major Update',
+      content: language === 'ko'
+        ? '정신(MIND) 이벤트 분리, 습격/비전투 분류 정비, 대성공 판정 및 확률 반올림 적용, 탈출 준비/출발 UX 개선, 단축키(1~0/→/Enter) 추가 등 다양한 개선이 반영되었습니다.'
+        : 'Separated MIND events, refined danger/noncombat categories, added great-success rolls with rounded chances, improved evacuation/launch UX, and added shortcuts (1–0/→/Enter).'
+    },
+    {
       date: '2024.02.08',
       title: language === 'ko' ? '최대 체력 상향 및 도움말 시스템 추가' : 'Max HP Increase & Help System',
       content: language === 'ko'

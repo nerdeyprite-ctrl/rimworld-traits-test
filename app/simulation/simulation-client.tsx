@@ -175,10 +175,14 @@ const getSeasonLabel = (day: number, language: string) => {
     if (day <= 0) return language === 'ko' ? '시작' : 'Start';
     const seasonsKo = ['봄', '여름', '가을', '겨울'];
     const seasonsEn = ['Spring', 'Summer', 'Autumn', 'Winter'];
-    const index = Math.min(3, Math.floor((day - 1) / 15));
+    const yearIndex = Math.floor((day - 1) / 60) + 1;
+    const seasonIndex = Math.floor(((day - 1) % 60) / 15);
     const seasonDay = ((day - 1) % 15) + 1;
-    const seasonName = language === 'ko' ? seasonsKo[index] : seasonsEn[index];
-    return language === 'ko' ? `${seasonName} ${seasonDay}일차` : `${seasonName} Day ${seasonDay}`;
+    const yearLabel = language === 'ko' ? `${yearIndex}년차` : `Year ${yearIndex}`;
+    const seasonName = language === 'ko' ? seasonsKo[seasonIndex] : seasonsEn[seasonIndex];
+    return language === 'ko'
+        ? `${seasonName} ${seasonDay}일차 (${yearLabel})`
+        : `${seasonName} Day ${seasonDay} (${yearLabel})`;
 };
 
 const ALL_SKILLS = [
@@ -3472,6 +3476,52 @@ export default function SimulationClient() {
         advanceDay();
     }, [startQueued, simState.status, simState.day, currentCard, pendingChoice, advanceDay]);
 
+    useEffect(() => {
+        const isTypingTarget = (target: EventTarget | null) => {
+            if (!(target instanceof HTMLElement)) return false;
+            const tag = target.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (isTypingTarget(e.target)) return;
+            if (pendingChoice) {
+                if (e.key >= '1' && e.key <= '6') {
+                    const idx = Number(e.key) - 1;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                if (e.key >= '7' && e.key <= '9') {
+                    const idx = Number(e.key) - 1;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                if (e.key === '0') {
+                    const idx = 9;
+                    const choice = allChoices[idx];
+                    if (choice) {
+                        e.preventDefault();
+                        resolveChoice(choice.id);
+                    }
+                }
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                if (canAdvanceDay) {
+                    e.preventDefault();
+                    handleAdvanceDay();
+                }
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [pendingChoice, allChoices, canAdvanceDay, handleAdvanceDay]);
+
     const resolveChoice = (choiceId: string) => {
         if (!pendingChoice) return;
         const choice = pendingChoice.event.choices?.find(c => c.id === choiceId);
@@ -3807,8 +3857,8 @@ export default function SimulationClient() {
         && turnPhase === 'idle'
         && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
     const allChoices = pendingChoice?.event.choices ?? [];
-    const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady;
-    const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive;
+    const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady && !pendingChoice;
+    const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive && !pendingChoice;
     const canBoardNow = canStartEvac || canLaunchNow;
     const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
     const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
@@ -4243,6 +4293,10 @@ export default function SimulationClient() {
                         <button
                             onClick={() => {
                                 if (submittedOnExit) return;
+                                if (pendingChoice) {
+                                    alert(language === 'ko' ? '선택지를 먼저 해결해야 합니다.' : 'Resolve the current choice first.');
+                                    return;
+                                }
                                 if (canLaunchNow) {
                                     setShowLaunchConfirm(true);
                                 } else {
