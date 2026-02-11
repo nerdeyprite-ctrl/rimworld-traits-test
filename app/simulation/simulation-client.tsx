@@ -3767,91 +3767,11 @@ export default function SimulationClient() {
     }, [turnPhase]);
 
 
-    if (loading) {
-        return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
-    }
-
-    if (!result) {
-        return <div className="p-10 text-center text-gray-500">{language === 'ko' ? '결과가 없습니다.' : 'No result found.'}</div>;
-    }
-
-    const canSimulate = isFullResult && result.skills && result.skills.length > 0;
-
-    if (!canSimulate) {
-        return (
-            <div className="max-w-2xl mx-auto text-center sim-panel p-8">
-                <h1 className="text-2xl font-bold text-[var(--sim-text-main)] mb-4">
-                    {language === 'ko' ? '시뮬레이션 이용 불가' : 'Simulation Locked'}
-                </h1>
-                <p className="text-[var(--sim-text-sub)] mb-6">
-                    {language === 'ko'
-                        ? '스킬 설문까지 완료해야 시뮬레이션이 가능합니다.'
-                        : 'You need to complete the skill test to run the simulation.'}
-                </p>
-                {(s || contextTestPhase === 'skill') && (
-                    <button
-                        onClick={() => router.push('/test/intro')}
-                        className="sim-btn sim-btn-secondary px-6 py-3"
-                    >
-                        {language === 'ko' ? '테스트 다시 시작' : 'Start Test'}
-                    </button>
-                )}
-            </div>
-        );
-    }
-
-
-    const medicineLevel = skillMap['Medicine'] ?? 0;
-    const healAmount = getHealAmount(medicineLevel);
-    const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
-    const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
-    const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
+    const allChoices = pendingChoice?.event.choices ?? [];
     const canAdvanceDay = (simState.status === 'running' || (simState.status === 'dead' && showDeathResult))
         && !pendingChoice
         && turnPhase === 'idle'
         && (cardView === 'result' || !currentCard || (currentCard.entry && cardView === 'event'));
-    const allChoices = pendingChoice?.event.choices ?? [];
-    const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady && !pendingChoice;
-    const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive && !pendingChoice;
-    const canBoardNow = canStartEvac || canLaunchNow;
-    const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
-    const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
-    const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
-
-    const handleAdvanceDay = () => {
-        if (turnPhase !== 'idle') {
-            if (prepareTimerRef.current === null && animateTimerRef.current === null) {
-                setTurnPhase('idle');
-            } else {
-                return;
-            }
-        }
-        if (simState.status === 'dead' && showDeathResult) {
-            setShowDeathResult(false);
-            return;
-        }
-        if (currentCard?.entry && cardView === 'event') {
-            setCardView('result');
-            return;
-        }
-        if (!canAdvanceDay) return;
-
-        const nextTurn = prepareNextTurn();
-        if (!nextTurn) return;
-
-        setPreparedTurn(nextTurn);
-        setTurnPhase('preparing');
-        prepareTimerRef.current = window.setTimeout(() => {
-            setTurnPhase('advancing');
-            animateTimerRef.current = window.setTimeout(() => {
-                applyPreparedTurn(nextTurn);
-                setPreparedTurn(null);
-                setTurnPhase('idle');
-                animateTimerRef.current = null;
-            }, 220);
-            prepareTimerRef.current = null;
-        }, 140);
-    };
 
     useEffect(() => {
         const isTypingTarget = (target: EventTarget | null) => {
@@ -3898,6 +3818,87 @@ export default function SimulationClient() {
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [pendingChoice, allChoices, canAdvanceDay, handleAdvanceDay, resolveChoice]);
+
+    if (loading) {
+        return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...'}</div>;
+    }
+
+    if (!result) {
+        return <div className="p-10 text-center text-gray-500">{language === 'ko' ? '결과가 없습니다.' : 'No result found.'}</div>;
+    }
+
+    const canSimulate = isFullResult && result.skills && result.skills.length > 0;
+
+    if (!canSimulate) {
+        return (
+            <div className="max-w-2xl mx-auto text-center sim-panel p-8">
+                <h1 className="text-2xl font-bold text-[var(--sim-text-main)] mb-4">
+                    {language === 'ko' ? '시뮬레이션 이용 불가' : 'Simulation Locked'}
+                </h1>
+                <p className="text-[var(--sim-text-sub)] mb-6">
+                    {language === 'ko'
+                        ? '스킬 설문까지 완료해야 시뮬레이션이 가능합니다.'
+                        : 'You need to complete the skill test to run the simulation.'}
+                </p>
+                {(s || contextTestPhase === 'skill') && (
+                    <button
+                        onClick={() => router.push('/test/intro')}
+                        className="sim-btn sim-btn-secondary px-6 py-3"
+                    >
+                        {language === 'ko' ? '테스트 다시 시작' : 'Start Test'}
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+
+    const medicineLevel = skillMap['Medicine'] ?? 0;
+    const healAmount = getHealAmount(medicineLevel);
+    const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
+    const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
+    const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
+    const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady && !pendingChoice;
+    const canLaunchNow = hasShipBuilt && simState.status === 'running' && simState.evacReady && !simState.evacActive && !pendingChoice;
+    const canBoardNow = canStartEvac || canLaunchNow;
+    const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
+    const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
+    const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
+
+    function handleAdvanceDay() {
+        if (turnPhase !== 'idle') {
+            if (prepareTimerRef.current === null && animateTimerRef.current === null) {
+                setTurnPhase('idle');
+            } else {
+                return;
+            }
+        }
+        if (simState.status === 'dead' && showDeathResult) {
+            setShowDeathResult(false);
+            return;
+        }
+        if (currentCard?.entry && cardView === 'event') {
+            setCardView('result');
+            return;
+        }
+        if (!canAdvanceDay) return;
+
+        const nextTurn = prepareNextTurn();
+        if (!nextTurn) return;
+
+        setPreparedTurn(nextTurn);
+        setTurnPhase('preparing');
+        prepareTimerRef.current = window.setTimeout(() => {
+            setTurnPhase('advancing');
+            animateTimerRef.current = window.setTimeout(() => {
+                applyPreparedTurn(nextTurn);
+                setPreparedTurn(null);
+                setTurnPhase('idle');
+                animateTimerRef.current = null;
+            }, 220);
+            prepareTimerRef.current = null;
+        }, 140);
+    }
 
     const getExactDeltaText = (label: string, delta: number) => {
         if (delta === 0) return '';
