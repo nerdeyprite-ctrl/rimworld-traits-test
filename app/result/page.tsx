@@ -32,6 +32,8 @@ function ResultContent() {
     const [shareId, setShareId] = useState<string | null>(s);
     const isSavedRef = useRef(false);
     const isSettlerSavedRef = useRef(false);
+    const isSettlerSaveInFlightRef = useRef(false);
+    const lastSettlerSaveKeyRef = useRef<string | null>(null);
 
     useEffect(() => {
         const id = shareId || s;
@@ -42,12 +44,68 @@ function ResultContent() {
 
     useEffect(() => {
         const saveSettler = async () => {
+            // Do not auto-save when viewing existing shared/profile results.
+            if (s || profileId) return;
             if (!result || !userInfo || !isSupabaseConfigured()) return;
-            if (isSettlerSavedRef.current) return;
+            // Wait for a persisted share/result id to build a stable dedupe key.
+            if (!shareId) return;
+            if (isSettlerSavedRef.current || isSettlerSaveInFlightRef.current) return;
             const accountId = typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null;
             if (!accountId) return;
 
+            const saveKey = `settler_profile:${accountId}:${shareId}`;
+            if (lastSettlerSaveKeyRef.current === saveKey) return;
+            if (typeof window !== 'undefined' && localStorage.getItem(saveKey) === '1') {
+                isSettlerSavedRef.current = true;
+                lastSettlerSaveKeyRef.current = saveKey;
+                return;
+            }
+
+            isSettlerSaveInFlightRef.current = true;
             try {
+                const payload = {
+                    account_id: accountId,
+                    name: userInfo.name,
+                    age: userInfo.age,
+                    gender: userInfo.gender,
+                    mbti: result.mbti,
+                    traits: result.traits,
+                    backstory_childhood: result.backstory?.childhood ?? null,
+                    backstory_adulthood: result.backstory?.adulthood ?? null,
+                    skills: result.skills,
+                    incapabilities: result.incapabilities
+                };
+
+                // Idempotency guard: skip if latest saved profile is the same payload.
+                const { data: latest, error: latestError } = await supabase
+                    .from('settler_profiles')
+                    .select('id, name, age, gender, mbti, traits, backstory_childhood, backstory_adulthood, skills, incapabilities')
+                    .eq('account_id', accountId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (latestError) throw latestError;
+
+                if (
+                    latest &&
+                    latest.name === payload.name &&
+                    latest.age === payload.age &&
+                    latest.gender === payload.gender &&
+                    latest.mbti === payload.mbti &&
+                    JSON.stringify(latest.traits ?? []) === JSON.stringify(payload.traits ?? []) &&
+                    JSON.stringify(latest.backstory_childhood ?? null) === JSON.stringify(payload.backstory_childhood ?? null) &&
+                    JSON.stringify(latest.backstory_adulthood ?? null) === JSON.stringify(payload.backstory_adulthood ?? null) &&
+                    JSON.stringify(latest.skills ?? []) === JSON.stringify(payload.skills ?? []) &&
+                    JSON.stringify(latest.incapabilities ?? []) === JSON.stringify(payload.incapabilities ?? [])
+                ) {
+                    isSettlerSavedRef.current = true;
+                    lastSettlerSaveKeyRef.current = saveKey;
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem(saveKey, '1');
+                    }
+                    return;
+                }
+
                 const { data: existing, error: countError } = await supabase
                     .from('settler_profiles')
                     .select('id, created_at')
@@ -62,27 +120,21 @@ function ResultContent() {
                     await supabase.from('settler_profiles').delete().in('id', toDeleteIds);
                 }
 
-                const payload = {
-                    account_id: accountId,
-                    name: userInfo.name,
-                    age: userInfo.age,
-                    gender: userInfo.gender,
-                    mbti: result.mbti,
-                    traits: result.traits,
-                    backstory_childhood: result.backstory?.childhood ?? null,
-                    backstory_adulthood: result.backstory?.adulthood ?? null,
-                    skills: result.skills,
-                    incapabilities: result.incapabilities
-                };
                 const { error } = await supabase.from('settler_profiles').insert(payload);
                 if (error) throw error;
                 isSettlerSavedRef.current = true;
+                lastSettlerSaveKeyRef.current = saveKey;
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(saveKey, '1');
+                }
             } catch (err) {
                 console.error('Failed to auto-save settler:', err);
+            } finally {
+                isSettlerSaveInFlightRef.current = false;
             }
         };
         saveSettler();
-    }, [result, userInfo]);
+    }, [result, userInfo, s, profileId, shareId]);
 
     // Fetch result if ID provided or handle legacy link
     useEffect(() => {
