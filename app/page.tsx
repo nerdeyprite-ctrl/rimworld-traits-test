@@ -105,6 +105,13 @@ export default function Home() {
 
   const updates = [
     {
+      date: '2026.02.14',
+      title: language === 'ko' ? '난이도 곡선/이벤트 밸런싱 업데이트' : 'Difficulty Curve & Event Balancing Update',
+      content: language === 'ko'
+        ? '초반(80일 이전) 생존 난이도를 소폭 완화하고, 100일 이후부터는 단계적으로 난이도가 상승하도록 조정했습니다. 100일 전조 이벤트와 다음 일차까지 영향을 남기는 공성/위협 이벤트를 추가해 후반 긴장감과 선택의 무게를 강화했습니다.'
+        : 'Early survival (before day 80) has been slightly eased, while difficulty now scales up progressively after day 100. Added a day-100 omen event plus siege/threat events with next-day consequences to strengthen late-game tension and decision weight.'
+    },
+    {
       date: '2026.02.11',
       title: language === 'ko' ? '시뮬레이션 대규모 업데이트' : 'Simulation Major Update',
       content: language === 'ko'

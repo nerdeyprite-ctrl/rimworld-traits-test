@@ -38,6 +38,20 @@ type ChoiceRequirements = {
     money?: number;
 };
 
+type NextDayEffect = {
+    id: string;
+    sourceEventId: string;
+    remainingDays: number;
+    hpMod?: number;
+    foodMod?: number;
+    medsMod?: number;
+    moneyMod?: number;
+    dangerBias?: number;
+    forceDangerNextDay?: boolean;
+    noteKo: string;
+    noteEn: string;
+};
+
 type SimChoice = {
     id: string;
     label: string;
@@ -46,6 +60,7 @@ type SimChoice = {
     response?: string;
     skillCheck?: SkillCheck;
     requirements?: ChoiceRequirements;
+    nextDayEffect?: NextDayEffect;
     isSpecial?: boolean;
     specialReason?: string;
     isRainbow?: boolean;
@@ -117,6 +132,8 @@ type SimState = {
     evacForceThreatNextDay: boolean;
     deathDuringEvac: boolean;
     evacReady: boolean;
+    era100Shown: boolean;
+    activeEffects: NextDayEffect[];
     skillProgress: Record<string, { level: number; xp: number }>; // 숙련도 시스템
 };
 
@@ -152,7 +169,18 @@ const START_STATS = { hp: 10, food: 5, meds: 2, money: 5 };
 const BASE_UPGRADE_COSTS = [5, 10];
 const SHIP_BUILD_DAY = 60;
 const EVAC_SURVIVAL_DAYS = 15;
-const SIEGE_EVENT_IDS = new Set(['siege_emp_lockdown', 'siege_breach_wave', 'siege_supply_burn']);
+const SIEGE_EVENT_IDS = new Set([
+    'siege_emp_lockdown',
+    'siege_breach_wave',
+    'siege_supply_burn',
+    'siege_signal_jamming',
+    'siege_night_hunt'
+]);
+const ERA_100_DAY = 100;
+const EARLY_EASING_END_DAY = 80;
+const MICRO_SCALE_STEP_DAYS = 10;
+const MICRO_SCALE_PER_STEP = 0.015;
+const MICRO_SCALE_CAP = 0.30;
 
 const SKILL_GROUPS: Record<string, string[]> = {
     '전투': ['Shooting', 'Melee'],
@@ -345,6 +373,24 @@ const getFailPenaltyMultiplier = (day: number) => {
     if (era === 2) return 1.26;
     if (era === 3) return 1.42;
     return 1.6;
+};
+
+const getMicroDifficultyBonus = (day: number) => {
+    if (day < ERA_100_DAY) return 0;
+    const steps = Math.floor((day - ERA_100_DAY) / MICRO_SCALE_STEP_DAYS);
+    return Math.min(MICRO_SCALE_CAP, steps * MICRO_SCALE_PER_STEP);
+};
+
+const getEffectiveFailPenaltyMultiplier = (day: number) => {
+    const base = getFailPenaltyMultiplier(day);
+    return base * (1 + getMicroDifficultyBonus(day));
+};
+
+const getEarlyDangerChanceRelief = (day: number, daysSinceDanger: number, endingPhaseActive: boolean) => {
+    if (endingPhaseActive) return 0;
+    if (day > EARLY_EASING_END_DAY) return 0;
+    if (daysSinceDanger <= 1) return 3;
+    return 0;
 };
 
 const scaleNegativeDelta = (value: number, multiplier: number) => {
@@ -933,7 +979,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '전원 차단 대기' : 'Power Down',
                     description: isKo ? '체력 -5' : 'HP -5',
                     delta: { hp: -5, food: 0, meds: 0, money: 0 },
-                    response: isKo ? '불필요한 손실을 막기 위해 전원을 내리고 버팁니다.' : 'You power down and ride out the disruption.'
+                    response: isKo ? '불필요한 손실을 막기 위해 전원을 내리고 버팁니다.' : 'You power down and ride out the disruption.',
+                    nextDayEffect: {
+                        id: 'emp_blackout_after',
+                        sourceEventId: 'emp_raid',
+                        remainingDays: 1,
+                        dangerBias: 2,
+                        noteKo: '전력 공백으로 다음날 경계가 약해집니다.',
+                        noteEn: 'Power vacuum weakens defenses on the next day.'
+                    }
                 }
             ]
         },
@@ -969,6 +1023,14 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         group: ['제작'],
                         successDelta: { hp: 0, food: -2, meds: 0, money: -2 },
                         failDelta: { hp: -2, food: -4, meds: 0, money: -2 }
+                    },
+                    nextDayEffect: {
+                        id: 'shambler_chokepoint_after',
+                        sourceEventId: 'shambler_horde',
+                        remainingDays: 1,
+                        moneyMod: -1,
+                        noteKo: '긴급 바리케이드 유지비로 다음날 자금이 줄어듭니다.',
+                        noteEn: 'Emergency barricade upkeep drains money the next day.'
                     }
                 },
                 {
@@ -1012,7 +1074,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '방어' : 'Defend',
                     description: isKo ? '체력 -4, 식량 +2' : 'HP -4, Food +2',
                     delta: { hp: -4, food: 2, meds: 0, money: 0 },
-                    response: isKo ? '방어를 택해 피해를 줄였습니다.' : 'You defend to reduce damage.'
+                    response: isKo ? '방어를 택해 피해를 줄였습니다.' : 'You defend to reduce damage.',
+                    nextDayEffect: {
+                        id: 'manhunter_defend_after',
+                        sourceEventId: 'manhunter',
+                        remainingDays: 1,
+                        hpMod: -1,
+                        noteKo: '방어전 후유증으로 다음날 체력이 감소합니다.',
+                        noteEn: 'Defensive strain reduces HP on the next day.'
+                    }
                 },
                 {
                     id: 'avoid',
@@ -1056,7 +1126,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '구역 격리' : 'Sector Isolation',
                     description: isKo ? '체력 -4, 식량 -2, 돈 -2' : 'HP -4, Food -2, Money -2',
                     delta: { hp: -4, food: -2, meds: 0, money: -2 },
-                    response: isKo ? '핵심 구역만 남기고 봉쇄해 손실을 제한합니다.' : 'You isolate critical sectors to cap losses.'
+                    response: isKo ? '핵심 구역만 남기고 봉쇄해 손실을 제한합니다.' : 'You isolate critical sectors to cap losses.',
+                    nextDayEffect: {
+                        id: 'siege_emp_isolate_after',
+                        sourceEventId: 'siege_emp_lockdown',
+                        remainingDays: 1,
+                        forceDangerNextDay: true,
+                        noteKo: 'EMP 잔류파로 적의 추격이 가속됩니다.',
+                        noteEn: 'Residual EMP signal accelerates enemy pursuit.'
+                    }
                 },
                 {
                     id: 'siege_emp_rewire',
@@ -1099,7 +1177,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '후퇴 방어선' : 'Fallback Line',
                     description: isKo ? '체력 -5, 식량 -2, 돈 -1' : 'HP -5, Food -2, Money -1',
                     delta: { hp: -5, food: -2, meds: 0, money: -1 },
-                    response: isKo ? '외곽을 포기하고 내부 방어선으로 물러납니다.' : 'You concede the outer wall and retreat inward.'
+                    response: isKo ? '외곽을 포기하고 내부 방어선으로 물러납니다.' : 'You concede the outer wall and retreat inward.',
+                    nextDayEffect: {
+                        id: 'siege_breach_fallback_after',
+                        sourceEventId: 'siege_breach_wave',
+                        remainingDays: 1,
+                        hpMod: -1,
+                        noteKo: '후퇴 후유증으로 다음날 체력이 추가로 감소합니다.',
+                        noteEn: 'Fallback fatigue reduces HP again on the next day.'
+                    }
                 },
                 {
                     id: 'siege_breach_patch',
@@ -1142,7 +1228,15 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     label: isKo ? '보급고 포기' : 'Abandon Depot',
                     description: isKo ? '체력 -4, 식량 -3, 치료제 -1, 돈 -2' : 'HP -4, Food -3, Meds -1, Money -2',
                     delta: { hp: -4, food: -3, meds: -1, money: -2 },
-                    response: isKo ? '인명 피해를 막기 위해 보급고를 포기합니다.' : 'You abandon the depot to avoid casualties.'
+                    response: isKo ? '인명 피해를 막기 위해 보급고를 포기합니다.' : 'You abandon the depot to avoid casualties.',
+                    nextDayEffect: {
+                        id: 'siege_supply_abandon_after',
+                        sourceEventId: 'siege_supply_burn',
+                        remainingDays: 1,
+                        foodMod: -1,
+                        noteKo: '소실된 보급 여파로 다음날 식량이 더 줄어듭니다.',
+                        noteEn: 'Supply loss aftermath reduces food again the next day.'
+                    }
                 },
                 {
                     id: 'siege_supply_counter',
@@ -1155,6 +1249,134 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         group: ['사격', '연구'],
                         successDelta: { hp: -2, food: -1, meds: 0, money: 1 },
                         failDelta: { hp: -6, food: -3, meds: -1, money: -2 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'siege_signal_jamming',
+            title: isKo ? '공성: 통신 재밍' : 'Siege: Signal Jamming',
+            description: isKo ? '적이 통신과 센서를 교란해 지휘 체계를 흔듭니다.' : 'Enemy jamming disrupts comms and sensor coordination.',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'siege_signal_trace',
+                    label: isKo ? '재밍 원점 추적' : 'Trace Source',
+                    description: isKo ? '연구/사격 기술 체크' : 'Intellectual/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '재밍 신호를 역추적해 교란원을 노립니다.' : 'You backtrack the signal and strike the jammer.',
+                    skillCheck: {
+                        label: isKo ? '신호 추적' : 'Signal Trace',
+                        group: ['연구', '사격'],
+                        successDelta: { hp: -2, food: 0, meds: 0, money: 1 },
+                        failDelta: { hp: -5, food: -1, meds: 0, money: -2 }
+                    },
+                    nextDayEffect: {
+                        id: 'siege_signal_trace_after',
+                        sourceEventId: 'siege_signal_jamming',
+                        remainingDays: 1,
+                        dangerBias: -2,
+                        noteKo: '교란원 타격으로 다음날 위험이 낮아집니다.',
+                        noteEn: 'Jammer disruption lowers danger on the next day.'
+                    }
+                },
+                {
+                    id: 'siege_signal_local',
+                    label: isKo ? '로컬 수동 운영' : 'Local Manual Ops',
+                    description: isKo ? '체력 -3, 돈 -2' : 'HP -3, Money -2',
+                    delta: { hp: -3, food: 0, meds: 0, money: -2 },
+                    response: isKo ? '자동화를 포기하고 수동 운영으로 버팁니다.' : 'You fall back to manual local operations.',
+                    nextDayEffect: {
+                        id: 'siege_signal_local_after',
+                        sourceEventId: 'siege_signal_jamming',
+                        remainingDays: 1,
+                        hpMod: -1,
+                        noteKo: '수동 운영 피로로 다음날 체력이 감소합니다.',
+                        noteEn: 'Manual operations fatigue lowers HP the next day.'
+                    }
+                },
+                {
+                    id: 'siege_signal_silent',
+                    label: isKo ? '침묵 프로토콜' : 'Silent Protocol',
+                    description: isKo ? '식량 -1, 치료제 -1' : 'Food -1, Meds -1',
+                    delta: { hp: 0, food: -1, meds: -1, money: 0 },
+                    response: isKo ? '신호 노출을 막기 위해 활동을 축소합니다.' : 'You reduce activity to avoid signal exposure.',
+                    nextDayEffect: {
+                        id: 'siege_signal_silent_after',
+                        sourceEventId: 'siege_signal_jamming',
+                        remainingDays: 1,
+                        forceDangerNextDay: true,
+                        noteKo: '침묵으로 적을 속였지만 추격이 따라붙습니다.',
+                        noteEn: 'Silence buys time, but pursuit still catches up.'
+                    }
+                }
+            ]
+        },
+        {
+            id: 'siege_night_hunt',
+            title: isKo ? '공성: 야간 추격전' : 'Siege: Night Hunt',
+            description: isKo ? '야간 정찰대가 기지 외곽을 집요하게 훑고 있습니다.' : 'Night hunters sweep the perimeter relentlessly.',
+            category: 'danger',
+            weight: 3,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'siege_night_ambush',
+                    label: isKo ? '매복 역습' : 'Ambush Counterstrike',
+                    description: isKo ? '격투/사격 기술 체크' : 'Melee/Shooting skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '야음을 이용해 정찰대를 역습합니다.' : 'You use darkness to ambush the hunters.',
+                    skillCheck: {
+                        label: isKo ? '야간 역습' : 'Night Ambush',
+                        group: ['격투', '사격'],
+                        successDelta: { hp: -2, food: 0, meds: 0, money: 1 },
+                        failDelta: { hp: -6, food: -1, meds: -1, money: -1 }
+                    },
+                    nextDayEffect: {
+                        id: 'siege_night_ambush_after',
+                        sourceEventId: 'siege_night_hunt',
+                        remainingDays: 1,
+                        dangerBias: -1,
+                        noteKo: '역습 성공 여파로 다음날 적 압박이 소폭 줄어듭니다.',
+                        noteEn: 'Successful ambush slightly lowers pressure next day.'
+                    }
+                },
+                {
+                    id: 'siege_night_lockdown',
+                    label: isKo ? '완전 통제' : 'Full Lockdown',
+                    description: isKo ? '체력 -2, 식량 -2, 돈 -1' : 'HP -2, Food -2, Money -1',
+                    delta: { hp: -2, food: -2, meds: 0, money: -1 },
+                    response: isKo ? '기지를 봉쇄하고 손실을 통제합니다.' : 'You lock down the base and minimize exposure.',
+                    nextDayEffect: {
+                        id: 'siege_night_lockdown_after',
+                        sourceEventId: 'siege_night_hunt',
+                        remainingDays: 1,
+                        foodMod: -1,
+                        noteKo: '통제 유지 비용으로 다음날 식량이 추가 소모됩니다.',
+                        noteEn: 'Lockdown upkeep consumes extra food next day.'
+                    }
+                },
+                {
+                    id: 'siege_night_track',
+                    label: isKo ? '정찰 역추적' : 'Track Their Scouts',
+                    description: isKo ? '생존/연구 기술 체크' : 'Survival/Intellectual skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '추적 흔적을 따라 적 동선을 파악합니다.' : 'You track movement patterns of enemy scouts.',
+                    skillCheck: {
+                        label: isKo ? '역추적' : 'Counter Tracking',
+                        group: ['생존', '연구'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -4, food: -1, meds: 0, money: -1 }
+                    },
+                    nextDayEffect: {
+                        id: 'siege_night_track_after',
+                        sourceEventId: 'siege_night_hunt',
+                        remainingDays: 1,
+                        dangerBias: 3,
+                        noteKo: '역추적 흔적이 노출되어 다음날 위험이 커집니다.',
+                        noteEn: 'Tracking traces expose your route, raising next-day danger.'
                     }
                 }
             ]
@@ -1285,6 +1507,14 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         group: ['격투', '사격'],
                         successDelta: { hp: -2, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -5, food: 0, meds: 0, money: 0 }
+                    },
+                    nextDayEffect: {
+                        id: 'infest_suppress_after',
+                        sourceEventId: 'infestation',
+                        remainingDays: 1,
+                        dangerBias: 3,
+                        noteKo: '잔존 군락 자극으로 다음날 위험이 높아집니다.',
+                        noteEn: 'Residual hive agitation increases danger on the next day.'
                     }
                 }
             ]
@@ -2343,6 +2573,8 @@ export default function SimulationClient() {
         evacForceThreatNextDay: false,
         deathDuringEvac: false,
         evacReady: false,
+        era100Shown: false,
+        activeEffects: [],
         skillProgress: {} // 숙련도는 빈 객체로 시작
     });
 
@@ -2400,7 +2632,9 @@ export default function SimulationClient() {
                 evacCountdown: data.simState?.evacCountdown ?? 0,
                 evacForceThreatNextDay: data.simState?.evacForceThreatNextDay ?? false,
                 deathDuringEvac: data.simState?.deathDuringEvac ?? false,
-                evacReady: data.simState?.evacReady ?? false
+                evacReady: data.simState?.evacReady ?? false,
+                era100Shown: data.simState?.era100Shown ?? false,
+                activeEffects: data.simState?.activeEffects ?? []
             });
             setPendingChoice(data.pendingChoice);
             setCurrentCard(data.currentCard);
@@ -2739,6 +2973,8 @@ export default function SimulationClient() {
         evacForceThreatNextDay: false,
         deathDuringEvac: false,
         evacReady: false,
+        era100Shown: false,
+        activeEffects: [],
         skillProgress: ALL_SKILLS.reduce((acc, skill) => {
             acc[skill] = { level: 0, xp: 0 };
             return acc;
@@ -2901,11 +3137,17 @@ export default function SimulationClient() {
         }
 
         if (event.category === 'danger' && skillOutcome === 'fail') {
-            const failMult = getFailPenaltyMultiplier(eventDay);
+            const failMult = getEffectiveFailPenaltyMultiplier(eventDay);
             hpDelta = scaleNegativeDelta(hpDelta, failMult);
             foodDelta = scaleNegativeDelta(foodDelta, failMult);
             medsDelta = scaleNegativeDelta(medsDelta, failMult);
             moneyDelta = scaleNegativeDelta(moneyDelta, failMult);
+            if (eventDay <= EARLY_EASING_END_DAY && hpDelta < 0 && !simState.evacActive && !simState.evacReady) {
+                hpDelta = Math.min(0, hpDelta + 1);
+                traitNotes.push(language === 'ko'
+                    ? '초반 완충: 피해를 조금 덜 받았습니다.'
+                    : 'Early-game easing: damage slightly reduced.');
+            }
         }
 
         if (event.category === 'danger' && campLevel > 0 && hpDelta < 0) {
@@ -2980,6 +3222,8 @@ export default function SimulationClient() {
         simState.loverCount,
         simState.spouseCount,
         simState.skillProgress,
+        simState.evacActive,
+        simState.evacReady,
         traitIds,
         passions,
         language,
@@ -3060,6 +3304,26 @@ export default function SimulationClient() {
         let meds = simState.meds;
         let money = simState.money;
         const responseNotes: string[] = [];
+        let effectDangerBias = 0;
+        let effectForceDanger = false;
+        const activeEffects = simState.activeEffects ?? [];
+        const remainingEffects: NextDayEffect[] = [];
+
+        if (nextDay > 0 && activeEffects.length > 0) {
+            activeEffects.forEach(effect => {
+                hp += effect.hpMod ?? 0;
+                food += effect.foodMod ?? 0;
+                meds += effect.medsMod ?? 0;
+                money += effect.moneyMod ?? 0;
+                effectDangerBias += effect.dangerBias ?? 0;
+                if (effect.forceDangerNextDay) effectForceDanger = true;
+                responseNotes.push(language === 'ko' ? effect.noteKo : effect.noteEn);
+                const nextRemaining = effect.remainingDays - 1;
+                if (nextRemaining > 0) {
+                    remainingEffects.push({ ...effect, remainingDays: nextRemaining });
+                }
+            });
+        }
 
         if (nextDay > 0) {
             food -= 1;
@@ -3074,6 +3338,17 @@ export default function SimulationClient() {
         food = clampStat(food, 30);
         meds = clampStat(meds, 30);
         money = clampStat(money, 30);
+
+        let hasSerumForDay = simState.hasSerum;
+        if (hp <= 0 && hasSerumForDay) {
+            hp = 10;
+            hasSerumForDay = false;
+            responseNotes.push(
+                language === 'ko'
+                    ? '부활 혈청이 작동해 죽음을 피했습니다.'
+                    : 'Resurrector Serum activated and prevented death.'
+            );
+        }
 
         const dayStart = { hp, food, meds, money };
 
@@ -3101,9 +3376,18 @@ export default function SimulationClient() {
             hp,
             food,
             meds,
-            money
+            money,
+            hasSerum: hasSerumForDay
         };
         if (hp <= 0) {
+            const deathDuringEvac = simState.evacActive && simState.evacCountdown > 0;
+            if (deathDuringEvac) {
+                responseNotes.push(
+                    language === 'ko'
+                        ? '탈출을 갈망하다 사망했습니다.'
+                        : 'Died yearning for escape.'
+                );
+            }
             const deathEvent: SimEvent = {
                 id: 'starvation_death',
                 title: language === 'ko' ? '굶주림' : 'Starvation',
@@ -3135,6 +3419,8 @@ export default function SimulationClient() {
                     food: resolved.after.food,
                     meds: resolved.after.meds,
                     money: resolved.after.money,
+                    activeEffects: remainingEffects,
+                    deathDuringEvac,
                     log: [entry, ...simState.log].slice(0, 60)
                 },
                 pendingChoice: null,
@@ -3179,7 +3465,8 @@ export default function SimulationClient() {
             return {
                 simState: {
                     ...baseSimState,
-                    daysSinceDanger: (simState.daysSinceDanger ?? 0) + 1
+                    daysSinceDanger: (simState.daysSinceDanger ?? 0) + 1,
+                    activeEffects: remainingEffects
                 },
                 pendingChoice: {
                     day: nextDay,
@@ -3200,6 +3487,90 @@ export default function SimulationClient() {
             };
         }
 
+        if (nextDay === ERA_100_DAY && !simState.era100Shown) {
+            const omenEvent: SimEvent = {
+                id: 'era100_omen',
+                title: language === 'ko' ? '100일의 전조' : 'Omen of Day 100',
+                description: language === 'ko'
+                    ? '기지가 오래 버틴 대가를 치를 시간이 왔습니다. 이제 선택의 여파가 다음 날까지 남습니다.'
+                    : 'The cost of long survival is here. From now on, your choices will echo into the next day.',
+                category: 'noncombat',
+                weight: 0,
+                base: { hp: 0, food: 0, meds: 0, money: 0 },
+                choices: [
+                    {
+                        id: 'omen_stabilize',
+                        label: language === 'ko' ? '안정 우선' : 'Prioritize Stability',
+                        description: language === 'ko' ? '돈 -1, 다음날 위험도 -2%' : 'Money -1, next-day danger -2%',
+                        delta: { hp: 0, food: 0, meds: 0, money: -1 },
+                        response: language === 'ko' ? '기지 내부를 정비해 변수부터 줄였습니다.' : 'You stabilize internal systems first.',
+                        nextDayEffect: {
+                            id: 'omen_stabilize_after',
+                            sourceEventId: 'era100_omen',
+                            remainingDays: 1,
+                            dangerBias: -2,
+                            noteKo: '안정화 여파: 다음날 위험 확률이 낮아집니다.',
+                            noteEn: 'Stabilization aftereffect: danger chance is lower today.'
+                        }
+                    },
+                    {
+                        id: 'omen_aggressive',
+                        label: language === 'ko' ? '공격적 준비' : 'Aggressive Prep',
+                        description: language === 'ko' ? '다음날 체력 -1, 위험도 +4%' : 'Next day HP -1, danger +4%',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        response: language === 'ko' ? '외곽 전초를 무리하게 확장했습니다.' : 'You overextend forward outposts.',
+                        nextDayEffect: {
+                            id: 'omen_aggressive_after',
+                            sourceEventId: 'era100_omen',
+                            remainingDays: 1,
+                            hpMod: -1,
+                            dangerBias: 4,
+                            noteKo: '과확장 여파: 다음날 체력이 줄고 위험이 커집니다.',
+                            noteEn: 'Overextension aftereffect: lower HP and higher danger today.'
+                        }
+                    },
+                    {
+                        id: 'omen_stockpile',
+                        label: language === 'ko' ? '보급 집중' : 'Stockpile Focus',
+                        description: language === 'ko' ? '다음날 식량 +1, 돈 -1, 위험도 +2%' : 'Next day Food +1, Money -1, danger +2%',
+                        delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                        response: language === 'ko' ? '현금 흐름을 깎아 비상 보급을 늘렸습니다.' : 'You convert cash flow into emergency supplies.',
+                        nextDayEffect: {
+                            id: 'omen_stockpile_after',
+                            sourceEventId: 'era100_omen',
+                            remainingDays: 1,
+                            foodMod: 1,
+                            moneyMod: -1,
+                            dangerBias: 2,
+                            noteKo: '비축 여파: 식량은 늘지만 자금이 줄고 위험이 약간 증가합니다.',
+                            noteEn: 'Stockpile aftereffect: more food, less money, slightly higher danger today.'
+                        }
+                    }
+                ]
+            };
+            return {
+                simState: {
+                    ...baseSimState,
+                    era100Shown: true,
+                    activeEffects: remainingEffects
+                },
+                pendingChoice: {
+                    day: nextDay,
+                    season,
+                    event: omenEvent,
+                    dayStart,
+                    baseAfter: { hp, food, meds, money },
+                    responseNotes
+                },
+                currentCard: {
+                    day: nextDay,
+                    season,
+                    event: omenEvent
+                },
+                cardView: 'event'
+            };
+        }
+
         let event: SimEvent;
         let serumTraderShown = simState.serumTraderShown;
         let evacForceThreatNextDay = simState.evacForceThreatNextDay;
@@ -3210,13 +3581,15 @@ export default function SimulationClient() {
             const quietPool = events.filter(e => e.category === 'quiet');
 
             let selectedCat: SimEventCategory;
-            if (simState.evacForceThreatNextDay) {
+            if (simState.evacForceThreatNextDay || effectForceDanger) {
                 selectedCat = 'danger';
                 evacForceThreatNextDay = false;
             } else {
+                const evacDangerWeight = Math.max(35, Math.min(85, 60 + effectDangerBias));
+                const evacNonCombatWeight = Math.max(10, Math.min(35, 20 - Math.floor(effectDangerBias / 2)));
                 const roll = Math.random() * 100;
-                if (roll < 60) selectedCat = 'danger';
-                else if (roll < 80) selectedCat = 'noncombat';
+                if (roll < evacDangerWeight) selectedCat = 'danger';
+                else if (roll < evacDangerWeight + evacNonCombatWeight) selectedCat = 'noncombat';
                 else selectedCat = 'quiet';
             }
 
@@ -3272,7 +3645,13 @@ export default function SimulationClient() {
         } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
-            const dangerChance = Math.max(0, getDangerChance(nextDay, simState.daysSinceDanger ?? 0));
+            const baseDangerChance = getDangerChance(nextDay, simState.daysSinceDanger ?? 0);
+            const earlyRelief = getEarlyDangerChanceRelief(
+                nextDay,
+                simState.daysSinceDanger ?? 0,
+                simState.evacActive || simState.evacReady
+            );
+            const dangerChance = Math.max(0, Math.min(95, baseDangerChance + effectDangerBias - earlyRelief));
             const remaining = Math.max(0, 100 - dangerChance);
             const wQuiet = remaining * (50 / 90);
             let wNonCombat = remaining * (40 / 90);
@@ -3282,13 +3661,16 @@ export default function SimulationClient() {
             const totalSetWeight = wQuiet + wNonCombat + wMind + wDanger;
             const roll = Math.random() * totalSetWeight;
             let selectedCat: SimEventCategory = 'quiet';
-            if (roll <= wQuiet) selectedCat = 'quiet';
+            if (effectForceDanger) {
+                selectedCat = 'danger';
+            } else if (roll <= wQuiet) selectedCat = 'quiet';
             else if (roll <= wQuiet + wNonCombat) selectedCat = 'noncombat';
             else if (roll <= wQuiet + wNonCombat + wMind) selectedCat = 'mind';
             else selectedCat = 'danger';
 
             const filteredEvents = events.filter(e => {
                 if (e.category !== selectedCat) return false;
+                if (e.id === 'era100_omen') return false;
                 if (SIEGE_EVENT_IDS.has(e.id) && nextDay < 100) return false;
                 if (traitIds.has('asexual') && (e.id === 'breakup' || e.id === 'marriage' || e.id === 'divorce')) return false;
                 if (e.id === 'pet_death' && simState.petCount <= 0) return false;
@@ -3335,7 +3717,8 @@ export default function SimulationClient() {
                     daysSinceDanger: nextDaysSinceDanger,
                     serumTraderShown,
                     evacForceThreatNextDay,
-                    deathDuringEvac: false
+                    deathDuringEvac: false,
+                    activeEffects: remainingEffects
                 },
                 pendingChoice: {
                     day: nextDay,
@@ -3359,7 +3742,7 @@ export default function SimulationClient() {
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
         let finalResponseCard = resolved.responseTextCard;
-        let finalHasSerum = simState.hasSerum;
+        let finalHasSerum = baseSimState.hasSerum;
         let finalEvacCountdown = simState.evacCountdown;
         let finalEvacReady = simState.evacReady;
         let finalDeathDuringEvac = false;
@@ -3434,6 +3817,7 @@ export default function SimulationClient() {
                 evacForceThreatNextDay: simState.evacActive && finalEvacCountdown > 0 ? evacForceThreatNextDay : false,
                 deathDuringEvac: finalDeathDuringEvac,
                 evacReady: finalEvacReady,
+                activeEffects: remainingEffects,
                 skillProgress: resolved.skillProgress,
                 daysSinceDanger: nextDaysSinceDanger,
                 log: [entry, ...simState.log].slice(0, 60)
@@ -3575,6 +3959,7 @@ export default function SimulationClient() {
         let finalEvacReady = simState.evacReady;
         let finalDeathDuringEvac = false;
         let shouldPromptLaunchReady = false;
+        let finalActiveEffects = simState.activeEffects;
 
         if (finalHp <= 0 && finalHasSerum) {
             finalHp = 10;
@@ -3617,6 +4002,16 @@ export default function SimulationClient() {
                 : '\nFailed to withstand the evacuation wave.';
         }
 
+        if (choice.nextDayEffect && finalStatus === 'running' && pendingChoice.day >= ERA_100_DAY) {
+            finalActiveEffects = [...simState.activeEffects, { ...choice.nextDayEffect }];
+            finalResponse += language === 'ko'
+                ? ` 다음 일차 영향이 남았습니다: ${choice.nextDayEffect.noteKo}`
+                : ` Next-day consequence applied: ${choice.nextDayEffect.noteEn}`;
+            finalResponseCard += language === 'ko'
+                ? `\n다음 일차 영향: ${choice.nextDayEffect.noteKo}`
+                : `\nNext-day consequence: ${choice.nextDayEffect.noteEn}`;
+        }
+
         const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
         const entry: SimLogEntry = {
             day: pendingChoice.day,
@@ -3650,6 +4045,7 @@ export default function SimulationClient() {
                 deathDuringEvac: finalDeathDuringEvac,
                 evacForceThreatNextDay: simState.evacActive && finalEvacCountdown > 0 ? simState.evacForceThreatNextDay : false,
                 evacReady: finalEvacReady,
+                activeEffects: finalActiveEffects,
                 skillProgress: resolved.skillProgress,
                 log
             };
