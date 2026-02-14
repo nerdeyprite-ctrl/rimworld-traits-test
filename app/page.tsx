@@ -8,6 +8,9 @@ import VisitorCounter from '../components/VisitorCounter';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { hashPassword } from '../lib/auth';
 
+const UPDATES_READ_KEY = 'rimworld_updates_read_version';
+const UPDATES_VERSION = '2026-02-14-balance-v1';
+
 export default function Home() {
   const { t, language } = useLanguage();
   const { resetTest } = useTest();
@@ -102,6 +105,21 @@ export default function Home() {
   };
 
   const [showUpdates, setShowUpdates] = useState(false);
+  const [hasUnreadUpdates, setHasUnreadUpdates] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const seenVersion = localStorage.getItem(UPDATES_READ_KEY);
+    setHasUnreadUpdates(seenVersion !== UPDATES_VERSION);
+  }, []);
+
+  const openUpdatesModal = () => {
+    setShowUpdates(true);
+    setHasUnreadUpdates(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(UPDATES_READ_KEY, UPDATES_VERSION);
+    }
+  };
 
   const updates = [
     {
@@ -181,14 +199,16 @@ export default function Home() {
       {/* Update Notification Bell */}
       <div className="fixed bottom-4 right-4 sm:bottom-auto sm:top-20 sm:right-6 z-40">
         <button
-          onClick={() => setShowUpdates(true)}
+          onClick={openUpdatesModal}
           className="relative p-3 bg-[#111] border border-[#333] hover:border-[#9f752a] text-[#9f752a] transition-all group overflow-hidden shadow-lg"
         >
           <div className="absolute inset-0 bg-[#9f752a]/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
           <svg className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 4.36 6 6.92 6 10v5l-2 2v1h16v-1l-2-2z" />
           </svg>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-[#111] animate-pulse"></span>
+          {hasUnreadUpdates && (
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-[#111] animate-pulse"></span>
+          )}
         </button>
       </div>
 
