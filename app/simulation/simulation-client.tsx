@@ -47,9 +47,20 @@ type NextDayEffect = {
     medsMod?: number;
     moneyMod?: number;
     dangerBias?: number;
+    foodGainPenalty?: number;
+    disableHealing?: boolean;
     forceDangerNextDay?: boolean;
+    obfuscateUi?: boolean;
+    applyBeforeEra100?: boolean;
+    tone?: 'positive' | 'negative';
     noteKo: string;
     noteEn: string;
+};
+
+type TurnEffectModifiers = {
+    foodGainPenalty: number;
+    disableHealing: boolean;
+    obfuscateUi: boolean;
 };
 
 type SimChoice = {
@@ -68,12 +79,16 @@ type SimChoice = {
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'mind' | 'danger';
+type NonCombatSubtype = 'support' | 'tradeoff' | 'attrition' | 'special';
+type NonCombatSpawnSubtype = Exclude<NonCombatSubtype, 'special'>;
+type NonCombatSubtypeWeights = Record<NonCombatSpawnSubtype, number>;
 
 type SimEvent = {
     id: string;
     title: string;
     description: string;
     category: SimEventCategory;
+    nonCombatSubtype?: NonCombatSubtype;
     weight: number;
     base: SimDelta;
     traitMods?: {
@@ -110,6 +125,7 @@ type PendingChoice = {
     dayStart: { hp: number; food: number; meds: number; money: number };
     baseAfter: { hp: number; food: number; meds: number; money: number };
     responseNotes: string[];
+    turnEffectModifiers: TurnEffectModifiers;
 };
 
 type SimState = {
@@ -181,6 +197,20 @@ const EARLY_EASING_END_DAY = 80;
 const MICRO_SCALE_STEP_DAYS = 10;
 const MICRO_SCALE_PER_STEP = 0.015;
 const MICRO_SCALE_CAP = 0.30;
+const NONCOMBAT_SUBTYPE_ORDER: NonCombatSpawnSubtype[] = ['support', 'tradeoff', 'attrition'];
+const NONCOMBAT_MIN_SUBTYPE_WEIGHT = 5;
+const NONCOMBAT_SPAWN_TUNING = {
+    base: { support: 46, tradeoff: 36, attrition: 18 },
+    postEarlyShift: { support: -4, tradeoff: -1, attrition: 5 },
+    post100BasePressure: 6,
+    post100EraPressurePer100Days: 3,
+    post100MicroPressureScale: 20,
+    evacShift: { support: -10, tradeoff: -4, attrition: 14 },
+    criticalGuardShift: { support: 14, tradeoff: 4, attrition: -18 },
+    dangerBiasDivisor: 2,
+    dangerBiasPositiveCap: 10,
+    dangerBiasNegativeCap: 8
+} as const;
 
 const SKILL_GROUPS: Record<string, string[]> = {
     '전투': ['Shooting', 'Melee'],
@@ -269,6 +299,17 @@ const TRAIT_NAMES_KO: Record<string, string> = {
     psychopath: '사이코패스'
 };
 
+const TEXT_SCRAMBLE_GLYPHS = ['#', '%', '&', '*', '?', '@', '!', '+', '=', '~', '/', '\\', '|', ';', ':'];
+
+const scrambleText = (text: string) => {
+    if (!text) return text;
+    return Array.from(text).map((ch, idx) => {
+        if (ch === ' ' || ch === '\n' || ch === '\t') return ch;
+        const code = ch.codePointAt(0) ?? 0;
+        return TEXT_SCRAMBLE_GLYPHS[(code + idx * 11) % TEXT_SCRAMBLE_GLYPHS.length];
+    }).join('');
+};
+
 const getEventIcon = (event?: SimEvent) => {
     if (!event) return '🎴';
     switch (event.id) {
@@ -292,6 +333,8 @@ const getEventIcon = (event?: SimEvent) => {
             return '🧠';
         case 'psychic_soother':
             return '💫';
+        case 'madness_frenzy':
+            return '🌀';
         case 'cold_snap':
             return '❄️';
         case 'heat_wave':
@@ -391,6 +434,153 @@ const getEarlyDangerChanceRelief = (day: number, daysSinceDanger: number, ending
     if (day > EARLY_EASING_END_DAY) return 0;
     if (daysSinceDanger <= 1) return 3;
     return 0;
+};
+
+const normalizeNonCombatSubtypeWeights = (weights: NonCombatSubtypeWeights): NonCombatSubtypeWeights => {
+    const safeWeights = { ...weights };
+    NONCOMBAT_SUBTYPE_ORDER.forEach(subtype => {
+        safeWeights[subtype] = Math.max(NONCOMBAT_MIN_SUBTYPE_WEIGHT, safeWeights[subtype]);
+    });
+    return safeWeights;
+};
+
+const getNonCombatSubtype = (event: SimEvent): NonCombatSubtype => {
+    if (event.category !== 'noncombat') return 'special';
+    return event.nonCombatSubtype ?? 'tradeoff';
+};
+
+const getNonCombatSubtypeWeights = (context: {
+    day: number;
+    isEvac: boolean;
+    effectDangerBias: number;
+    hp: number;
+    food: number;
+    meds: number;
+    money: number;
+}): NonCombatSubtypeWeights => {
+    const { day, isEvac, effectDangerBias, hp, food, meds, money } = context;
+
+    let support = NONCOMBAT_SPAWN_TUNING.base.support;
+    let tradeoff = NONCOMBAT_SPAWN_TUNING.base.tradeoff;
+    let attrition = NONCOMBAT_SPAWN_TUNING.base.attrition;
+
+    if (day > EARLY_EASING_END_DAY) {
+        support += NONCOMBAT_SPAWN_TUNING.postEarlyShift.support;
+        tradeoff += NONCOMBAT_SPAWN_TUNING.postEarlyShift.tradeoff;
+        attrition += NONCOMBAT_SPAWN_TUNING.postEarlyShift.attrition;
+    }
+
+    if (day >= ERA_100_DAY) {
+        const eraPressure = Math.floor((day - ERA_100_DAY) / 100) * NONCOMBAT_SPAWN_TUNING.post100EraPressurePer100Days;
+        const microPressure = Math.round(getMicroDifficultyBonus(day) * NONCOMBAT_SPAWN_TUNING.post100MicroPressureScale);
+        const totalPressure = NONCOMBAT_SPAWN_TUNING.post100BasePressure + eraPressure + microPressure;
+        support -= Math.ceil(totalPressure * 0.45);
+        tradeoff -= Math.floor(totalPressure * 0.2);
+        attrition += totalPressure;
+    }
+
+    if (isEvac) {
+        support += NONCOMBAT_SPAWN_TUNING.evacShift.support;
+        tradeoff += NONCOMBAT_SPAWN_TUNING.evacShift.tradeoff;
+        attrition += NONCOMBAT_SPAWN_TUNING.evacShift.attrition;
+    }
+
+    if (effectDangerBias > 0) {
+        const shift = Math.min(
+            NONCOMBAT_SPAWN_TUNING.dangerBiasPositiveCap,
+            Math.ceil(effectDangerBias / NONCOMBAT_SPAWN_TUNING.dangerBiasDivisor)
+        );
+        support -= shift;
+        attrition += shift;
+    } else if (effectDangerBias < 0) {
+        const shift = Math.min(
+            NONCOMBAT_SPAWN_TUNING.dangerBiasNegativeCap,
+            Math.ceil(Math.abs(effectDangerBias) / NONCOMBAT_SPAWN_TUNING.dangerBiasDivisor)
+        );
+        support += shift;
+        attrition -= shift;
+    }
+
+    // Critical-resource guard to avoid repeated no-counterplay attrition chains.
+    const criticalResourceState = hp <= 2 || food <= 1 || (food <= 2 && meds <= 0) || (food === 0 && money === 0);
+    if (criticalResourceState) {
+        support += NONCOMBAT_SPAWN_TUNING.criticalGuardShift.support;
+        tradeoff += NONCOMBAT_SPAWN_TUNING.criticalGuardShift.tradeoff;
+        attrition += NONCOMBAT_SPAWN_TUNING.criticalGuardShift.attrition;
+    }
+
+    return normalizeNonCombatSubtypeWeights({
+        support,
+        tradeoff,
+        attrition
+    });
+};
+
+const pickNonCombatEvent = (
+    events: SimEvent[],
+    context: {
+        day: number;
+        isEvac: boolean;
+        effectDangerBias: number;
+        hp: number;
+        food: number;
+        meds: number;
+        money: number;
+    }
+): SimEvent => {
+    if (events.length === 0) {
+        throw new Error('pickNonCombatEvent called with an empty event list');
+    }
+
+    const randomPool = events.filter(event => getNonCombatSubtype(event) !== 'special');
+    const selectionPool = randomPool.length > 0 ? randomPool : events;
+
+    const grouped: Record<NonCombatSpawnSubtype, SimEvent[]> = {
+        support: [],
+        tradeoff: [],
+        attrition: []
+    };
+
+    selectionPool.forEach(event => {
+        const subtype = getNonCombatSubtype(event);
+        if (subtype === 'special') return;
+        grouped[subtype].push(event);
+    });
+
+    const availableSubtypes = NONCOMBAT_SUBTYPE_ORDER.filter(subtype => grouped[subtype].length > 0);
+    if (availableSubtypes.length === 0) {
+        return pickWeightedEvent(selectionPool);
+    }
+
+    const weights = getNonCombatSubtypeWeights(context);
+    const total = availableSubtypes.reduce((sum, subtype) => sum + weights[subtype], 0);
+    let roll = Math.random() * total;
+    let pickedSubtype = availableSubtypes[0];
+
+    for (const subtype of availableSubtypes) {
+        roll -= weights[subtype];
+        if (roll <= 0) {
+            pickedSubtype = subtype;
+            break;
+        }
+    }
+
+    return pickWeightedEvent(grouped[pickedSubtype]);
+};
+
+const isNegativeEffect = (effect: NextDayEffect) => {
+    if (effect.tone === 'negative') return true;
+    if (effect.disableHealing || (effect.foodGainPenalty ?? 0) > 0 || effect.forceDangerNextDay) return true;
+    if ((effect.dangerBias ?? 0) > 0) return true;
+    if ((effect.hpMod ?? 0) < 0 || (effect.foodMod ?? 0) < 0 || (effect.medsMod ?? 0) < 0 || (effect.moneyMod ?? 0) < 0) return true;
+    return false;
+};
+
+const isPositiveEffect = (effect: NextDayEffect) => {
+    if (effect.tone === 'positive') return true;
+    if ((effect.dangerBias ?? 0) < 0) return true;
+    if ((effect.hpMod ?? 0) > 0 || (effect.foodMod ?? 0) > 0 || (effect.medsMod ?? 0) > 0 || (effect.moneyMod ?? 0) > 0) return true;
+    return false;
 };
 
 const scaleNegativeDelta = (value: number, multiplier: number) => {
@@ -523,6 +713,7 @@ const buildSupplyEvent = (language: string, money: number, food: number, meds: n
         title: isKo ? '물자 상인 등장' : 'Supply Trader',
         description: isKo ? '식량과 치료제를 구매할 수 있는 상인이 도착했습니다.' : 'A trader offers food and meds.',
         category: 'noncombat',
+        nonCombatSubtype: 'support',
         weight: 0,
         base: { hp: 0, food: 0, meds: 0, money: 0 },
         choices
@@ -611,6 +802,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '상단 방문' : 'Trader Caravan',
             description: isKo ? '상인들이 들러 교역을 제안했습니다.' : 'A trader caravan offers a deal.',
             category: 'noncombat',
+            nonCombatSubtype: 'tradeoff',
             weight: 6,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -657,6 +849,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '보급 캡슐 추락' : 'Cargo Pods',
             description: isKo ? '하늘에서 보급 캡슐이 떨어졌습니다.' : 'Cargo pods crash nearby.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 6,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -680,6 +873,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '풍작' : 'Crop Boom',
             description: isKo ? '작물이 급성장해 풍작이 들었습니다.' : 'Crops surge with unexpected growth.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 6,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -709,6 +903,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '병충해' : 'Blight',
             description: isKo ? '작물이 병충해로 시들고 있습니다.' : 'A blight hits the crops.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 5,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -738,6 +933,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '우주선 잔해' : 'Ship Chunk',
             description: isKo ? '우주선 잔해가 추락했습니다.' : 'A ship chunk crashes nearby.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 5,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -768,6 +964,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '방랑자 합류' : 'Wanderer Joins',
             description: isKo ? '방랑자가 합류를 요청했습니다.' : 'A wanderer asks to join.',
             category: 'noncombat',
+            nonCombatSubtype: 'tradeoff',
             weight: 4,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -805,6 +1002,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '채집 성공' : 'Foraging',
             description: isKo ? '근처에서 먹을거리를 찾아냈습니다.' : 'You forage for supplies nearby.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 4,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -828,6 +1026,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '의료 상자 발견' : 'Medical Cache',
             description: isKo ? '버려진 의료 상자를 발견했습니다.' : 'You discover a medical cache.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 4,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -983,8 +1182,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'emp_blackout_after',
                         sourceEventId: 'emp_raid',
-                        remainingDays: 1,
-                        dangerBias: 2,
+                        remainingDays: 3,
+                        dangerBias: 3,
+                        tone: 'negative',
                         noteKo: '전력 공백으로 다음날 경계가 약해집니다.',
                         noteEn: 'Power vacuum weakens defenses on the next day.'
                     }
@@ -1027,8 +1227,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'shambler_chokepoint_after',
                         sourceEventId: 'shambler_horde',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         moneyMod: -1,
+                        foodGainPenalty: 1,
+                        tone: 'negative',
                         noteKo: '긴급 바리케이드 유지비로 다음날 자금이 줄어듭니다.',
                         noteEn: 'Emergency barricade upkeep drains money the next day.'
                     }
@@ -1078,8 +1280,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'manhunter_defend_after',
                         sourceEventId: 'manhunter',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         hpMod: -1,
+                        tone: 'negative',
                         noteKo: '방어전 후유증으로 다음날 체력이 감소합니다.',
                         noteEn: 'Defensive strain reduces HP on the next day.'
                     }
@@ -1130,8 +1333,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_emp_isolate_after',
                         sourceEventId: 'siege_emp_lockdown',
-                        remainingDays: 1,
+                        remainingDays: 3,
+                        dangerBias: 2,
                         forceDangerNextDay: true,
+                        tone: 'negative',
                         noteKo: 'EMP 잔류파로 적의 추격이 가속됩니다.',
                         noteEn: 'Residual EMP signal accelerates enemy pursuit.'
                     }
@@ -1181,8 +1386,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_breach_fallback_after',
                         sourceEventId: 'siege_breach_wave',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         hpMod: -1,
+                        tone: 'negative',
                         noteKo: '후퇴 후유증으로 다음날 체력이 추가로 감소합니다.',
                         noteEn: 'Fallback fatigue reduces HP again on the next day.'
                     }
@@ -1232,8 +1438,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_supply_abandon_after',
                         sourceEventId: 'siege_supply_burn',
-                        remainingDays: 1,
+                        remainingDays: 4,
                         foodMod: -1,
+                        foodGainPenalty: 1,
+                        tone: 'negative',
                         noteKo: '소실된 보급 여파로 다음날 식량이 더 줄어듭니다.',
                         noteEn: 'Supply loss aftermath reduces food again the next day.'
                     }
@@ -1276,8 +1484,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_signal_trace_after',
                         sourceEventId: 'siege_signal_jamming',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         dangerBias: -2,
+                        tone: 'positive',
                         noteKo: '교란원 타격으로 다음날 위험이 낮아집니다.',
                         noteEn: 'Jammer disruption lowers danger on the next day.'
                     }
@@ -1291,10 +1500,12 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_signal_local_after',
                         sourceEventId: 'siege_signal_jamming',
-                        remainingDays: 1,
+                        remainingDays: 4,
                         hpMod: -1,
-                        noteKo: '수동 운영 피로로 다음날 체력이 감소합니다.',
-                        noteEn: 'Manual operations fatigue lowers HP the next day.'
+                        disableHealing: true,
+                        tone: 'negative',
+                        noteKo: '수동 운영 피로가 누적되어 회복이 봉쇄됩니다.',
+                        noteEn: 'Manual-ops fatigue accumulates and blocks recovery.'
                     }
                 },
                 {
@@ -1306,8 +1517,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_signal_silent_after',
                         sourceEventId: 'siege_signal_jamming',
-                        remainingDays: 1,
+                        remainingDays: 3,
+                        dangerBias: 2,
                         forceDangerNextDay: true,
+                        tone: 'negative',
                         noteKo: '침묵으로 적을 속였지만 추격이 따라붙습니다.',
                         noteEn: 'Silence buys time, but pursuit still catches up.'
                     }
@@ -1337,8 +1550,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_night_ambush_after',
                         sourceEventId: 'siege_night_hunt',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         dangerBias: -1,
+                        tone: 'positive',
                         noteKo: '역습 성공 여파로 다음날 적 압박이 소폭 줄어듭니다.',
                         noteEn: 'Successful ambush slightly lowers pressure next day.'
                     }
@@ -1352,8 +1566,10 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_night_lockdown_after',
                         sourceEventId: 'siege_night_hunt',
-                        remainingDays: 1,
+                        remainingDays: 4,
                         foodMod: -1,
+                        foodGainPenalty: 1,
+                        tone: 'negative',
                         noteKo: '통제 유지 비용으로 다음날 식량이 추가 소모됩니다.',
                         noteEn: 'Lockdown upkeep consumes extra food next day.'
                     }
@@ -1373,8 +1589,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'siege_night_track_after',
                         sourceEventId: 'siege_night_hunt',
-                        remainingDays: 1,
+                        remainingDays: 5,
                         dangerBias: 3,
+                        tone: 'negative',
                         noteKo: '역추적 흔적이 노출되어 다음날 위험이 커집니다.',
                         noteEn: 'Tracking traces expose your route, raising next-day danger.'
                     }
@@ -1386,6 +1603,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '질병 발생' : 'Disease Outbreak',
             description: isKo ? '질병이 퍼져 몸이 약해졌습니다.' : 'A disease spreads through the camp.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1417,6 +1635,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '한파' : 'Cold Snap',
             description: isKo ? '갑작스러운 한파가 찾아왔습니다.' : 'A sudden cold snap hits.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1440,6 +1659,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '폭염' : 'Heat Wave',
             description: isKo ? '무더위가 이어지고 있습니다.' : 'Relentless heat drains you.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1457,6 +1677,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '화재' : 'Fire',
             description: isKo ? '화재가 발생해 귀중품들이 불타고 있습니다!' : 'A fire destroys your funds.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 1,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1511,8 +1732,9 @@ const buildSimEvents = (language: string): SimEvent[] => {
                     nextDayEffect: {
                         id: 'infest_suppress_after',
                         sourceEventId: 'infestation',
-                        remainingDays: 1,
+                        remainingDays: 3,
                         dangerBias: 3,
+                        tone: 'negative',
                         noteKo: '잔존 군락 자극으로 다음날 위험이 높아집니다.',
                         noteEn: 'Residual hive agitation increases danger on the next day.'
                     }
@@ -1524,6 +1746,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '독성 낙진' : 'Toxic Fallout',
             description: isKo ? '하늘에서 정체 모를 독성 가루가 내립니다.' : 'Toxic dust falls from the sky.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1555,6 +1778,59 @@ const buildSimEvents = (language: string): SimEvent[] => {
                         group: ['Intellectual'],
                         successDelta: { hp: 0, food: 0, meds: 0, money: 0 },
                         failDelta: { hp: -3, food: 0, meds: 0, money: 0 }
+                    }
+                }
+            ]
+        },
+        {
+            id: 'madness_frenzy',
+            title: isKo ? '광란' : 'Frenzy',
+            description: isKo
+                ? '환청과 환시가 폭주합니다. 다음 며칠간 사건 정보가 제대로 읽히지 않을 수 있습니다.'
+                : 'Hallucinations and noise surge. Event text may become unreadable for the next few days.',
+            category: 'mind',
+            weight: 1,
+            base: { hp: 0, food: 0, meds: 0, money: 0 },
+            choices: [
+                {
+                    id: 'frenzy_anchor',
+                    label: isKo ? '이성을 붙잡는다' : 'Anchor Your Mind',
+                    description: isKo ? '연구/사교 기술 체크' : 'Intellectual/Social skill check',
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    response: isKo ? '마음이 무너지는 감각을 억지로 붙잡습니다.' : 'You force your mind to hold together.',
+                    skillCheck: {
+                        label: isKo ? '정신 고정' : 'Mental Anchor',
+                        group: ['Intellectual', 'Social'],
+                        successDelta: { hp: -1, food: 0, meds: 0, money: 0 },
+                        failDelta: { hp: -3, food: 0, meds: 0, money: 0 }
+                    },
+                    nextDayEffect: {
+                        id: 'frenzy_blindness_anchor',
+                        sourceEventId: 'madness_frenzy',
+                        remainingDays: 3,
+                        obfuscateUi: true,
+                        applyBeforeEra100: true,
+                        tone: 'negative',
+                        noteKo: '광란 후유증: 다음 3일간 사건/선택지 텍스트를 식별할 수 없습니다.',
+                        noteEn: 'Frenzy aftereffect: event and choice text become unreadable for 3 days.'
+                    }
+                },
+                {
+                    id: 'frenzy_sedate',
+                    label: isKo ? '진정제 투여' : 'Use Sedatives',
+                    description: isKo ? '치료제 1 소모, 체력 -1' : 'Spend 1 meds, HP -1',
+                    requirements: { meds: 1 },
+                    delta: { hp: -1, food: 0, meds: -1, money: 0 },
+                    response: isKo ? '진정제로 몸은 가라앉았지만 판단은 흐려집니다.' : 'Sedatives calm your body, but your judgment blurs.',
+                    nextDayEffect: {
+                        id: 'frenzy_blindness_sedate',
+                        sourceEventId: 'madness_frenzy',
+                        remainingDays: 3,
+                        obfuscateUi: true,
+                        applyBeforeEra100: true,
+                        tone: 'negative',
+                        noteKo: '광란 후유증: 다음 3일간 사건/선택지 텍스트를 식별할 수 없습니다.',
+                        noteEn: 'Frenzy aftereffect: event and choice text become unreadable for 3 days.'
                     }
                 }
             ]
@@ -1663,6 +1939,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '태양 흑점 폭발' : 'Solar Flare',
             description: isKo ? '강력한 자기장 폭풍이 몰아쳐 모든 전자기기가 마비되었습니다!' : 'A solar flare disables all electronics.',
             category: 'noncombat',
+            nonCombatSubtype: 'attrition',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1692,6 +1969,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '운석 낙하' : 'Meteorite',
             description: isKo ? '거대한 운석이 기지 근처에 추락했습니다!' : 'A meteorite crashes nearby.',
             category: 'noncombat',
+            nonCombatSubtype: 'tradeoff',
             weight: 3,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -1721,6 +1999,7 @@ const buildSimEvents = (language: string): SimEvent[] => {
             title: isKo ? '트럼보 출현' : 'Thrumbo Passes',
             description: isKo ? '전설적인 생물, 트럼보가 기지 근처를 배회합니다.' : 'A mythical Thrumbo is wandering nearby.',
             category: 'noncombat',
+            nonCombatSubtype: 'support',
             weight: 2,
             base: { hp: 0, food: 0, meds: 0, money: 0 },
             choices: [
@@ -3035,7 +3314,8 @@ export default function SimulationClient() {
         baseAfter: { hp: number; food: number; meds: number; money: number },
         baseNotes: string[],
         campLevel: number,
-        choice?: SimChoice
+        choice?: SimChoice,
+        turnEffectModifiers?: TurnEffectModifiers
     ) => {
         let hp = baseAfter.hp;
         let food = baseAfter.food;
@@ -3134,6 +3414,17 @@ export default function SimulationClient() {
                 if (target === 'money') moneyDelta += bonus;
             });
             skillNote = note;
+        }
+
+        if ((turnEffectModifiers?.foodGainPenalty ?? 0) > 0 && foodDelta > 0) {
+            const penalty = turnEffectModifiers?.foodGainPenalty ?? 0;
+            const reduced = Math.max(0, foodDelta - penalty);
+            if (reduced !== foodDelta) {
+                traitNotes.push(language === 'ko'
+                    ? `지속 효과: 식량 획득량이 ${foodDelta}→${reduced}로 감소했습니다.`
+                    : `Ongoing effect: food gain reduced ${foodDelta}→${reduced}.`);
+                foodDelta = reduced;
+            }
         }
 
         if (event.category === 'danger' && skillOutcome === 'fail') {
@@ -3306,6 +3597,9 @@ export default function SimulationClient() {
         const responseNotes: string[] = [];
         let effectDangerBias = 0;
         let effectForceDanger = false;
+        let effectFoodGainPenalty = 0;
+        let effectDisableHealing = false;
+        let effectObfuscateUi = false;
         const activeEffects = simState.activeEffects ?? [];
         const remainingEffects: NextDayEffect[] = [];
 
@@ -3316,7 +3610,10 @@ export default function SimulationClient() {
                 meds += effect.medsMod ?? 0;
                 money += effect.moneyMod ?? 0;
                 effectDangerBias += effect.dangerBias ?? 0;
+                effectFoodGainPenalty += effect.foodGainPenalty ?? 0;
+                if (effect.disableHealing) effectDisableHealing = true;
                 if (effect.forceDangerNextDay) effectForceDanger = true;
+                if (effect.obfuscateUi) effectObfuscateUi = true;
                 responseNotes.push(language === 'ko' ? effect.noteKo : effect.noteEn);
                 const nextRemaining = effect.remainingDays - 1;
                 if (nextRemaining > 0) {
@@ -3324,6 +3621,12 @@ export default function SimulationClient() {
                 }
             });
         }
+
+        const turnEffectModifiers: TurnEffectModifiers = {
+            foodGainPenalty: effectFoodGainPenalty,
+            disableHealing: effectDisableHealing,
+            obfuscateUi: effectObfuscateUi
+        };
 
         if (nextDay > 0) {
             food -= 1;
@@ -3443,6 +3746,7 @@ export default function SimulationClient() {
                     ? '당신은 결국 우주선을 만들어냈습니다. 이로써 당신은 이 변방계에서 탈출할 수 있게 되었습니다. 지금 당장 탈출하거나, 아니면 더 여기 있기를 선택할 수 있습니다.'
                     : 'You finally completed the ship. You can escape now or stay and keep surviving.',
                 category: 'noncombat',
+                nonCombatSubtype: 'special',
                 weight: 0,
                 base: { hp: 0, food: 0, meds: 0, money: 0 },
                 choices: [
@@ -3474,7 +3778,8 @@ export default function SimulationClient() {
                     event: endingEvent,
                     dayStart,
                     baseAfter: { hp, food, meds, money },
-                    responseNotes
+                    responseNotes,
+                    turnEffectModifiers
                 },
                 currentCard: {
                     day: nextDay,
@@ -3495,6 +3800,7 @@ export default function SimulationClient() {
                     ? '기지가 오래 버틴 대가를 치를 시간이 왔습니다. 이제 선택의 여파가 다음 날까지 남습니다.'
                     : 'The cost of long survival is here. From now on, your choices will echo into the next day.',
                 category: 'noncombat',
+                nonCombatSubtype: 'special',
                 weight: 0,
                 base: { hp: 0, food: 0, meds: 0, money: 0 },
                 choices: [
@@ -3507,8 +3813,9 @@ export default function SimulationClient() {
                         nextDayEffect: {
                             id: 'omen_stabilize_after',
                             sourceEventId: 'era100_omen',
-                            remainingDays: 1,
+                            remainingDays: 3,
                             dangerBias: -2,
+                            tone: 'positive',
                             noteKo: '안정화 여파: 다음날 위험 확률이 낮아집니다.',
                             noteEn: 'Stabilization aftereffect: danger chance is lower today.'
                         }
@@ -3522,9 +3829,10 @@ export default function SimulationClient() {
                         nextDayEffect: {
                             id: 'omen_aggressive_after',
                             sourceEventId: 'era100_omen',
-                            remainingDays: 1,
+                            remainingDays: 4,
                             hpMod: -1,
                             dangerBias: 4,
+                            tone: 'negative',
                             noteKo: '과확장 여파: 다음날 체력이 줄고 위험이 커집니다.',
                             noteEn: 'Overextension aftereffect: lower HP and higher danger today.'
                         }
@@ -3538,10 +3846,12 @@ export default function SimulationClient() {
                         nextDayEffect: {
                             id: 'omen_stockpile_after',
                             sourceEventId: 'era100_omen',
-                            remainingDays: 1,
+                            remainingDays: 3,
                             foodMod: 1,
                             moneyMod: -1,
+                            foodGainPenalty: 1,
                             dangerBias: 2,
+                            tone: 'negative',
                             noteKo: '비축 여파: 식량은 늘지만 자금이 줄고 위험이 약간 증가합니다.',
                             noteEn: 'Stockpile aftereffect: more food, less money, slightly higher danger today.'
                         }
@@ -3560,7 +3870,8 @@ export default function SimulationClient() {
                     event: omenEvent,
                     dayStart,
                     baseAfter: { hp, food, meds, money },
-                    responseNotes
+                    responseNotes,
+                    turnEffectModifiers
                 },
                 currentCard: {
                     day: nextDay,
@@ -3605,7 +3916,17 @@ export default function SimulationClient() {
                     event = pickWeightedEvent(events.filter(e => e.category === 'danger'));
                 }
             } else if (selectedCat === 'noncombat') {
-                event = nonCombatPool.length > 0 ? pickWeightedEvent(nonCombatPool) : pickWeightedEvent(events);
+                event = nonCombatPool.length > 0
+                    ? pickNonCombatEvent(nonCombatPool, {
+                        day: nextDay,
+                        isEvac: true,
+                        effectDangerBias,
+                        hp,
+                        food,
+                        meds,
+                        money
+                    })
+                    : pickWeightedEvent(events);
             } else {
                 event = quietPool.length > 0 ? pickWeightedEvent(quietPool) : pickWeightedEvent(events);
                 evacForceThreatNextDay = true;
@@ -3621,6 +3942,7 @@ export default function SimulationClient() {
                     ? '특별한 물건을 취급하는 정체불명의 상인이 기지에 머무르기를 요청합니다. 그는 죽음조차 되돌릴 수 있다는 전설의 부활 혈청을 가지고 있다고 주장합니다.'
                     : 'A mysterious trader with rare artifacts visits. He claims to possess a legendary resurrector serum.',
                 category: 'noncombat',
+                nonCombatSubtype: 'special',
                 weight: 0,
                 base: { hp: 0, food: 0, meds: 0, money: 0 },
                 isRainbow: true,
@@ -3679,7 +4001,19 @@ export default function SimulationClient() {
                 if (e.id === 'divorce' && simState.spouseCount <= 0) return false;
                 return true;
             });
-            event = filteredEvents.length > 0 ? pickWeightedEvent(filteredEvents) : pickWeightedEvent(events);
+            if (selectedCat === 'noncombat' && filteredEvents.length > 0) {
+                event = pickNonCombatEvent(filteredEvents, {
+                    day: nextDay,
+                    isEvac: false,
+                    effectDangerBias,
+                    hp,
+                    food,
+                    meds,
+                    money
+                });
+            } else {
+                event = filteredEvents.length > 0 ? pickWeightedEvent(filteredEvents) : pickWeightedEvent(events);
+            }
         }
 
         if (dailyGreatSuccess && event.id === 'quiet_day') {
@@ -3726,7 +4060,8 @@ export default function SimulationClient() {
                     event,
                     dayStart,
                     baseAfter: { hp, food, meds, money },
-                    responseNotes
+                    responseNotes,
+                    turnEffectModifiers
                 },
                 currentCard: {
                     day: nextDay,
@@ -3737,7 +4072,7 @@ export default function SimulationClient() {
             };
         }
 
-        const resolved = resolveEvent(event, nextDay, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel);
+        const resolved = resolveEvent(event, nextDay, dayStart, { hp, food, meds, money }, responseNotes, simState.campLevel, undefined, turnEffectModifiers);
         let finalHp = resolved.after.hp;
         let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
         let finalResponse = resolved.responseText;
@@ -3946,7 +4281,8 @@ export default function SimulationClient() {
             { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
             pendingChoice.responseNotes,
             simState.campLevel,
-            choice
+            choice,
+            pendingChoice.turnEffectModifiers
         );
 
         let finalHp = resolved.after.hp;
@@ -4002,7 +4338,9 @@ export default function SimulationClient() {
                 : '\nFailed to withstand the evacuation wave.';
         }
 
-        if (choice.nextDayEffect && finalStatus === 'running' && pendingChoice.day >= ERA_100_DAY) {
+        const canApplyNextDayEffect = !!choice.nextDayEffect && finalStatus === 'running'
+            && (pendingChoice.day >= ERA_100_DAY || choice.nextDayEffect.applyBeforeEra100);
+        if (canApplyNextDayEffect && choice.nextDayEffect) {
             finalActiveEffects = [...simState.activeEffects, { ...choice.nextDayEffect }];
             finalResponse += language === 'ko'
                 ? ` 다음 일차 영향이 남았습니다: ${choice.nextDayEffect.noteKo}`
@@ -4067,6 +4405,25 @@ export default function SimulationClient() {
         const medicineLevel = skillMap['Medicine'] ?? 0;
         const healAmount = getHealAmount(medicineLevel);
         setSimState(prev => {
+            const healingBlockedEffect = prev.activeEffects.find(effect => effect.disableHealing);
+            if (healingBlockedEffect) {
+                const entry: SimLogEntry = {
+                    day: prev.day,
+                    season: getSeasonLabel(prev.day, language),
+                    title: language === 'ko' ? '치료 불가' : 'Healing Blocked',
+                    description: language === 'ko' ? '치료제를 사용할 수 없습니다.' : 'You cannot use meds right now.',
+                    response: language === 'ko'
+                        ? `지속 영향으로 회복이 봉쇄되었습니다: ${healingBlockedEffect.noteKo}`
+                        : `Recovery is blocked by an ongoing effect: ${healingBlockedEffect.noteEn}`,
+                    delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                    after: { hp: prev.hp, food: prev.food, meds: prev.meds, money: prev.money },
+                    status: 'warn'
+                };
+                return {
+                    ...prev,
+                    log: [entry, ...prev.log].slice(0, 60)
+                };
+            }
             if (prev.meds <= 0 || prev.hp >= 20) return prev;
             const hp = clampStat(prev.hp + healAmount);
             const meds = prev.meds - 1;
@@ -4251,7 +4608,10 @@ export default function SimulationClient() {
 
     const medicineLevel = skillMap['Medicine'] ?? 0;
     const healAmount = getHealAmount(medicineLevel);
-    const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running';
+    const hasHealingBlockActive = simState.activeEffects.some(effect => effect.disableHealing);
+    const hasNegativeActiveEffect = simState.activeEffects.some(isNegativeEffect);
+    const hasPositiveActiveEffect = !hasNegativeActiveEffect && simState.activeEffects.some(isPositiveEffect);
+    const canUseMeds = simState.meds > 0 && simState.hp < 20 && simState.status === 'running' && !hasHealingBlockActive;
     const nextBaseCost = BASE_UPGRADE_COSTS[simState.campLevel];
     const canUpgradeBase = nextBaseCost !== undefined && simState.money >= nextBaseCost;
     const canStartEvac = hasShipBuilt && simState.status === 'running' && !simState.evacActive && !simState.evacReady && !pendingChoice;
@@ -4260,6 +4620,10 @@ export default function SimulationClient() {
     const isCurrentDangerCard = simState.status === 'running' && currentCard?.event.category === 'danger';
     const isPreparedDangerCard = preparedTurn?.currentCard.event.category === 'danger';
     const isDangerChoiceContext = pendingChoice?.event.category === 'danger';
+    const isUiCorrupted = !!pendingChoice?.turnEffectModifiers?.obfuscateUi;
+    const isPreparedUiCorrupted = !!preparedTurn?.pendingChoice?.turnEffectModifiers?.obfuscateUi;
+    const showEffectPulse = simState.status === 'running' && simState.activeEffects.length > 0 && !simState.evacActive;
+    const effectPulseMode = hasNegativeActiveEffect ? 'negative' : (hasPositiveActiveEffect ? 'positive' : 'none');
 
     function handleAdvanceDay() {
         if (turnPhase !== 'idle') {
@@ -4385,21 +4749,35 @@ export default function SimulationClient() {
                                     <div className="reigns-card-stack-meta">
                                         {`Day ${preparedTurn.currentCard.day} • ${preparedTurn.currentCard.season}`}
                                     </div>
-                                    <div className="reigns-card-stack-title">{preparedTurn.currentCard.event.title}</div>
-                                    <div className="reigns-card-stack-icon">{getEventIcon(preparedTurn.currentCard.event)}</div>
+                                    <div className="reigns-card-stack-title">
+                                        {isPreparedUiCorrupted ? scrambleText(preparedTurn.currentCard.event.title) : preparedTurn.currentCard.event.title}
+                                    </div>
+                                    <div className="reigns-card-stack-icon">{isPreparedUiCorrupted ? '◼️' : getEventIcon(preparedTurn.currentCard.event)}</div>
                                     <div className="reigns-card-stack-body">
-                                        {preparedTurn.currentCard.event.description}
+                                        {isPreparedUiCorrupted ? scrambleText(preparedTurn.currentCard.event.description) : preparedTurn.currentCard.event.description}
                                     </div>
                                 </div>
                             )}
                         </div>
                         <div
-                            className={`reigns-card rounded-[18px] ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)]' : ''}`}
+                            className={`reigns-card rounded-[18px] ${cardView === 'result' && simState.status === 'running' ? 'reigns-card--flipped' : ''} ${turnPhase === 'advancing' ? 'reigns-card--advance' : ''} ${simState.evacActive && simState.status === 'running' ? 'ring-2 ring-red-500/70 shadow-[0_0_24px_rgba(168,85,247,0.45)]' : ''} ${showEffectPulse && effectPulseMode === 'negative' ? 'ring-2 ring-red-500/60 shadow-[0_0_22px_rgba(239,68,68,0.35)]' : ''} ${showEffectPulse && effectPulseMode === 'positive' ? 'ring-2 ring-emerald-500/70 shadow-[0_0_22px_rgba(16,185,129,0.35)]' : ''}`}
                         >
                             {simState.evacActive && simState.status === 'running' && (
                                 <div
                                     aria-hidden
                                     className="pointer-events-none absolute inset-0 z-30 rounded-[18px] border-2 border-red-400/70 animate-pulse"
+                                />
+                            )}
+                            {showEffectPulse && effectPulseMode === 'negative' && (
+                                <div
+                                    aria-hidden
+                                    className="pointer-events-none absolute inset-0 z-20 rounded-[18px] border-2 border-red-400/70 animate-pulse"
+                                />
+                            )}
+                            {showEffectPulse && effectPulseMode === 'positive' && (
+                                <div
+                                    aria-hidden
+                                    className="pointer-events-none absolute inset-0 z-20 rounded-[18px] border-2 border-emerald-400/70 animate-pulse"
                                 />
                             )}
                             <div className="reigns-card-inner">
@@ -4488,13 +4866,17 @@ export default function SimulationClient() {
                                                     </div>
                                                 )}
                                                 <div className="mt-4 text-2xl md:text-3xl font-bold text-[var(--sim-text-main)] leading-tight">
-                                                    {currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game')}
+                                                    {isUiCorrupted
+                                                        ? scrambleText(currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game'))
+                                                        : (currentCard?.event.title || (language === 'ko' ? '생존 게임을 시작하세요' : 'Start the Survival Game'))}
                                                 </div>
                                                 <div className="mt-4 text-5xl">
-                                                    {getEventIcon(currentCard?.event)}
+                                                    {isUiCorrupted ? '◼️' : getEventIcon(currentCard?.event)}
                                                 </div>
                                                 <div className="mt-4 text-sm md:text-base text-[var(--sim-text-sub)] leading-relaxed overflow-y-auto max-h-[120px] px-2 custom-scrollbar">
-                                                    {currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game')}
+                                                    {isUiCorrupted
+                                                        ? scrambleText(currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game'))
+                                                        : (currentCard?.event.description || (language === 'ko' ? '시뮬레이션 대기 중 생존 게임을 시작하세요' : 'Simulation Standby: Start the Survival Game'))}
                                                 </div>
 
                                                 {!currentCard && (
@@ -4583,10 +4965,10 @@ export default function SimulationClient() {
                                                                             onClick={() => resolveChoice(choice.id)}
                                                                             className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'sim-choice--special' : 'border-[var(--sim-border)]'))} flex flex-col items-center justify-center min-h-[50px]`}
                                                                         >
-                                                                            <div className="font-bold">{choice.label}</div>
-                                                                            {chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
+                                                                            <div className="font-bold">{isUiCorrupted ? scrambleText(choice.label) : choice.label}</div>
+                                                                            {!isUiCorrupted && chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
                                                                         </button>
-                                                                        {outcomeInfo.length > 0 && (
+                                                                        {!isUiCorrupted && outcomeInfo.length > 0 && (
                                                                             <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 p-2 bg-[var(--sim-surface-1)] border border-[var(--sim-border)] rounded-lg shadow-2xl text-[9px] text-[var(--sim-text-sub)] pointer-events-none opacity-0 group-hover:opacity-100 transition-all">
                                                                                 <div className="font-black text-[var(--sim-accent)] border-b border-[var(--sim-border)] pb-1 mb-1">{language === 'ko' ? '예상 결과' : 'Expectation'}</div>
                                                                                 {outcomeInfo.map((info, i) => <div key={i}>{info}</div>)}
@@ -4662,6 +5044,22 @@ export default function SimulationClient() {
                             : `Emergency evacuation countdown active: ${simState.evacCountdown} days remaining`}
                     </div>
                 )}
+                {simState.activeEffects.length > 0 && (
+                    <div className={`rounded-lg px-3 py-2 border ${hasNegativeActiveEffect ? 'bg-red-900/15 border-red-500/40 text-red-200' : 'bg-emerald-900/15 border-emerald-500/40 text-emerald-200'}`}>
+                        <div className="text-xs font-bold mb-1">
+                            {hasNegativeActiveEffect
+                                ? (language === 'ko' ? '위험한 지속 영향 활성' : 'Dangerous Ongoing Effects Active')
+                                : (language === 'ko' ? '유리한 지속 영향 활성' : 'Beneficial Ongoing Effects Active')}
+                        </div>
+                        <div className="space-y-1">
+                            {simState.activeEffects.map(effect => (
+                                <div key={effect.id} className="text-[11px] leading-relaxed">
+                                    • {language === 'ko' ? effect.noteKo : effect.noteEn} ({language === 'ko' ? `${effect.remainingDays}일` : `${effect.remainingDays}d`})
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[var(--sim-border)]">
                     <div className="flex flex-wrap gap-2">
@@ -4673,7 +5071,9 @@ export default function SimulationClient() {
                                 : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                 }`}
                         >
-                            {language === 'ko' ? `💉 치료제 사용 (+${healAmount})` : `💉 Use Meds (+${healAmount})`}
+                            {hasHealingBlockActive
+                                ? (language === 'ko' ? '💉 치료 봉쇄 중' : '💉 Healing Blocked')
+                                : (language === 'ko' ? `💉 치료제 사용 (+${healAmount})` : `💉 Use Meds (+${healAmount})`)}
                         </button>
                         <button
                             onClick={handleUpgradeBase}
