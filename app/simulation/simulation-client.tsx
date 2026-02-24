@@ -63,6 +63,17 @@ type TurnEffectModifiers = {
     obfuscateUi: boolean;
 };
 
+type DuelTrack = 'combat' | 'crafting' | 'research' | 'art';
+
+type DuelOpponent = {
+    id: string;
+    name: string;
+    combat: number;
+    crafting: number;
+    research: number;
+    art: number;
+};
+
 type SimChoice = {
     id: string;
     label: string;
@@ -76,6 +87,7 @@ type SimChoice = {
     specialReason?: string;
     isRainbow?: boolean;
     isRareSpawn?: boolean;
+    duelTrack?: DuelTrack;
 };
 
 type SimEventCategory = 'quiet' | 'noncombat' | 'mind' | 'danger';
@@ -101,6 +113,7 @@ type SimEvent = {
     skillTargets?: Array<'hp' | 'food' | 'meds' | 'money'>;
     choices?: SimChoice[];
     isRainbow?: boolean;
+    duelOpponent?: DuelOpponent;
 };
 
 type SimLogEntry = {
@@ -310,6 +323,86 @@ const scrambleText = (text: string) => {
     }).join('');
 };
 
+const getRawSkillLevel = (skills: unknown, skillName: string) => {
+    if (!Array.isArray(skills)) return 0;
+    const entry = skills.find(item => {
+        if (!item || typeof item !== 'object') return false;
+        return (item as { name?: unknown }).name === skillName;
+    }) as { level?: unknown } | undefined;
+    if (!entry) return 0;
+    const parsed = Number(entry.level);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, parsed);
+};
+
+const getRawAverage = (skills: unknown, names: string[]) => {
+    if (names.length === 0) return 0;
+    const total = names.reduce((sum, name) => sum + getRawSkillLevel(skills, name), 0);
+    return total / names.length;
+};
+
+const mapToDuelOpponent = (row: { id?: unknown; name?: unknown; skills?: unknown }): DuelOpponent | null => {
+    const id = typeof row.id === 'string' ? row.id : '';
+    const name = typeof row.name === 'string' && row.name.trim().length > 0 ? row.name.trim() : '';
+    if (!id || !name) return null;
+    const skills = row.skills;
+    return {
+        id,
+        name,
+        combat: getRawAverage(skills, ['Shooting', 'Melee']),
+        crafting: getRawAverage(skills, ['Construction', 'Crafting', 'Mining']),
+        research: getRawSkillLevel(skills, 'Intellectual'),
+        art: getRawSkillLevel(skills, 'Artistic')
+    };
+};
+
+const buildSoulDuelEvent = (language: string, opponent: DuelOpponent): SimEvent => {
+    const isKo = language === 'ko';
+    return {
+        id: 'soul_duel',
+        title: isKo ? '영혼의 승부' : 'Soul Duel',
+        description: isKo ? `상대는 ${opponent.name}입니다.` : `Your opponent is ${opponent.name}.`,
+        category: 'mind',
+        weight: 0,
+        base: { hp: 0, food: 0, meds: 0, money: 0 },
+        duelOpponent: opponent,
+        choices: [
+            {
+                id: 'soul_duel_combat',
+                label: isKo ? '전투' : 'Combat',
+                description: isKo ? '전투 숙련 비교' : 'Compare combat skill',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '전투 감각으로 영혼의 결투에 나섭니다.' : 'You challenge with combat instinct.',
+                duelTrack: 'combat'
+            },
+            {
+                id: 'soul_duel_crafting',
+                label: isKo ? '제작' : 'Crafting',
+                description: isKo ? '제작 숙련 비교' : 'Compare crafting skill',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '손기술과 설계 감각으로 승부를 겁니다.' : 'You challenge with building and crafting expertise.',
+                duelTrack: 'crafting'
+            },
+            {
+                id: 'soul_duel_research',
+                label: isKo ? '연구' : 'Research',
+                description: isKo ? '연구 숙련 비교' : 'Compare research skill',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '이론과 분석력으로 맞섭니다.' : 'You challenge with analysis and intellect.',
+                duelTrack: 'research'
+            },
+            {
+                id: 'soul_duel_art',
+                label: isKo ? '예술' : 'Art',
+                description: isKo ? '예술 숙련 비교' : 'Compare artistic skill',
+                delta: { hp: 0, food: 0, meds: 0, money: 0 },
+                response: isKo ? '감각과 표현력으로 승부를 봅니다.' : 'You challenge with artistic expression.',
+                duelTrack: 'art'
+            }
+        ]
+    };
+};
+
 const getEventIcon = (event?: SimEvent) => {
     if (!event) return '🎴';
     switch (event.id) {
@@ -335,6 +428,8 @@ const getEventIcon = (event?: SimEvent) => {
             return '💫';
         case 'madness_frenzy':
             return '🌀';
+        case 'soul_duel':
+            return '⚖️';
         case 'cold_snap':
             return '❄️';
         case 'heat_wave':
@@ -1836,6 +1931,14 @@ const buildSimEvents = (language: string): SimEvent[] => {
             ]
         },
         {
+            id: 'soul_duel',
+            title: isKo ? '영혼의 승부' : 'Soul Duel',
+            description: isKo ? '상대는 정체불명의 정착민입니다.' : 'Your opponent is an unknown settler.',
+            category: 'mind',
+            weight: 1,
+            base: { hp: 0, food: 0, meds: 0, money: 0 }
+        },
+        {
             id: 'breakup',
             title: isKo ? '이별' : 'Breakup',
             description: isKo ? '사랑하던 연인이 당신을 떠났습니다. 마음이 찢어지는 듯한 고통을 느낍니다.' : 'Your lover has left you. You feel a heart-wrenching pain.',
@@ -2828,6 +2931,7 @@ export default function SimulationClient() {
     const [showDeathResult, setShowDeathResult] = useState(false);
     const [turnPhase, setTurnPhase] = useState<TurnPhase>('idle');
     const [preparedTurn, setPreparedTurn] = useState<PreparedTurn | null>(null);
+    const [duelOpponents, setDuelOpponents] = useState<DuelOpponent[]>([]);
     const prepareTimerRef = useRef<number | null>(null);
     const animateTimerRef = useRef<number | null>(null);
 
@@ -3036,6 +3140,36 @@ export default function SimulationClient() {
         fetchSharedResult();
     }, [s, profileId, language, contextTestPhase, calculateFinalTraits, result]);
 
+    useEffect(() => {
+        if (!isSupabaseConfigured()) return;
+        let cancelled = false;
+        const loadDuelOpponents = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('settler_profiles')
+                    .select('id,name,skills')
+                    .limit(160);
+                if (error) throw error;
+                const pool = (data ?? [])
+                    .map(row => mapToDuelOpponent(row as { id?: unknown; name?: unknown; skills?: unknown }))
+                    .filter((op): op is DuelOpponent => !!op)
+                    .filter(op => !profileId || op.id !== profileId);
+                if (!cancelled) {
+                    setDuelOpponents(pool);
+                }
+            } catch (error) {
+                console.error('Failed to load duel opponents:', error);
+                if (!cancelled) {
+                    setDuelOpponents([]);
+                }
+            }
+        };
+        loadDuelOpponents();
+        return () => {
+            cancelled = true;
+        };
+    }, [profileId]);
+
 
     const traitIds = useMemo(() => {
         const ids = new Set<string>();
@@ -3119,6 +3253,34 @@ export default function SimulationClient() {
         });
         return total / count;
     }, [skillMap, simState.skillProgress]);
+
+    const getCurrentDuelStat = useCallback((track: DuelTrack) => {
+        const getSkill = (name: string) => (skillMap[name] ?? 0) + (simState.skillProgress[name]?.level ?? 0);
+        if (track === 'combat') return (getSkill('Shooting') + getSkill('Melee')) / 2;
+        if (track === 'crafting') return (getSkill('Construction') + getSkill('Crafting') + getSkill('Mining')) / 3;
+        if (track === 'research') return getSkill('Intellectual');
+        return getSkill('Artistic');
+    }, [skillMap, simState.skillProgress]);
+
+    const pickDuelOpponent = useCallback((): DuelOpponent => {
+        if (duelOpponents.length > 0) {
+            return duelOpponents[Math.floor(Math.random() * duelOpponents.length)];
+        }
+
+        const baseCombat = getCurrentDuelStat('combat');
+        const baseCrafting = getCurrentDuelStat('crafting');
+        const baseResearch = getCurrentDuelStat('research');
+        const baseArt = getCurrentDuelStat('art');
+        const vary = (base: number) => Math.max(0, Math.min(20, base + (Math.random() * 6 - 3)));
+        return {
+            id: `fallback-${Date.now()}`,
+            name: language === 'ko' ? '이방인' : 'Wanderer',
+            combat: vary(baseCombat),
+            crafting: vary(baseCrafting),
+            research: vary(baseResearch),
+            art: vary(baseArt)
+        };
+    }, [duelOpponents, getCurrentDuelStat, language]);
 
     const getSkillBonus = useCallback((group?: string[]) => {
         if (!group || group.length === 0) return { bonus: 0, note: '' };
@@ -4016,6 +4178,10 @@ export default function SimulationClient() {
             }
         }
 
+        if (event.id === 'soul_duel') {
+            event = buildSoulDuelEvent(language, pickDuelOpponent());
+        }
+
         if (dailyGreatSuccess && event.id === 'quiet_day') {
             responseNotes.push(dailyGreatSuccessNote);
         }
@@ -4167,7 +4333,7 @@ export default function SimulationClient() {
             cardView: 'event',
             showLaunchReadyPrompt: shouldPromptLaunchReady
         };
-    }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage]);
+    }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage, pickDuelOpponent]);
 
     const applyPreparedTurn = useCallback((nextTurn: PreparedTurn) => {
         setSimState(nextTurn.simState);
@@ -4273,6 +4439,21 @@ export default function SimulationClient() {
             }
         }
 
+        let effectiveChoice = choice;
+        if (pendingChoice.event.id === 'soul_duel' && choice.duelTrack) {
+            const opponent = pendingChoice.event.duelOpponent;
+            const playerScore = getCurrentDuelStat(choice.duelTrack);
+            const opponentScore = opponent ? opponent[choice.duelTrack] : 0;
+            const won = playerScore >= opponentScore;
+            effectiveChoice = {
+                ...choice,
+                delta: { ...choice.delta, hp: won ? 3 : -3 },
+                response: language === 'ko'
+                    ? `${opponent?.name ?? '상대'}와의 영혼의 승부에서 ${won ? '승리했습니다.' : '패배했습니다.'}`
+                    : `You ${won ? 'won' : 'lost'} the soul duel against ${opponent?.name ?? 'the rival'}.`
+            };
+        }
+
         const resolved = resolveEvent(
             pendingChoice.event,
             pendingChoice.day,
@@ -4281,7 +4462,7 @@ export default function SimulationClient() {
             { hp: simState.hp, food: simState.food, meds: simState.meds, money: simState.money },
             pendingChoice.responseNotes,
             simState.campLevel,
-            choice,
+            effectiveChoice,
             pendingChoice.turnEffectModifiers
         );
 
