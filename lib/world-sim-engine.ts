@@ -19,8 +19,11 @@ type WorldChoice = {
     delta: WorldDelta;
 };
 
+type WorldEventCategory = 'quiet' | 'noncombat' | 'danger';
+
 type WorldEvent = {
     id: string;
+    category: WorldEventCategory;
     title: LocalizedText;
     description: LocalizedText;
     choices: WorldChoice[];
@@ -80,6 +83,7 @@ type WorldState = {
     status: WorldStatus;
     day: number;
     resources: WorldResources;
+    daysSinceDanger: number;
     currentTurn: WorldTurn | null;
     history: WorldHistoryEntry[];
     players: Record<string, PlayerCharge>;
@@ -206,6 +210,7 @@ const sanitizeStatePayload = (payload: unknown): WorldState | null => {
     const history = Array.isArray(payload.history) ? payload.history : null;
     const players = isRecord(payload.players) ? payload.players : null;
     const updatedAt = typeof payload.updatedAt === 'string' ? payload.updatedAt : null;
+    const daysSinceDangerRaw = typeof payload.daysSinceDanger === 'number' ? payload.daysSinceDanger : 0;
 
     if (!seasonId || !seasonStartedAt || !seasonEndsAt || !status || dayRaw === null || !resources || !history || !players || !updatedAt) {
         return null;
@@ -234,6 +239,7 @@ const sanitizeStatePayload = (payload: unknown): WorldState | null => {
             meds,
             money
         },
+        daysSinceDanger: Math.max(0, Math.floor(daysSinceDangerRaw)),
         currentTurn: currentTurn as WorldTurn | null,
         history: history as WorldHistoryEntry[],
         players: players as Record<string, PlayerCharge>,
@@ -244,6 +250,7 @@ const sanitizeStatePayload = (payload: unknown): WorldState | null => {
 const WORLD_EVENTS: WorldEvent[] = [
     {
         id: 'quiet_maintenance',
+        category: 'quiet',
         title: { ko: '조용한 날', en: 'Quiet Day' },
         description: {
             ko: '큰 사건은 없었습니다. 오늘 무엇에 집중할까요?',
@@ -272,6 +279,7 @@ const WORLD_EVENTS: WorldEvent[] = [
     },
     {
         id: 'trader_visit',
+        category: 'noncombat',
         title: { ko: '상단 방문', en: 'Trader Caravan' },
         description: {
             ko: '상인들이 거래를 제안합니다.',
@@ -300,6 +308,7 @@ const WORLD_EVENTS: WorldEvent[] = [
     },
     {
         id: 'raider_attack',
+        category: 'danger',
         title: { ko: '레이더 습격', en: 'Raider Attack' },
         description: {
             ko: '무장한 습격자들이 기지를 덮쳤습니다.',
@@ -328,6 +337,7 @@ const WORLD_EVENTS: WorldEvent[] = [
     },
     {
         id: 'disease_outbreak',
+        category: 'noncombat',
         title: { ko: '질병 확산', en: 'Disease Outbreak' },
         description: {
             ko: '캠프에 질병이 퍼지고 있습니다.',
@@ -422,7 +432,70 @@ const randomFrom = <T,>(items: T[]): T => {
     return items[index];
 };
 
-const pickEvent = () => randomFrom(WORLD_EVENTS);
+const getEventCategory = (event: Pick<WorldEvent, 'id'> & Partial<WorldEvent>): WorldEventCategory => {
+    const direct = event.category;
+    if (direct === 'quiet' || direct === 'noncombat' || direct === 'danger') {
+        return direct;
+    }
+    if (event.id === 'quiet_maintenance') return 'quiet';
+    if (event.id === 'raider_attack') return 'danger';
+    return 'noncombat';
+};
+
+const getDangerChanceByDay = (day: number) => {
+    if (day <= 6) return 0;
+    if (day === 7) return 100;
+    if (day <= 20) return 18;
+    if (day <= 35) return 24;
+    if (day <= 50) return 30;
+    return 36;
+};
+
+const pickEvent = (day: number, daysSinceDanger: number) => {
+    const quietPool = WORLD_EVENTS.filter(event => event.category === 'quiet');
+    const noncombatPool = WORLD_EVENTS.filter(event => event.category === 'noncombat');
+    const dangerPool = WORLD_EVENTS.filter(event => event.category === 'danger');
+
+    const fallbackPool = WORLD_EVENTS;
+    const nonDangerPool = [...quietPool, ...noncombatPool];
+    const safeFallbackPool = nonDangerPool.length > 0 ? nonDangerPool : fallbackPool;
+
+    if (day <= 2) {
+        const roll = Math.random() * 100;
+        if (roll < 70 && quietPool.length > 0) return randomFrom(quietPool);
+        if (noncombatPool.length > 0) return randomFrom(noncombatPool);
+        return randomFrom(safeFallbackPool);
+    }
+
+    if (day <= 6) {
+        return randomFrom(safeFallbackPool);
+    }
+
+    if (day === 7 && dangerPool.length > 0) {
+        return randomFrom(dangerPool);
+    }
+
+    const baseDangerChance = getDangerChanceByDay(day);
+    let adjustedDangerChance = baseDangerChance;
+    if (daysSinceDanger <= 0) {
+        adjustedDangerChance = Math.max(5, adjustedDangerChance - 18);
+    } else if (daysSinceDanger >= 5) {
+        adjustedDangerChance = Math.min(75, adjustedDangerChance + 12);
+    } else if (daysSinceDanger >= 3) {
+        adjustedDangerChance = Math.min(70, adjustedDangerChance + 6);
+    }
+
+    if (dangerPool.length > 0 && Math.random() * 100 < adjustedDangerChance) {
+        return randomFrom(dangerPool);
+    }
+
+    const quietWeight = day < 20 ? 45 : 35;
+    const noncombatWeight = 100 - quietWeight;
+    const roll = Math.random() * 100;
+    if (roll < quietWeight && quietPool.length > 0) return randomFrom(quietPool);
+    if (roll < quietWeight + noncombatWeight && noncombatPool.length > 0) return randomFrom(noncombatPool);
+    return randomFrom(safeFallbackPool);
+};
 
 const applyChoiceDelta = (before: WorldResources, delta: WorldDelta): { after: WorldResources; appliedDelta: WorldDelta } => {
     let hp = before.hp + delta.hp;
@@ -489,6 +562,7 @@ const createInitialState = (now: Date): WorldState => ({
     status: 'running',
     day: 0,
     resources: { ...START_RESOURCES },
+    daysSinceDanger: 0,
     currentTurn: null,
     history: [],
     players: {},
@@ -496,7 +570,7 @@ const createInitialState = (now: Date): WorldState => ({
 });
 
 const createTurn = (state: WorldState, now: Date): WorldTurn => {
-    const event = pickEvent();
+    const event = pickEvent(state.day + 1, Math.max(0, state.daysSinceDanger ?? 0));
     const voteTotals: Record<string, number> = {};
     event.choices.forEach(choice => {
         voteTotals[choice.id] = 0;
@@ -538,6 +612,11 @@ const summarizeTurnResult = (
 
     state.resources = after;
     state.day = turn.day;
+    const eventCategory = getEventCategory(turn.event);
+    const currentDaysSinceDanger = Math.max(0, state.daysSinceDanger ?? 0);
+    state.daysSinceDanger = eventCategory === 'danger'
+        ? 0
+        : currentDaysSinceDanger + 1;
     state.history = [historyEntry, ...state.history].slice(0, HISTORY_LIMIT);
     turn.resolvedChoiceId = selectedChoice.id;
     turn.resolvedReason = reason;
@@ -770,6 +849,14 @@ const getStorageErrorText = (error: unknown) => {
     return 'Unknown storage error';
 };
 
+const formatStorageErrorMessage = (error: unknown) => {
+    const message = getStorageErrorText(error);
+    if (message.includes("public.world_sim_state") || message.includes("'world_sim_state'")) {
+        return 'Missing table public.world_sim_state. Run supabase/world_sim_state.sql once.';
+    }
+    return message;
+};
+
 const loadStateFromSupabase = async (): Promise<WorldState | null> => {
     const supabase = getServerSupabase();
     if (!supabase) return null;
@@ -841,7 +928,7 @@ const ensureStateLoaded = async (now: Date): Promise<WorldState> => {
             }
         } catch (error) {
             worldStorageMode = 'memory';
-            worldStorageMessage = `Supabase unavailable. Falling back to memory state (${getStorageErrorText(error)}).`;
+            worldStorageMessage = `Supabase unavailable. Falling back to memory state (${formatStorageErrorMessage(error)}).`;
         }
     }
 
@@ -866,7 +953,7 @@ const persistIfPossible = async (state: WorldState) => {
         }
     } catch (error) {
         worldStorageMode = 'memory';
-        worldStorageMessage = `Supabase unavailable. Falling back to memory state (${getStorageErrorText(error)}).`;
+        worldStorageMessage = `Supabase unavailable. Falling back to memory state (${formatStorageErrorMessage(error)}).`;
     }
 };
 
