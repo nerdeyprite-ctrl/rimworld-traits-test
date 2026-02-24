@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 
@@ -137,17 +137,34 @@ export default function WorldSimulationClient() {
     const [error, setError] = useState<string | null>(null);
     const [votePendingChoiceId, setVotePendingChoiceId] = useState<string | null>(null);
     const [accountId, setAccountId] = useState<string | null>(null);
+    const [accountResolved, setAccountResolved] = useState(false);
     const [nowTick, setNowTick] = useState<number>(Date.now());
+    const fetchSeqRef = useRef(0);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        const stored = localStorage.getItem('settler_account_id');
-        setAccountId(stored);
+
+        const syncAccount = () => {
+            const stored = localStorage.getItem('settler_account_id');
+            setAccountId(stored);
+            setAccountResolved(true);
+        };
+
+        syncAccount();
+        window.addEventListener('accountIdChanged', syncAccount);
+        window.addEventListener('storage', syncAccount);
+
+        return () => {
+            window.removeEventListener('accountIdChanged', syncAccount);
+            window.removeEventListener('storage', syncAccount);
+        };
     }, []);
 
     const fetchState = useCallback(async () => {
+        const seq = ++fetchSeqRef.current;
         try {
-            const query = accountId ? `?accountId=${encodeURIComponent(accountId)}` : '';
+            const effectiveAccountId = accountId ?? (typeof window !== 'undefined' ? localStorage.getItem('settler_account_id') : null);
+            const query = effectiveAccountId ? `?accountId=${encodeURIComponent(effectiveAccountId)}` : '';
             const response = await fetch(`/api/world-sim/state${query}`, { cache: 'no-store' });
             const body: unknown = await response.json().catch(() => null);
             if (!response.ok) {
@@ -159,22 +176,26 @@ export default function WorldSimulationClient() {
             }
             const nextSnapshot = (body as { snapshot?: WorldSnapshot })?.snapshot;
             if (!nextSnapshot) throw new Error('Empty world snapshot.');
+            if (seq !== fetchSeqRef.current) return;
             setSnapshot(nextSnapshot);
             setError(null);
         } catch (fetchError) {
+            if (seq !== fetchSeqRef.current) return;
             setError(fetchError instanceof Error ? fetchError.message : 'Failed to load world state.');
         } finally {
+            if (seq !== fetchSeqRef.current) return;
             setLoading(false);
         }
     }, [accountId]);
 
     useEffect(() => {
+        if (!accountResolved) return;
         void fetchState();
         const timer = window.setInterval(() => {
             void fetchState();
         }, 15000);
         return () => window.clearInterval(timer);
-    }, [fetchState]);
+    }, [accountResolved, fetchState]);
 
     useEffect(() => {
         const timer = window.setInterval(() => {
@@ -188,6 +209,7 @@ export default function WorldSimulationClient() {
             setError(language === 'ko' ? '로그인 후 투표할 수 있습니다.' : 'Login is required to vote.');
             return;
         }
+        fetchSeqRef.current += 1;
         setVotePendingChoiceId(choiceId);
         try {
             const response = await fetch('/api/world-sim/vote', {
