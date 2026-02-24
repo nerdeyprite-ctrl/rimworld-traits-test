@@ -64,6 +64,45 @@ type TurnEffectModifiers = {
 };
 
 type DuelTrack = 'combat' | 'crafting' | 'research' | 'art';
+type QuietAutoPreset = 'manual' | 'quiet_rest' | 'quiet_farming' | 'quiet_hunting' | 'quiet_mining';
+type QuietAutoPresetChoice = Exclude<QuietAutoPreset, 'manual'>;
+
+const QUIET_PRESET_CONFIG: Array<{
+    id: QuietAutoPresetChoice;
+    labelKo: string;
+    labelEn: string;
+    group: string[];
+    hasGreat: boolean;
+}> = [
+    {
+        id: 'quiet_rest',
+        labelKo: '정비',
+        labelEn: 'Maintenance',
+        group: ['Construction', 'Crafting', 'Medicine'],
+        hasGreat: true
+    },
+    {
+        id: 'quiet_farming',
+        labelKo: '농사',
+        labelEn: 'Farming',
+        group: ['Plants', 'Animals'],
+        hasGreat: true
+    },
+    {
+        id: 'quiet_hunting',
+        labelKo: '사냥',
+        labelEn: 'Hunting',
+        group: ['Shooting', 'Melee'],
+        hasGreat: true
+    },
+    {
+        id: 'quiet_mining',
+        labelKo: '채광',
+        labelEn: 'Mining',
+        group: ['Mining', 'Intellectual'],
+        hasGreat: true
+    }
+];
 
 type DuelOpponent = {
     id: string;
@@ -2932,6 +2971,7 @@ export default function SimulationClient() {
     const [turnPhase, setTurnPhase] = useState<TurnPhase>('idle');
     const [preparedTurn, setPreparedTurn] = useState<PreparedTurn | null>(null);
     const [duelOpponents, setDuelOpponents] = useState<DuelOpponent[]>([]);
+    const [quietAutoPreset, setQuietAutoPreset] = useState<QuietAutoPreset>('manual');
     const prepareTimerRef = useRef<number | null>(null);
     const animateTimerRef = useRef<number | null>(null);
 
@@ -2989,7 +3029,8 @@ export default function SimulationClient() {
                 result,
                 isFullResult,
                 submittedOnDeath,
-                submittedOnExit
+                submittedOnExit,
+                quietAutoPreset
             };
             localStorage.setItem(TEMP_SAVE_KEY, JSON.stringify(saveData));
         } else if (simState.status === 'dead' || simState.status === 'success') {
@@ -2999,7 +3040,7 @@ export default function SimulationClient() {
     }, [
         simState, pendingChoice, currentCard, cardView,
         hasShipBuilt, showEndingCard, allowContinue, canBoardShip,
-        localUserInfo, result, isFullResult, submittedOnDeath, submittedOnExit
+        localUserInfo, result, isFullResult, submittedOnDeath, submittedOnExit, quietAutoPreset
     ]);
 
     const resumeSimulation = useCallback(() => {
@@ -3031,6 +3072,11 @@ export default function SimulationClient() {
             setIsFullResult(data.isFullResult);
             if (data.submittedOnDeath !== undefined) setSubmittedOnDeath(data.submittedOnDeath);
             if (data.submittedOnExit !== undefined) setSubmittedOnExit(data.submittedOnExit);
+            if (data.quietAutoPreset) {
+                const preset = data.quietAutoPreset as QuietAutoPreset;
+                const allowed: QuietAutoPreset[] = ['manual', 'quiet_rest', 'quiet_farming', 'quiet_hunting', 'quiet_mining'];
+                setQuietAutoPreset(allowed.includes(preset) ? preset : 'manual');
+            }
             selectedSettlerRef.current = true;
             setHasTempSave(false);
         } catch (e) {
@@ -4210,6 +4256,131 @@ export default function SimulationClient() {
             event = available.length === 0 ? { ...event, choices: undefined } : { ...event, choices: available };
         }
 
+        if (event.id === 'quiet_day' && event.choices && event.choices.length > 0 && quietAutoPreset !== 'manual') {
+            const autoChoice = event.choices.find(choice => choice.id === quietAutoPreset) ?? event.choices[0];
+            const autoPlanNote = language === 'ko'
+                ? `주간 프리셋 자동 실행: ${autoChoice.label}`
+                : `Weekly preset auto-run: ${autoChoice.label}`;
+            const resolved = resolveEvent(
+                event,
+                nextDay,
+                dayStart,
+                { hp, food, meds, money },
+                [...responseNotes, autoPlanNote],
+                simState.campLevel,
+                autoChoice,
+                turnEffectModifiers
+            );
+
+            let finalHp = resolved.after.hp;
+            let finalStatus: SimStatus = finalHp <= 0 ? 'dead' : 'running';
+            let finalResponse = resolved.responseText;
+            let finalResponseCard = resolved.responseTextCard;
+            let finalHasSerum = baseSimState.hasSerum;
+            let finalEvacCountdown = simState.evacCountdown;
+            let finalEvacReady = simState.evacReady;
+            let finalDeathDuringEvac = false;
+            let shouldPromptLaunchReady = false;
+            let finalActiveEffects = remainingEffects;
+
+            if (finalHp <= 0 && finalHasSerum) {
+                finalHp = 10;
+                finalStatus = 'running';
+                finalHasSerum = false;
+                const reviveText = language === 'ko'
+                    ? ' 하지만 부활 혈청이 작동하여 당신을 죽음에서 다시 일으켜 세웠습니다!'
+                    : ' However, the Resurrector Serum activated and brought you back to life!';
+                finalResponse += reviveText;
+                finalResponseCard += reviveText;
+            }
+
+            if (simState.evacActive && finalStatus === 'running') {
+                finalEvacCountdown = Math.max(0, simState.evacCountdown - 1);
+                if (finalEvacCountdown === 0) {
+                    finalEvacReady = true;
+                    shouldPromptLaunchReady = true;
+                    finalResponse += language === 'ko'
+                        ? ' 탈출 준비가 완료되었습니다. 우주선 출발을 선택할 수 있습니다.'
+                        : ' Evacuation prep is complete. You can launch the ship anytime.';
+                    finalResponseCard += language === 'ko'
+                        ? '\n탈출 준비 완료! 우주선 출발 가능.'
+                        : '\nEvacuation prep complete! Ship launch available.';
+                }
+            } else if (!simState.evacActive && !finalEvacReady) {
+                finalEvacCountdown = 0;
+            }
+
+            if (finalStatus === 'dead' && simState.evacActive && simState.evacCountdown > 0) {
+                finalDeathDuringEvac = true;
+                finalResponse += language === 'ko'
+                    ? ' 탈출 웨이브를 견뎌내지 못했습니다.'
+                    : ' You failed to withstand the evacuation wave.';
+                finalResponseCard += language === 'ko'
+                    ? '\n탈출 웨이브를 견뎌내지 못했습니다.'
+                    : '\nFailed to withstand the evacuation wave.';
+            }
+
+            const canApplyNextDayEffect = !!autoChoice.nextDayEffect && finalStatus === 'running'
+                && (nextDay >= ERA_100_DAY || autoChoice.nextDayEffect.applyBeforeEra100);
+            if (canApplyNextDayEffect && autoChoice.nextDayEffect) {
+                finalActiveEffects = [...remainingEffects, { ...autoChoice.nextDayEffect }];
+                finalResponse += language === 'ko'
+                    ? ` 다음 일차 영향이 남았습니다: ${autoChoice.nextDayEffect.noteKo}`
+                    : ` Next-day consequence applied: ${autoChoice.nextDayEffect.noteEn}`;
+                finalResponseCard += language === 'ko'
+                    ? `\n다음 일차 영향: ${autoChoice.nextDayEffect.noteKo}`
+                    : `\nNext-day consequence: ${autoChoice.nextDayEffect.noteEn}`;
+            }
+
+            const entryStatus: SimLogEntry['status'] = resolved.delta.hp < 0 ? 'bad' : resolved.delta.hp > 0 ? 'good' : 'neutral';
+            const entry: SimLogEntry = {
+                day: nextDay,
+                season,
+                title: event.title,
+                description: event.description,
+                response: finalResponse,
+                responseCard: finalResponseCard,
+                delta: resolved.delta,
+                eventDelta: resolved.eventOutcomeDelta,
+                after: { ...resolved.after, hp: finalHp },
+                status: entryStatus
+            };
+
+            return {
+                simState: {
+                    ...baseSimState,
+                    hp: finalHp,
+                    food: resolved.after.food,
+                    meds: resolved.after.meds,
+                    money: resolved.after.money,
+                    petCount: resolved.counts.petCount,
+                    loverCount: resolved.counts.loverCount,
+                    spouseCount: resolved.counts.spouseCount,
+                    status: finalStatus,
+                    hasSerum: finalHasSerum,
+                    serumTraderShown,
+                    evacActive: simState.evacActive && finalEvacCountdown > 0,
+                    evacCountdown: finalEvacCountdown,
+                    evacForceThreatNextDay: simState.evacActive && finalEvacCountdown > 0 ? evacForceThreatNextDay : false,
+                    deathDuringEvac: finalDeathDuringEvac,
+                    evacReady: finalEvacReady,
+                    activeEffects: finalActiveEffects,
+                    skillProgress: resolved.skillProgress,
+                    daysSinceDanger: nextDaysSinceDanger,
+                    log: [entry, ...simState.log].slice(0, 60)
+                },
+                pendingChoice: null,
+                currentCard: {
+                    day: nextDay,
+                    season,
+                    event,
+                    entry
+                },
+                cardView: 'event',
+                showLaunchReadyPrompt: shouldPromptLaunchReady
+            };
+        }
+
         if (event.choices && event.choices.length > 0) {
             return {
                 simState: {
@@ -4333,7 +4504,7 @@ export default function SimulationClient() {
             cardView: 'event',
             showLaunchReadyPrompt: shouldPromptLaunchReady
         };
-    }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage, pickDuelOpponent]);
+    }, [simState, pendingChoice, language, events, traitIds, skillMap, resolveEvent, currentCard, cardView, hasShipBuilt, getGroupAverage, pickDuelOpponent, quietAutoPreset]);
 
     const applyPreparedTurn = useCallback((nextTurn: PreparedTurn) => {
         setSimState(nextTurn.simState);
@@ -4805,6 +4976,30 @@ export default function SimulationClient() {
     const isPreparedUiCorrupted = !!preparedTurn?.pendingChoice?.turnEffectModifiers?.obfuscateUi;
     const showEffectPulse = simState.status === 'running' && simState.activeEffects.length > 0 && !simState.evacActive;
     const effectPulseMode = hasNegativeActiveEffect ? 'negative' : (hasPositiveActiveEffect ? 'positive' : 'none');
+    const quietPresetOptions: Array<{ id: QuietAutoPreset; label: string }> = useMemo(() => ([
+        { id: 'manual', label: language === 'ko' ? '수동 선택' : 'Manual' },
+        ...QUIET_PRESET_CONFIG.map(config => ({
+            id: config.id,
+            label: language === 'ko' ? config.labelKo : config.labelEn
+        }))
+    ]), [language]);
+    const quietPresetChanceRows = useMemo(() => {
+        return QUIET_PRESET_CONFIG.map(config => {
+            const avg = getGroupAverage(config.group);
+            let chance = Math.max(5, Math.min(95, getSkillChance(avg)));
+            chance = Math.round(chance);
+            const greatChance = config.hasGreat
+                ? Math.max(0, Math.min(chance, Math.round(getGreatSuccessChance(avg))))
+                : 0;
+            return {
+                id: config.id,
+                label: language === 'ko' ? config.labelKo : config.labelEn,
+                chance,
+                greatChance
+            };
+        });
+    }, [getGroupAverage, language]);
+    const selectedQuietPresetRow = quietPresetChanceRows.find(row => row.id === quietAutoPreset);
 
     function handleAdvanceDay() {
         if (turnPhase !== 'idle') {
@@ -5241,6 +5436,52 @@ export default function SimulationClient() {
                         </div>
                     </div>
                 )}
+                <div className="rounded-lg border border-[var(--sim-border)] bg-[var(--sim-surface-1)]/70 px-3 py-3">
+                    <div className="text-[11px] font-bold text-[var(--sim-text-sub)] mb-2">
+                        {language === 'ko' ? '평범한 날 자동 프리셋' : 'Quiet Day Auto Preset'}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label className="text-[10px] text-[var(--sim-text-muted)] uppercase tracking-wide">
+                            {language === 'ko' ? '프리셋' : 'Preset'}
+                        </label>
+                        <select
+                            value={quietAutoPreset}
+                            onChange={(e) => setQuietAutoPreset(e.target.value as QuietAutoPreset)}
+                            className="w-full sm:w-auto min-w-[180px] px-3 py-2 text-xs bg-[var(--sim-surface-2)] border border-[var(--sim-border)] rounded-md text-[var(--sim-text-main)]"
+                        >
+                            {quietPresetOptions.map(option => (
+                                <option key={option.id} value={option.id}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {quietAutoPreset === 'manual' ? (
+                        <div className="mt-2 text-[10px] text-[var(--sim-text-muted)]">
+                            {language === 'ko'
+                                ? '수동 선택 모드입니다. 평범한 날에 직접 선택지를 고릅니다.'
+                                : 'Manual mode: choose options directly on quiet days.'}
+                        </div>
+                    ) : selectedQuietPresetRow ? (
+                        <div className="mt-2 text-[10px] text-[var(--sim-text-sub)]">
+                            {language === 'ko'
+                                ? `예상 성공률 ${selectedQuietPresetRow.chance}%`
+                                : `Estimated success ${selectedQuietPresetRow.chance}%`}
+                            {selectedQuietPresetRow.greatChance > 0 && (
+                                <span className="text-[var(--sim-accent)] font-semibold">
+                                    {language === 'ko'
+                                        ? ` · 대성공 ${selectedQuietPresetRow.greatChance}%`
+                                        : ` · Great ${selectedQuietPresetRow.greatChance}%`}
+                                </span>
+                            )}
+                        </div>
+                    ) : null}
+                    <div className="mt-2 text-[10px] text-[var(--sim-text-muted)]">
+                        {language === 'ko'
+                            ? '자동 프리셋은 평범한 날에만 적용됩니다. 결과 카드는 기존처럼 직접 넘깁니다.'
+                            : 'Auto preset applies only on quiet days. Result cards still require manual advance.'}
+                    </div>
+                </div>
 
                 <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[var(--sim-border)]">
                     <div className="flex flex-wrap gap-2">

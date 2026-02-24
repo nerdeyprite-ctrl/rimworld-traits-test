@@ -287,6 +287,14 @@ export default function Home() {
             {language === 'ko' ? '리더보드 보기' : 'View Leaderboard'}
           </a>
         </div>
+        <div className="w-full sm:w-auto">
+          <a
+            href="/simulation/world"
+            className="inline-block w-full sm:w-auto px-8 py-3 bg-[#234f68] hover:bg-[#2e6a8a] border-[#163649] text-white font-bold text-sm sm:text-base shadow-[0_4px_0_#14232d] active:shadow-none active:translate-y-1 transition-all border"
+          >
+            {language === 'ko' ? '전체 투표 모드 (30분 턴)' : 'Global Vote Mode (30m Turn)'}
+          </a>
+        </div>
         <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-3 sm:p-4 text-left space-y-3">
           <div className="text-sm font-bold text-[#9f752a] font-[var(--font-display)]">
             {language === 'ko' ? '정착민 로그인' : 'Settler Login'}
