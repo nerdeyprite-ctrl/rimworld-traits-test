@@ -484,7 +484,7 @@ export default function LeaderboardPage() {
 
                     {/* Chat - 1/3 width */}
                     <div className="lg:col-span-1">
-                        <ChatBox />
+                        <ChatBox room="lobby" />
                     </div>
                 </div>
 

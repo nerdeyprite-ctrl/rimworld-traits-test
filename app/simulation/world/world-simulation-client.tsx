@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
+import ChatBox from '../../components/ChatBox';
 
 type LocalizedText = {
     ko: string;
@@ -116,6 +117,8 @@ const fmtDelta = (delta: number) => {
     if (delta === 0) return '0';
     return delta > 0 ? `+${delta}` : `${delta}`;
 };
+
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
 const pickText = (text: LocalizedText, language: 'ko' | 'en') => (language === 'ko' ? text.ko : text.en);
 
@@ -247,6 +250,11 @@ export default function WorldSimulationClient() {
         return fmtDuration(snapshot?.turn?.endsAt ?? null, nowTick);
     }, [snapshot?.turn?.endsAt, nowTick]);
 
+    const displayedDay = useMemo(() => {
+        if (!snapshot) return 0;
+        return snapshot.turn?.day ?? snapshot.game.day;
+    }, [snapshot]);
+
     const hotWindowRemainingText = useMemo(() => {
         return fmtDuration(snapshot?.hotTime.currentWindowEndsAt ?? null, nowTick);
     }, [snapshot?.hotTime.currentWindowEndsAt, nowTick]);
@@ -254,6 +262,74 @@ export default function WorldSimulationClient() {
     const nextHotStartText = useMemo(() => {
         return fmtDuration(snapshot?.hotTime.nextWindowStartsAt ?? null, nowTick);
     }, [snapshot?.hotTime.nextWindowStartsAt, nowTick]);
+
+    const turnRemainingRatio = useMemo(() => {
+        const turn = snapshot?.turn;
+        if (!turn) return 0;
+        const start = new Date(turn.startedAt).getTime();
+        const end = new Date(turn.endsAt).getTime();
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+        return clamp01((end - nowTick) / (end - start));
+    }, [snapshot?.turn, nowTick]);
+
+    const turnRemainingSeconds = useMemo(() => {
+        const endAt = snapshot?.turn?.endsAt;
+        if (!endAt) return null;
+        return Math.max(0, Math.floor((new Date(endAt).getTime() - nowTick) / 1000));
+    }, [snapshot?.turn?.endsAt, nowTick]);
+
+    const isDeadlineImminent = (turnRemainingSeconds ?? 0) > 0 && (turnRemainingSeconds ?? 0) <= 5 * 60;
+
+    const refillRemainingRatio = useMemo(() => {
+        const refillAt = snapshot?.viewer?.nextRefillAt;
+        const refillMinutes = snapshot?.config.pointRefillMinutes;
+        if (!refillAt || !refillMinutes) return null;
+        const end = new Date(refillAt).getTime();
+        const start = end - refillMinutes * 60 * 1000;
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+        return clamp01((end - nowTick) / (end - start));
+    }, [snapshot?.viewer?.nextRefillAt, snapshot?.config.pointRefillMinutes, nowTick]);
+
+    const settlementStatus = useMemo(() => {
+        if (!snapshot) return null;
+        const { hp, food, meds, money } = snapshot.game.resources;
+        const last = snapshot.game.lastResult;
+        const trend = last ? last.delta.hp + last.delta.food + last.delta.meds + last.delta.money : 0;
+        const dangerScore =
+            (hp <= 3 ? 3 : hp <= 6 ? 2 : 0) +
+            (food <= 2 ? 2 : food <= 4 ? 1 : 0) +
+            (meds <= 1 ? 2 : meds <= 3 ? 1 : 0) +
+            (money <= 1 ? 1 : 0);
+
+        let level: 'stable' | 'warning' | 'critical' = 'stable';
+        if (dangerScore >= 5) level = 'critical';
+        else if (dangerScore >= 3) level = 'warning';
+
+        let recommendation = language === 'ko' ? '자원 균형 유지가 좋습니다.' : 'Maintain balanced resource growth.';
+        if (food <= 2) recommendation = language === 'ko' ? '식량이 부족합니다. 농사/식량 보충 선택을 우선하세요.' : 'Food is low. Prioritize farming or food-supply options.';
+        else if (hp <= 4) recommendation = language === 'ko' ? '체력이 위험합니다. 정비/회복 계열 선택이 우선입니다.' : 'HP is critical. Prioritize maintenance/recovery choices.';
+        else if (meds <= 1) recommendation = language === 'ko' ? '치료제가 부족합니다. 치료제 확보 선택을 고려하세요.' : 'Meds are low. Consider med-supply choices.';
+        else if (money <= 1) recommendation = language === 'ko' ? '자금이 낮습니다. 채굴/거래형 선택으로 돈을 확보하세요.' : 'Money is low. Take mining/trade-oriented options.';
+
+        const levelText = level === 'critical'
+            ? (language === 'ko' ? '위험' : 'Critical')
+            : level === 'warning'
+                ? (language === 'ko' ? '주의' : 'Warning')
+                : (language === 'ko' ? '안정' : 'Stable');
+
+        const trendText = trend > 0
+            ? (language === 'ko' ? '최근 턴은 개선 추세입니다.' : 'Recent turn trend is improving.')
+            : trend < 0
+                ? (language === 'ko' ? '최근 턴은 악화 추세입니다.' : 'Recent turn trend is worsening.')
+                : (language === 'ko' ? '최근 턴 변화는 중립적입니다.' : 'Recent turn trend is neutral.');
+
+        return {
+            level,
+            levelText,
+            trendText,
+            recommendation
+        };
+    }, [snapshot, language]);
 
     if (loading && !snapshot) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '월드 시뮬레이션 로딩 중...' : 'Loading world simulation...'}</div>;
@@ -317,7 +393,7 @@ export default function WorldSimulationClient() {
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div className="sim-stat-tile text-center">
                             <div className="text-[10px] text-[var(--sim-text-muted)] uppercase">Day</div>
-                            <div className="text-lg font-black text-[var(--sim-text-main)]">{snapshot.game.day} / {snapshot.game.maxDays}</div>
+                            <div className="text-lg font-black text-[var(--sim-text-main)]">{displayedDay} / {snapshot.game.maxDays}</div>
                         </div>
                         <div className="sim-stat-tile text-center">
                             <div className="text-[10px] text-red-400 uppercase">HP</div>
@@ -367,7 +443,62 @@ export default function WorldSimulationClient() {
                                 )}
                             </div>
                         )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="rounded-md border border-[var(--sim-border)] bg-[var(--sim-surface-2)] px-3 py-2">
+                                <div className="flex justify-between text-[10px] text-[var(--sim-text-muted)] uppercase tracking-wide">
+                                    <span>{language === 'ko' ? '투표 마감 진행' : 'Vote Deadline'}</span>
+                                    <span>{snapshot.turn ? turnRemainingText : (language === 'ko' ? '대기중' : 'Waiting')}</span>
+                                </div>
+                                <div className="mt-2 h-2 rounded-full border border-[var(--sim-border)] bg-[var(--sim-surface-1)] overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all ${isDeadlineImminent ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                        style={{ width: `${Math.round((snapshot.turn ? turnRemainingRatio : 0) * 100)}%` }}
+                                    />
+                                </div>
+                                {snapshot.turn && isDeadlineImminent && (
+                                    <div className="mt-2 text-[10px] text-red-300 font-bold">
+                                        {language === 'ko'
+                                            ? '마감 임박: 5분 이내에 자동 집계됩니다.'
+                                            : 'Deadline warning: auto-resolution in under 5 minutes.'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="rounded-md border border-[var(--sim-border)] bg-[var(--sim-surface-2)] px-3 py-2">
+                                <div className="flex justify-between text-[10px] text-[var(--sim-text-muted)] uppercase tracking-wide">
+                                    <span>{language === 'ko' ? '다음 충전 진행' : 'Next Refill'}</span>
+                                    <span>
+                                        {snapshot.viewer?.nextRefillAt
+                                            ? fmtDuration(snapshot.viewer.nextRefillAt, nowTick)
+                                            : (language === 'ko' ? '최대치' : 'Maxed')}
+                                    </span>
+                                </div>
+                                <div className="mt-2 h-2 rounded-full border border-[var(--sim-border)] bg-[var(--sim-surface-1)] overflow-hidden">
+                                    <div
+                                        className="h-full bg-sky-500 transition-all"
+                                        style={{ width: `${Math.round(((refillRemainingRatio ?? 0) || (snapshot.viewer?.nextRefillAt ? 0 : 1)) * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    {settlementStatus && (
+                        <div className="sim-panel p-5 space-y-2">
+                            <div className="text-xs uppercase tracking-wider text-[var(--sim-text-muted)]">
+                                {language === 'ko' ? '현재 시즌 정착민 상태' : 'Current Season Settler Status'}
+                            </div>
+                            <div className={`text-sm font-black ${settlementStatus.level === 'critical' ? 'text-red-300' : settlementStatus.level === 'warning' ? 'text-amber-300' : 'text-emerald-300'}`}>
+                                {language === 'ko' ? '생존 안정성' : 'Survival Stability'}: {settlementStatus.levelText}
+                            </div>
+                            <div className="text-xs text-[var(--sim-text-sub)]">
+                                {settlementStatus.trendText}
+                            </div>
+                            <div className="text-xs text-[var(--sim-text-main)] bg-[var(--sim-surface-2)] border border-[var(--sim-border)] rounded-md px-3 py-2">
+                                {language === 'ko' ? '권장 운영' : 'Suggested action'}: {settlementStatus.recommendation}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="sim-panel p-6 space-y-4">
                         {!snapshot.turn ? (
@@ -440,6 +571,10 @@ export default function WorldSimulationClient() {
                                 </div>
                             </>
                         )}
+                    </div>
+
+                    <div className="sim-panel p-3 space-y-2">
+                        <ChatBox room="world" />
                     </div>
                 </>
             )}

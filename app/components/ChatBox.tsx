@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -9,17 +9,24 @@ type ChatMessage = {
     created_at: string;
     account_id: string;
     message: string;
+    room?: string | null;
 };
 
 const MAX_MESSAGES = 30;
 
-export default function ChatBox() {
+type ChatBoxProps = {
+    room?: string;
+    title?: string;
+};
+
+export default function ChatBox({ room = 'lobby', title }: ChatBoxProps) {
     const { language } = useLanguage();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [accountId, setAccountId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [isConfigured, setIsConfigured] = useState(false);
+    const [schemaError, setSchemaError] = useState<string | null>(null);
 
     useEffect(() => {
         setIsConfigured(isSupabaseConfigured());
@@ -47,16 +54,32 @@ export default function ChatBox() {
 
     useEffect(() => {
         if (!isConfigured) return;
+        setSchemaError(null);
 
         // 초기 메시지 로드
         const fetchMessages = async () => {
             const { data, error } = await supabase
                 .from('chat_messages')
                 .select('*')
+                .eq('room', room)
                 .order('created_at', { ascending: false })
                 .limit(MAX_MESSAGES);
 
-            if (!error && data) {
+            if (error) {
+                const msg = String(error.message ?? '');
+                if (msg.includes('room')) {
+                    setSchemaError(
+                        language === 'ko'
+                            ? "채팅 room 컬럼이 없습니다. `supabase/chat_messages_room.sql`을 실행하세요."
+                            : "Missing chat room column. Run `supabase/chat_messages_room.sql`."
+                    );
+                } else {
+                    console.error('Failed to load chat messages:', error);
+                }
+                return;
+            }
+
+            if (data) {
                 setMessages(data.reverse());
             }
         };
@@ -65,13 +88,14 @@ export default function ChatBox() {
 
         // Realtime 구독
         const channel = supabase
-            .channel('chat_messages_channel')
+            .channel(`chat_messages_channel_${room}`)
             .on(
                 'postgres_changes',
                 {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'chat_messages'
+                    table: 'chat_messages',
+                    filter: `room=eq.${room}`
                 },
                 (payload) => {
                     setMessages((prev) => {
@@ -89,10 +113,10 @@ export default function ChatBox() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [isConfigured]);
+    }, [isConfigured, room, language]);
 
     const handleSendMessage = async () => {
-        if (!inputMessage.trim() || !accountId || loading) return;
+        if (!inputMessage.trim() || !accountId || loading || schemaError) return;
 
         setLoading(true);
         try {
@@ -101,7 +125,8 @@ export default function ChatBox() {
                 .insert([
                     {
                         account_id: accountId,
-                        message: inputMessage.trim()
+                        message: inputMessage.trim(),
+                        room
                     }
                 ]);
 
@@ -132,20 +157,34 @@ export default function ChatBox() {
         );
     }
 
+    const headerTitle = title
+        ?? (room === 'world'
+            ? (language === 'ko' ? '전체투표 채팅' : 'Global Vote Chat')
+            : (language === 'ko' ? '정착민 채팅' : 'Settler Chat'));
+
+    const headerSubtitle = room === 'world'
+        ? (language === 'ko' ? '월드 투표 참여자 전용 채팅' : 'World vote participants only')
+        : (language === 'ko' ? '최근 30개 메시지만 표시됩니다' : 'Last 30 messages only');
+
     return (
         <div className="bg-[#111] border border-[#333] flex flex-col h-[600px]">
             {/* Header */}
             <div className="bg-[#1a1a1a] border-b border-[#333] p-3">
                 <h3 className="text-xs font-bold text-[#9f752a] uppercase tracking-widest">
-                    💬 {language === 'ko' ? '정착민 채팅' : 'Settler Chat'}
+                    💬 {headerTitle}
                 </h3>
                 <p className="text-[10px] text-slate-500 mt-1">
-                    {language === 'ko' ? '최근 30개 메시지만 표시됩니다' : 'Last 30 messages only'}
+                    {headerSubtitle}
                 </p>
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
+                {schemaError && (
+                    <div className="bg-[#2a1313] border border-[#7a2a2a] text-red-200 text-xs p-2">
+                        {schemaError}
+                    </div>
+                )}
                 {messages.length === 0 ? (
                     <div className="text-center py-10 text-slate-600 text-xs italic">
                         {language === 'ko' ? '아직 메시지가 없습니다.' : 'No messages yet.'}
@@ -184,12 +223,12 @@ export default function ChatBox() {
                             onKeyPress={handleKeyPress}
                             placeholder={language === 'ko' ? '메시지 입력...' : 'Type message...'}
                             maxLength={200}
-                            disabled={loading}
+                            disabled={loading || !!schemaError}
                             className="flex-1 bg-black/50 border border-[#444] p-2 text-white text-xs focus:border-[#9f752a] focus:outline-none disabled:opacity-50"
                         />
                         <button
                             onClick={handleSendMessage}
-                            disabled={loading || !inputMessage.trim()}
+                            disabled={loading || !inputMessage.trim() || !!schemaError}
                             className="px-4 py-2 bg-[#6e4e1e] hover:bg-[#856026] border border-[#9f752a] text-white text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {language === 'ko' ? '전송' : 'Send'}
