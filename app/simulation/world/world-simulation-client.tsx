@@ -157,6 +157,35 @@ const getBlockedReasonText = (reason: string | null, language: 'ko' | 'en') => {
     return language === 'ko' ? '현재 투표할 수 없습니다.' : 'You cannot vote right now.';
 };
 
+const SKILL_NAMES_KO: Record<string, string> = {
+    Shooting: '사격',
+    Melee: '격투',
+    Construction: '건설',
+    Mining: '채굴',
+    Cooking: '요리',
+    Plants: '재배',
+    Animals: '조련',
+    Crafting: '제작',
+    Artistic: '예술',
+    Medicine: '의학',
+    Social: '사교',
+    Intellectual: '연구'
+};
+
+const getLocalizedSkillName = (name: string, language: 'ko' | 'en') => {
+    if (language === 'ko') return SKILL_NAMES_KO[name] ?? name;
+    return name;
+};
+
+const getLocalizedPassion = (passion: string | null, language: 'ko' | 'en') => {
+    if (!passion) return '';
+    if (language !== 'ko') return passion;
+    if (passion === 'Major') return '불꽃';
+    if (passion === 'Minor') return '관심';
+    if (passion === 'None') return '없음';
+    return passion;
+};
+
 export default function WorldSimulationClient() {
     const { language } = useLanguage();
     const router = useRouter();
@@ -167,6 +196,7 @@ export default function WorldSimulationClient() {
     const [accountId, setAccountId] = useState<string | null>(null);
     const [accountResolved, setAccountResolved] = useState(false);
     const [nowTick, setNowTick] = useState<number>(Date.now());
+    const [showAllBaseSkills, setShowAllBaseSkills] = useState(false);
     const fetchSeqRef = useRef(0);
 
     useEffect(() => {
@@ -363,6 +393,12 @@ export default function WorldSimulationClient() {
             .slice(0, 6);
     }, [snapshot?.baseSettler]);
 
+    const allBaseSkills = useMemo(() => {
+        if (!snapshot?.baseSettler) return [];
+        return [...snapshot.baseSettler.skills]
+            .sort((a, b) => b.level - a.level);
+    }, [snapshot?.baseSettler]);
+
     if (loading && !snapshot) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '월드 시뮬레이션 로딩 중...' : 'Loading world simulation...'}</div>;
     }
@@ -472,8 +508,8 @@ export default function WorldSimulationClient() {
                                             key={skill.name}
                                             className="text-[10px] px-2 py-0.5 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-main)]"
                                         >
-                                            {skill.name} {skill.level}
-                                            {skill.passion ? ` (${skill.passion})` : ''}
+                                            {getLocalizedSkillName(skill.name, language)} {skill.level}
+                                            {skill.passion ? ` (${getLocalizedPassion(skill.passion, language)})` : ''}
                                         </span>
                                     )) : (
                                         <span className="text-[10px] text-[var(--sim-text-muted)]">
@@ -481,12 +517,45 @@ export default function WorldSimulationClient() {
                                         </span>
                                     )}
                                 </div>
+                                {allBaseSkills.length > topBaseSkills.length && (
+                                    <div className="pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAllBaseSkills(prev => !prev)}
+                                            className="text-[11px] px-2 py-1 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-sub)] hover:text-[var(--sim-text-main)] hover:border-[var(--sim-accent)] transition-colors"
+                                        >
+                                            {showAllBaseSkills
+                                                ? (language === 'ko' ? '주요 스킬 접기' : 'Hide full skills')
+                                                : (language === 'ko' ? `주요 스킬 전체 보기 (${allBaseSkills.length})` : `View all skills (${allBaseSkills.length})`)}
+                                        </button>
+                                    </div>
+                                )}
+                                {showAllBaseSkills && allBaseSkills.length > 0 && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 pt-1">
+                                        {allBaseSkills.map(skill => (
+                                            <div
+                                                key={`all-${skill.name}`}
+                                                className="text-[11px] px-2 py-1 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-main)] flex items-center justify-between gap-2"
+                                            >
+                                                <span className="truncate">
+                                                    {getLocalizedSkillName(skill.name, language)}
+                                                </span>
+                                                <span className="font-mono whitespace-nowrap">
+                                                    {skill.level}
+                                                    {skill.passion ? ` · ${getLocalizedPassion(skill.passion, language)}` : ''}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 <div className="text-[11px] text-[var(--sim-text-sub)]">
                                     {language === 'ko' ? '불가능 작업' : 'Incapabilities'}:{' '}
                                     <span className="text-[var(--sim-text-main)]">
                                         {snapshot.baseSettler.incapabilities.length > 0
-                                            ? snapshot.baseSettler.incapabilities.join(', ')
+                                            ? snapshot.baseSettler.incapabilities
+                                                .map(skill => getLocalizedSkillName(skill, language))
+                                                .join(', ')
                                             : (language === 'ko' ? '없음' : 'None')}
                                     </span>
                                 </div>
