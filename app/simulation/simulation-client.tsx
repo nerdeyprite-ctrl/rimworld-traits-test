@@ -6,6 +6,7 @@ import { useTest } from '../../context/TestContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { TestResult } from '../../types/rimworld';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { selectEventCategory } from '../../lib/simulation-engine-core';
 
 type SimDelta = { hp: number; food: number; meds: number; money: number };
 type SimTraitLike = string | { id?: string; name?: string };
@@ -532,15 +533,6 @@ const getSkillChance = (level: number, isAdvanced: boolean = false) => {
     }
 };
 
-const getDangerChance = (day: number, daysSinceDanger: number) => {
-    if (day <= 6) return 0;
-    if (day >= 8 && day <= 10) return 5;
-    if (daysSinceDanger >= 1 && daysSinceDanger <= 3) return 5;
-    const n = Math.max(0, daysSinceDanger);
-    const raw = 0.1875 * n * n + 1.375 * n - 2.5;
-    return Math.round(raw);
-};
-
 const getEra = (day: number) => Math.max(0, Math.floor(day / 100));
 
 const getFailPenaltyMultiplier = (day: number) => {
@@ -561,13 +553,6 @@ const getMicroDifficultyBonus = (day: number) => {
 const getEffectiveFailPenaltyMultiplier = (day: number) => {
     const base = getFailPenaltyMultiplier(day);
     return base * (1 + getMicroDifficultyBonus(day));
-};
-
-const getEarlyDangerChanceRelief = (day: number, daysSinceDanger: number, endingPhaseActive: boolean) => {
-    if (endingPhaseActive) return 0;
-    if (day > EARLY_EASING_END_DAY) return 0;
-    if (daysSinceDanger <= 1) return 3;
-    return 0;
 };
 
 const normalizeNonCombatSubtypeWeights = (weights: NonCombatSubtypeWeights): NonCombatSubtypeWeights => {
@@ -4175,28 +4160,14 @@ export default function SimulationClient() {
         } else if (food === 0 && money > 0 && Math.random() < 0.4) {
             event = buildSupplyEvent(language, money, food, meds);
         } else {
-            const baseDangerChance = getDangerChance(nextDay, simState.daysSinceDanger ?? 0);
-            const earlyRelief = getEarlyDangerChanceRelief(
-                nextDay,
-                simState.daysSinceDanger ?? 0,
-                simState.evacActive || simState.evacReady
-            );
-            const dangerChance = Math.max(0, Math.min(95, baseDangerChance + effectDangerBias - earlyRelief));
-            const remaining = Math.max(0, 100 - dangerChance);
-            const wQuiet = remaining * (50 / 90);
-            let wNonCombat = remaining * (40 / 90);
-            const wMind = wNonCombat * 0.2;
-            wNonCombat = wNonCombat * 0.8;
-            const wDanger = dangerChance;
-            const totalSetWeight = wQuiet + wNonCombat + wMind + wDanger;
-            const roll = Math.random() * totalSetWeight;
-            let selectedCat: SimEventCategory = 'quiet';
-            if (effectForceDanger) {
-                selectedCat = 'danger';
-            } else if (roll <= wQuiet) selectedCat = 'quiet';
-            else if (roll <= wQuiet + wNonCombat) selectedCat = 'noncombat';
-            else if (roll <= wQuiet + wNonCombat + wMind) selectedCat = 'mind';
-            else selectedCat = 'danger';
+            const selectedCat = selectEventCategory({
+                day: nextDay,
+                daysSinceDanger: simState.daysSinceDanger ?? 0,
+                effectDangerBias,
+                endingPhaseActive: simState.evacActive || simState.evacReady,
+                includeMind: true,
+                forceDanger: effectForceDanger
+            }).category as SimEventCategory;
 
             const filteredEvents = events.filter(e => {
                 if (e.category !== selectedCat) return false;

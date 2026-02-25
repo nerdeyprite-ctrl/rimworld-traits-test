@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { resolveWorldBaseSettler, type WorldBaseSettler } from './world-base-settler';
+import { pickWeightedItem, selectEventCategory } from './simulation-engine-core';
 
 type LocalizedText = {
     ko: string;
@@ -487,11 +488,6 @@ const buildSeasonId = (date: Date) => {
     return `season-${y}${m}${d}-${h}${min}`;
 };
 
-const randomFrom = <T,>(items: T[]): T => {
-    const index = Math.floor(Math.random() * items.length);
-    return items[index];
-};
-
 const getEventCategory = (event: Pick<WorldEvent, 'id'> & Partial<WorldEvent>): WorldEventCategory => {
     const direct = event.category;
     if (direct === 'quiet' || direct === 'noncombat' || direct === 'danger') {
@@ -502,59 +498,40 @@ const getEventCategory = (event: Pick<WorldEvent, 'id'> & Partial<WorldEvent>): 
     return 'noncombat';
 };
 
-const getDangerChanceByDay = (day: number) => {
-    if (day <= 6) return 0;
-    if (day === 7) return 100;
-    if (day <= 20) return 18;
-    if (day <= 35) return 24;
-    if (day <= 50) return 30;
-    return 36;
-};
+const getEventWeight = (_event: WorldEvent) => 1;
 
 const pickEvent = (day: number, daysSinceDanger: number) => {
     const quietPool = WORLD_EVENTS.filter(event => event.category === 'quiet');
     const noncombatPool = WORLD_EVENTS.filter(event => event.category === 'noncombat');
     const dangerPool = WORLD_EVENTS.filter(event => event.category === 'danger');
 
-    const fallbackPool = WORLD_EVENTS;
     const nonDangerPool = [...quietPool, ...noncombatPool];
-    const safeFallbackPool = nonDangerPool.length > 0 ? nonDangerPool : fallbackPool;
-
-    if (day <= 2) {
-        const roll = Math.random() * 100;
-        if (roll < 70 && quietPool.length > 0) return randomFrom(quietPool);
-        if (noncombatPool.length > 0) return randomFrom(noncombatPool);
-        return randomFrom(safeFallbackPool);
-    }
-
-    if (day <= 6) {
-        return randomFrom(safeFallbackPool);
-    }
+    const fallbackPool = nonDangerPool.length > 0 ? nonDangerPool : WORLD_EVENTS;
 
     if (day === 7 && dangerPool.length > 0) {
-        return randomFrom(dangerPool);
+        return pickWeightedItem(dangerPool, getEventWeight);
     }
 
-    const baseDangerChance = getDangerChanceByDay(day);
-    let adjustedDangerChance = baseDangerChance;
-    if (daysSinceDanger <= 0) {
-        adjustedDangerChance = Math.max(5, adjustedDangerChance - 18);
-    } else if (daysSinceDanger >= 5) {
-        adjustedDangerChance = Math.min(75, adjustedDangerChance + 12);
-    } else if (daysSinceDanger >= 3) {
-        adjustedDangerChance = Math.min(70, adjustedDangerChance + 6);
+    const category = selectEventCategory({
+        day,
+        daysSinceDanger,
+        includeMind: false
+    }).category;
+
+    let pool: WorldEvent[] = [];
+    if (category === 'quiet') {
+        pool = quietPool;
+    } else if (category === 'danger') {
+        pool = dangerPool;
+    } else {
+        pool = noncombatPool;
     }
 
-    if (dangerPool.length > 0 && Math.random() * 100 < adjustedDangerChance) {
-        return randomFrom(dangerPool);
+    if (pool.length === 0) {
+        pool = category === 'danger' ? fallbackPool : WORLD_EVENTS;
     }
 
-    const quietWeight = day < 20 ? 45 : 35;
-    const noncombatWeight = 100 - quietWeight;
-    const roll = Math.random() * 100;
-    if (roll < quietWeight && quietPool.length > 0) return randomFrom(quietPool);
-    if (roll < quietWeight + noncombatWeight && noncombatPool.length > 0) return randomFrom(noncombatPool);
-    return randomFrom(safeFallbackPool);
+    return pickWeightedItem(pool, getEventWeight);
 };
 
 const applyChoiceDelta = (before: WorldResources, delta: WorldDelta): { after: WorldResources; appliedDelta: WorldDelta } => {
