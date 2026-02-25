@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { resolveWorldBaseSettler, type WorldBaseSettler } from './world-base-settler';
 
 type LocalizedText = {
     ko: string;
@@ -87,6 +88,7 @@ type WorldState = {
     currentTurn: WorldTurn | null;
     history: WorldHistoryEntry[];
     players: Record<string, PlayerCharge>;
+    baseSettler: WorldBaseSettler | null;
     updatedAt: string;
 };
 
@@ -151,6 +153,7 @@ export type WorldPublicSnapshot = {
         historyCount: number;
         lastResult: WorldHistoryEntry | null;
     };
+    baseSettler: WorldBaseSettler | null;
     turn: {
         id: string;
         day: number;
@@ -197,6 +200,61 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === 'object' && value !== null;
 };
 
+const sanitizeBaseSettlerPayload = (payload: unknown): WorldBaseSettler | null => {
+    if (!isRecord(payload)) return null;
+
+    if (payload.source !== 'share') return null;
+    const sourceId = typeof payload.sourceId === 'string' ? payload.sourceId : null;
+    const name = typeof payload.name === 'string' ? payload.name : null;
+    const mbti = typeof payload.mbti === 'string' ? payload.mbti : null;
+    if (!sourceId || !name || !mbti) return null;
+
+    const age = typeof payload.age === 'number' && Number.isFinite(payload.age)
+        ? Math.max(0, Math.floor(payload.age))
+        : null;
+    const gender = typeof payload.gender === 'string'
+        ? payload.gender
+        : null;
+    const traits = Array.isArray(payload.traits)
+        ? payload.traits.filter(isRecord).map((trait, index) => ({
+            id: typeof trait.id === 'string' && trait.id.length > 0 ? trait.id : `trait_${index + 1}`,
+            name: typeof trait.name === 'string' && trait.name.length > 0
+                ? trait.name
+                : (typeof trait.id === 'string' ? trait.id : `trait_${index + 1}`),
+            ...(typeof trait.description === 'string' && trait.description.length > 0 ? { description: trait.description } : {})
+        }))
+        : [];
+    const skills = Array.isArray(payload.skills)
+        ? payload.skills.filter(isRecord).map(skill => ({
+            name: typeof skill.name === 'string' ? skill.name : 'Unknown',
+            level: typeof skill.level === 'number' && Number.isFinite(skill.level)
+                ? Math.max(0, Math.min(20, Math.floor(skill.level)))
+                : 0,
+            passion: typeof skill.passion === 'string' ? skill.passion : null
+        }))
+        : [];
+    const incapabilities = Array.isArray(payload.incapabilities)
+        ? payload.incapabilities.filter((item): item is string => typeof item === 'string')
+        : [];
+    const backstoryRaw = isRecord(payload.backstory) ? payload.backstory : null;
+
+    return {
+        source: 'share',
+        sourceId,
+        name,
+        age,
+        gender,
+        mbti,
+        traits,
+        skills,
+        incapabilities,
+        backstory: {
+            childhood: typeof backstoryRaw?.childhood === 'string' ? backstoryRaw.childhood : null,
+            adulthood: typeof backstoryRaw?.adulthood === 'string' ? backstoryRaw.adulthood : null
+        }
+    };
+};
+
 const sanitizeStatePayload = (payload: unknown): WorldState | null => {
     if (!isRecord(payload)) return null;
 
@@ -211,6 +269,7 @@ const sanitizeStatePayload = (payload: unknown): WorldState | null => {
     const players = isRecord(payload.players) ? payload.players : null;
     const updatedAt = typeof payload.updatedAt === 'string' ? payload.updatedAt : null;
     const daysSinceDangerRaw = typeof payload.daysSinceDanger === 'number' ? payload.daysSinceDanger : 0;
+    const baseSettler = sanitizeBaseSettlerPayload(payload.baseSettler);
 
     if (!seasonId || !seasonStartedAt || !seasonEndsAt || !status || dayRaw === null || !resources || !history || !players || !updatedAt) {
         return null;
@@ -243,6 +302,7 @@ const sanitizeStatePayload = (payload: unknown): WorldState | null => {
         currentTurn: currentTurn as WorldTurn | null,
         history: history as WorldHistoryEntry[],
         players: players as Record<string, PlayerCharge>,
+        baseSettler,
         updatedAt
     };
 };
@@ -566,6 +626,7 @@ const createInitialState = (now: Date): WorldState => ({
     currentTurn: null,
     history: [],
     players: {},
+    baseSettler: null,
     updatedAt: toIso(now)
 });
 
@@ -812,6 +873,15 @@ const getPublicSnapshot = (state: WorldState, now: Date, accountId: string | nul
             historyCount: state.history.length,
             lastResult: state.history[0] ?? null
         },
+        baseSettler: state.baseSettler
+            ? {
+                ...state.baseSettler,
+                traits: [...state.baseSettler.traits],
+                skills: [...state.baseSettler.skills],
+                incapabilities: [...state.baseSettler.incapabilities],
+                backstory: { ...state.baseSettler.backstory }
+            }
+            : null,
         turn,
         viewer,
         storage: {
@@ -828,6 +898,8 @@ let worldStateLoaded = false;
 let stateLock: Promise<void> = Promise.resolve();
 let worldStorageMode: WorldStorageMode = 'memory';
 let worldStorageMessage: string | null = 'Supabase not configured. Using memory-only state.';
+let nextBaseSettlerResolveAt = 0;
+const BASE_SETTLER_RESOLVE_COOLDOWN_MS = 60_000;
 
 const getServerSupabase = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -957,11 +1029,33 @@ const persistIfPossible = async (state: WorldState) => {
     }
 };
 
+const ensureBaseSettler = async (state: WorldState, now: Date): Promise<boolean> => {
+    if (state.baseSettler) return false;
+    if (now.getTime() < nextBaseSettlerResolveAt) return false;
+
+    try {
+        const baseSettler = await resolveWorldBaseSettler();
+        if (!baseSettler) {
+            nextBaseSettlerResolveAt = now.getTime() + BASE_SETTLER_RESOLVE_COOLDOWN_MS;
+            return false;
+        }
+        state.baseSettler = baseSettler;
+        state.updatedAt = toIso(now);
+        nextBaseSettlerResolveAt = 0;
+        return true;
+    } catch (error) {
+        nextBaseSettlerResolveAt = now.getTime() + BASE_SETTLER_RESOLVE_COOLDOWN_MS;
+        console.error('[world-sim] failed to resolve base settler:', error);
+        return false;
+    }
+};
+
 export const getWorldSnapshot = async (accountId?: string | null): Promise<WorldPublicSnapshot> => {
     return withStateLock(async () => {
         const now = new Date();
         const state = await ensureStateLoaded(now);
-        const changed = tick(state, now);
+        const baseSettlerChanged = await ensureBaseSettler(state, now);
+        const changed = tick(state, now) || baseSettlerChanged;
         if (changed) {
             await persistIfPossible(state);
         }
@@ -973,7 +1067,8 @@ export const submitWorldVote = async ({ accountId, choiceId, points }: VoteReque
     return withStateLock(async () => {
         const now = new Date();
         const state = await ensureStateLoaded(now);
-        let shouldPersist = tick(state, now);
+        let shouldPersist = await ensureBaseSettler(state, now);
+        shouldPersist = tick(state, now) || shouldPersist;
 
         if (state.status !== 'running') {
             throw new Error('Season is not running.');

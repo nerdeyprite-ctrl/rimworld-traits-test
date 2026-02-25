@@ -26,6 +26,30 @@ type PublicChoice = {
     ratio: number;
 };
 
+type WorldBaseSettler = {
+    source: 'share';
+    sourceId: string;
+    name: string;
+    age: number | null;
+    gender: string | null;
+    mbti: string;
+    traits: Array<{
+        id: string;
+        name: string;
+        description?: string;
+    }>;
+    skills: Array<{
+        name: string;
+        level: number;
+        passion: string | null;
+    }>;
+    incapabilities: string[];
+    backstory: {
+        childhood: string | null;
+        adulthood: string | null;
+    };
+};
+
 type ViewerState = {
     accountId: string;
     points: number;
@@ -81,6 +105,7 @@ type WorldSnapshot = {
             day: number;
         } | null;
     };
+    baseSettler: WorldBaseSettler | null;
     turn: {
         id: string;
         day: number;
@@ -331,6 +356,13 @@ export default function WorldSimulationClient() {
         };
     }, [snapshot, language]);
 
+    const topBaseSkills = useMemo(() => {
+        if (!snapshot?.baseSettler) return [];
+        return [...snapshot.baseSettler.skills]
+            .sort((a, b) => b.level - a.level)
+            .slice(0, 6);
+    }, [snapshot?.baseSettler]);
+
     if (loading && !snapshot) {
         return <div className="p-20 text-center text-gray-400 animate-pulse">{language === 'ko' ? '월드 시뮬레이션 로딩 중...' : 'Loading world simulation...'}</div>;
     }
@@ -390,6 +422,95 @@ export default function WorldSimulationClient() {
 
             {snapshot && (
                 <>
+                    <div className="sim-panel p-5 space-y-3">
+                        <div className="text-xs uppercase tracking-wider text-[var(--sim-text-muted)]">
+                            {language === 'ko' ? '이번 시즌 기준 정착민' : 'Season Base Settler'}
+                        </div>
+                        {snapshot.baseSettler ? (
+                            <div className="space-y-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-lg font-black text-[var(--sim-text-main)]">{snapshot.baseSettler.name}</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-sub)]">
+                                        MBTI {snapshot.baseSettler.mbti}
+                                    </span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-sub)]">
+                                        {snapshot.baseSettler.gender ?? (language === 'ko' ? '성별 미상' : 'Unknown gender')}
+                                        {' · '}
+                                        {snapshot.baseSettler.age !== null
+                                            ? (language === 'ko' ? `${snapshot.baseSettler.age}세` : `Age ${snapshot.baseSettler.age}`)
+                                            : (language === 'ko' ? '나이 미상' : 'Unknown age')}
+                                    </span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 font-mono">
+                                        share:{snapshot.baseSettler.sourceId}
+                                    </span>
+                                </div>
+
+                                <div className="text-xs text-[var(--sim-text-sub)]">
+                                    {language === 'ko' ? '특성' : 'Traits'}
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {snapshot.baseSettler.traits.length > 0 ? snapshot.baseSettler.traits.slice(0, 8).map(trait => (
+                                        <span
+                                            key={trait.id}
+                                            className="text-[10px] px-2 py-0.5 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-main)]"
+                                        >
+                                            {trait.name}
+                                        </span>
+                                    )) : (
+                                        <span className="text-[10px] text-[var(--sim-text-muted)]">
+                                            {language === 'ko' ? '특성 데이터 없음' : 'No trait data'}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="text-xs text-[var(--sim-text-sub)]">
+                                    {language === 'ko' ? '주요 스킬' : 'Top Skills'}
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {topBaseSkills.length > 0 ? topBaseSkills.map(skill => (
+                                        <span
+                                            key={skill.name}
+                                            className="text-[10px] px-2 py-0.5 rounded border border-[var(--sim-border)] bg-[var(--sim-surface-2)] text-[var(--sim-text-main)]"
+                                        >
+                                            {skill.name} {skill.level}
+                                            {skill.passion ? ` (${skill.passion})` : ''}
+                                        </span>
+                                    )) : (
+                                        <span className="text-[10px] text-[var(--sim-text-muted)]">
+                                            {language === 'ko' ? '스킬 데이터 없음' : 'No skill data'}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="text-[11px] text-[var(--sim-text-sub)]">
+                                    {language === 'ko' ? '불가능 작업' : 'Incapabilities'}:{' '}
+                                    <span className="text-[var(--sim-text-main)]">
+                                        {snapshot.baseSettler.incapabilities.length > 0
+                                            ? snapshot.baseSettler.incapabilities.join(', ')
+                                            : (language === 'ko' ? '없음' : 'None')}
+                                    </span>
+                                </div>
+
+                                {(snapshot.baseSettler.backstory.childhood || snapshot.baseSettler.backstory.adulthood) && (
+                                    <div className="text-[11px] text-[var(--sim-text-sub)]">
+                                        {language === 'ko' ? '배경' : 'Backstory'}:{' '}
+                                        <span className="text-[var(--sim-text-main)]">
+                                            {snapshot.baseSettler.backstory.childhood ?? (language === 'ko' ? '미상' : 'Unknown')}
+                                            {' / '}
+                                            {snapshot.baseSettler.backstory.adulthood ?? (language === 'ko' ? '미상' : 'Unknown')}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-xs text-amber-200 bg-amber-900/20 border border-amber-500/40 rounded-md px-3 py-2">
+                                {language === 'ko'
+                                    ? '기준 정착민 데이터를 불러오지 못했습니다. (기본 share ID: 6757)'
+                                    : 'Base settler data is unavailable. (default share id: 6757)'}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div className="sim-stat-tile text-center">
                             <div className="text-[10px] text-[var(--sim-text-muted)] uppercase">Day</div>
