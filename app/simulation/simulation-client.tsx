@@ -4971,6 +4971,15 @@ export default function SimulationClient() {
         });
     }, [getGroupAverage, language]);
     const selectedQuietPresetRow = quietPresetChanceRows.find(row => row.id === quietAutoPreset);
+    const currentDisplayDay = currentCard?.day ?? simState.day;
+    const currentSeasonLabel = getSeasonLabel(currentDisplayDay, language);
+    const turnStateLabel = pendingChoice
+        ? (language === 'ko' ? '선택 대기' : 'Choice Ready')
+        : canAdvanceDay
+            ? (language === 'ko' ? '다음 날 진행 가능' : 'Ready to Advance')
+            : currentCard
+                ? (language === 'ko' ? '이벤트 확인 중' : 'Reviewing Event')
+                : (language === 'ko' ? '새 정착 시작 전' : 'Before Start');
 
     function handleAdvanceDay() {
         if (turnPhase !== 'idle') {
@@ -5037,7 +5046,7 @@ export default function SimulationClient() {
         };
 
         return (
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <div className="mt-5 flex flex-wrap justify-center gap-2.5 md:mt-6 md:gap-3">
                 {items.map((item, idx) => {
                     const c = colorMap[item.color];
                     return (
@@ -5050,11 +5059,11 @@ export default function SimulationClient() {
                                 borderWidth: '2px',
                                 borderStyle: 'solid'
                             }}
-                            className="px-4 py-3 rounded-xl flex flex-col items-center justify-center min-w-[110px] shadow-[0_10px_20px_-6px_rgba(0,0,0,0.25)] transition-all"
+                            className="min-w-[96px] rounded-xl px-3 py-2.5 shadow-[0_10px_20px_-6px_rgba(0,0,0,0.25)] transition-all md:min-w-[110px] md:px-4 md:py-3 flex flex-col items-center justify-center"
                         >
-                            <span className="text-[11px] font-black opacity-80 uppercase tracking-widest mb-1">{item.label}</span>
+                            <span className="mb-1 text-[10px] font-black opacity-80 uppercase tracking-widest md:text-[11px]">{item.label}</span>
                             <div className="flex flex-col items-center gap-0.5">
-                                <span className="text-3xl font-black leading-none">
+                                <span className="text-2xl font-black leading-none md:text-3xl">
                                     {item.delta > 0 ? `+${item.delta}` : item.delta}
                                 </span>
                                 <span className="text-[10px] font-bold opacity-70 mt-1 whitespace-nowrap">
@@ -5069,22 +5078,67 @@ export default function SimulationClient() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-10 text-[var(--sim-text-main)]">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-[var(--sim-accent)] tracking-tight">
-                        {language === 'ko' ? '생존 시뮬레이션' : 'Survival Simulation'}
-                    </h1>
-                    <p className="text-sm text-[var(--sim-text-sub)]">
+        <div className="max-w-5xl mx-auto space-y-5 pb-24 md:space-y-8 md:pb-10 text-[var(--sim-text-main)]">
+            <div className="sim-panel overflow-hidden p-4 md:p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[var(--sim-accent)] tracking-tight">
+                            {language === 'ko' ? '생존 시뮬레이션' : 'Survival Simulation'}
+                        </h1>
+                        <p className="mt-1 text-sm text-[var(--sim-text-sub)]">
+                            {language === 'ko'
+                                ? '4계절 × 15일 = 60일 생존 시 우주선 탈출 성공'
+                                : '4 Seasons × 15 days = Escape if you survive 60 days'}
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                        <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--sim-text-muted)]">
+                            {language === 'ko' ? '정착민' : 'Colonist'}
+                        </span>
+                        <span className="sim-chip px-3 py-1.5 text-[var(--sim-text-main)]">{userInfo?.name || '정착민'}</span>
+                    </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="sim-card px-3 py-3">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">
+                            {language === 'ko' ? '현재 턴' : 'Current Turn'}
+                        </div>
+                        <div className="mt-1 text-lg font-black text-[var(--sim-text-main)]">
+                            {currentDisplayDay} / {MAX_DAYS}
+                        </div>
+                    </div>
+                    <div className="sim-card px-3 py-3">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">
+                            {language === 'ko' ? '계절' : 'Season'}
+                        </div>
+                        <div className="mt-1 text-lg font-black text-[var(--sim-accent)]">
+                            {currentSeasonLabel}
+                        </div>
+                    </div>
+                    <div className="sim-card px-3 py-3">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">HP</div>
+                        <div className="mt-1 text-lg font-black text-red-300">
+                            {simState.hp} / 20
+                        </div>
+                    </div>
+                    <div className="sim-card px-3 py-3">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">
+                            {language === 'ko' ? '진행 상태' : 'Flow'}
+                        </div>
+                        <div className="mt-1 text-sm font-black text-[var(--sim-text-main)]">
+                            {turnStateLabel}
+                        </div>
+                    </div>
+                </div>
+
+                {simState.evacActive && simState.status === 'running' && (
+                    <div className="mt-3 rounded-xl border border-red-500/40 bg-red-900/15 px-3 py-2 text-xs font-bold text-red-200">
                         {language === 'ko'
-                            ? '4계절 × 15일 = 60일 생존 시 우주선 탈출 성공'
-                            : '4 Seasons × 15 days = Escape if you survive 60 days'}
-                    </p>
-                </div>
-                <div className="text-right text-xs text-[var(--sim-text-sub)]">
-                    {language === 'ko' ? '정착민' : 'Colonist'}:{' '}
-                    <span className="sim-chip px-3 py-1 text-[var(--sim-text-main)]">{userInfo?.name || '정착민'}</span>
-                </div>
+                            ? `긴급 탈출 카운트다운 진행 중: ${simState.evacCountdown}일 남음`
+                            : `Emergency evacuation countdown active: ${simState.evacCountdown} days remaining`}
+                    </div>
+                )}
             </div>
 
             <div className="flex flex-col items-center gap-4">
@@ -5243,7 +5297,7 @@ export default function SimulationClient() {
                                                     </div>
                                                 )}
 
-                                                <div className="mt-auto pt-4 space-y-2">
+                                                <div className="mt-auto pt-4 space-y-3">
                                                     {pendingChoice && (
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                             {allChoices.map(choice => {
@@ -5294,7 +5348,7 @@ export default function SimulationClient() {
                                                                         greatChance = Math.round(greatChance);
                                                                         greatChance = Math.max(0, Math.min(greatChance, chance));
                                                                     }
-                                                                    chanceText = language === 'ko' ? `${chance}%` : `${chance}%`;
+                                                                    chanceText = `${chance}%`;
                                                                     const sText = getExpectation(choice.skillCheck.successDelta).join(', ');
                                                                     const fText = getExpectation(choice.skillCheck.failDelta).join(', ');
                                                                     const gText = choice.skillCheck.greatSuccessDelta ? getExpectation(choice.skillCheck.greatSuccessDelta).join(', ') : '';
@@ -5310,13 +5364,31 @@ export default function SimulationClient() {
                                                                     <div key={choice.id} className="group relative">
                                                                         <button
                                                                             onClick={() => resolveChoice(choice.id)}
-                                                                            className={`sim-btn sim-btn-secondary w-full px-3 py-2.5 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'sim-choice--special' : 'border-[var(--sim-border)]'))} flex flex-col items-center justify-center min-h-[50px]`}
+                                                                            className={`sim-btn sim-btn-secondary w-full px-3.5 py-3 text-xs border ${isDangerChoiceContext ? 'sim-choice--danger' : ''} ${choice.isRainbow ? 'rainbow-glow border-purple-500' : (choice.isRareSpawn ? 'sim-choice--rare' : (choice.isSpecial ? 'sim-choice--special' : 'border-[var(--sim-border)]'))} flex flex-col items-start justify-center min-h-[74px] md:min-h-[52px]`}
                                                                         >
-                                                                            <div className="font-bold">{isUiCorrupted ? scrambleText(choice.label) : choice.label}</div>
-                                                                            {!isUiCorrupted && chanceText && <div className="text-[10px] text-[var(--sim-accent)] font-black">{chanceText}</div>}
+                                                                            <div className="flex w-full items-start justify-between gap-3">
+                                                                                <div className="text-left text-sm font-bold leading-snug">
+                                                                                    {isUiCorrupted ? scrambleText(choice.label) : choice.label}
+                                                                                </div>
+                                                                                {!isUiCorrupted && chanceText && (
+                                                                                    <div className="shrink-0 rounded-full border border-[var(--sim-accent)]/45 bg-[var(--sim-accent)]/10 px-2 py-1 text-[10px] font-black text-[var(--sim-accent)]">
+                                                                                        {chanceText}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            {!isUiCorrupted && outcomeInfo.length > 0 && (
+                                                                                <div className="mt-1.5 w-full text-left md:hidden">
+                                                                                    <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--sim-accent)]">
+                                                                                        {language === 'ko' ? '예상 결과' : 'Expectation'}
+                                                                                    </div>
+                                                                                    <div className="mt-1 space-y-0.5 text-[10px] leading-relaxed text-[var(--sim-text-sub)]">
+                                                                                        {outcomeInfo.slice(0, 3).map((info, i) => <div key={i}>{info}</div>)}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
                                                                         </button>
                                                                         {!isUiCorrupted && outcomeInfo.length > 0 && (
-                                                                            <div className="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 p-2 bg-[var(--sim-surface-1)] border border-[var(--sim-border)] rounded-lg shadow-2xl text-[9px] text-[var(--sim-text-sub)] pointer-events-none opacity-0 group-hover:opacity-100 transition-all">
+                                                                            <div className="hidden md:block invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 p-2 bg-[var(--sim-surface-1)] border border-[var(--sim-border)] rounded-lg shadow-2xl text-[9px] text-[var(--sim-text-sub)] pointer-events-none opacity-0 group-hover:opacity-100 transition-all">
                                                                                 <div className="font-black text-[var(--sim-accent)] border-b border-[var(--sim-border)] pb-1 mb-1">{language === 'ko' ? '예상 결과' : 'Expectation'}</div>
                                                                                 {outcomeInfo.map((info, i) => <div key={i}>{info}</div>)}
                                                                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[var(--sim-surface-1)]"></div>
@@ -5331,18 +5403,40 @@ export default function SimulationClient() {
                                             </div>
                                         </div>
 
-                                        <div className="reigns-card-face reigns-card-back flex flex-col text-center p-6">
-                                            <div className="text-xs text-[var(--sim-accent)] font-bold uppercase tracking-wider mb-2">
-                                                {language === 'ko' ? '사건 결과' : 'Event Result'}
-                                            </div>
-                                            <div className="flex-1 flex flex-col justify-center overflow-y-auto px-2">
-                                                <div className="text-sm md:text-base text-[var(--sim-text-main)] leading-relaxed font-medium mb-4 whitespace-pre-line">
-                                                    {currentCard?.entry?.responseCard || currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
+                                        <div className="reigns-card-face reigns-card-back flex flex-col text-center p-5 md:p-6">
+                                            <div className="flex items-center justify-between gap-3 border-b border-[var(--sim-border)] pb-3">
+                                                <div className="text-xs font-bold uppercase tracking-wider text-[var(--sim-accent)]">
+                                                    {language === 'ko' ? '사건 결과' : 'Event Result'}
                                                 </div>
-                                                {currentCard?.entry && renderDeltaItems(currentCard.entry)}
+                                                {currentCard?.entry && (
+                                                    <div className="rounded-full border border-[var(--sim-border)] bg-[var(--sim-surface-1)] px-2.5 py-1 text-[10px] font-black text-[var(--sim-text-sub)]">
+                                                        DAY {currentDisplayDay}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 flex flex-col justify-center overflow-y-auto px-1 pt-4">
+                                                <div className="sim-card px-3 py-3 md:px-4 md:py-4">
+                                                    <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">
+                                                        {language === 'ko' ? '결과 설명' : 'Outcome'}
+                                                    </div>
+                                                    <div className="mt-2 text-left text-sm md:text-base text-[var(--sim-text-main)] leading-relaxed font-medium whitespace-pre-line">
+                                                        {currentCard?.entry?.responseCard || currentCard?.entry?.response || (language === 'ko' ? '결과를 불러오는 중...' : 'Loading results...')}
+                                                    </div>
+                                                </div>
+                                                {currentCard?.entry && (
+                                                    <div className="mt-3">
+                                                        <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--sim-text-muted)]">
+                                                            {language === 'ko' ? '영향 요약' : 'Impact Summary'}
+                                                        </div>
+                                                        {renderDeltaItems(currentCard.entry)}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="mt-4 pt-4 border-t border-[var(--sim-border)]">
-                                                <div className="text-[10px] text-[var(--sim-text-muted)] italic">
+                                                <div className="text-[10px] text-[var(--sim-text-muted)] italic md:hidden">
+                                                    {language === 'ko' ? '아래 버튼으로 다음 날을 진행하세요' : 'Use the button below to advance day'}
+                                                </div>
+                                                <div className="hidden md:block text-[10px] text-[var(--sim-text-muted)] italic">
                                                     {language === 'ko' ? '화살표 버튼을 눌러 다음 날로 이동하세요' : 'Press the arrow to advance day'}
                                                 </div>
                                             </div>
@@ -5356,41 +5450,57 @@ export default function SimulationClient() {
                             <button
                                 onClick={handleAdvanceDay}
                                 disabled={!canAdvanceDay}
-                                className={`absolute right-3 bottom-3 md:-right-20 md:top-1/2 md:bottom-auto md:-translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full border-2 flex items-center justify-center transition-all z-20 ${canAdvanceDay
+                                className={`hidden md:flex absolute -right-20 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full border-2 items-center justify-center transition-all z-20 ${canAdvanceDay
                                     ? 'bg-[var(--sim-accent)] hover:brightness-110 text-white border-[var(--sim-accent)] shadow-[0_4px_14px_rgba(0,0,0,0.28)] hover:scale-105 active:scale-95 animate-bounce-x'
                                     : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border-[var(--sim-border)] cursor-not-allowed opacity-50'
                                     }`}
                                 title={language === 'ko' ? '다음 날로' : 'Next Day'}
                             >
-                                <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
                         )}
                     </div>
                 </div>
+
+                {(simState.status === 'running' || (simState.status === 'dead' && showDeathResult)) && (
+                    <div className="sim-mobile-bottom-safe sticky bottom-3 z-10 w-full max-w-[620px] md:hidden">
+                        <button
+                            onClick={handleAdvanceDay}
+                            disabled={!canAdvanceDay}
+                            className={`w-full flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black backdrop-blur-sm ${canAdvanceDay
+                                ? 'bg-[var(--sim-accent)] text-white border-[var(--sim-accent)] shadow-[0_8px_24px_rgba(0,0,0,0.22)]'
+                                : 'bg-[var(--sim-surface-2)]/95 text-[var(--sim-text-muted)] border-[var(--sim-border)] cursor-not-allowed opacity-60'
+                                }`}
+                        >
+                            <span>{language === 'ko' ? '다음 날 진행' : 'Advance Day'}</span>
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="sim-panel p-4 md:p-6 space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <SimStatTile label={language === 'ko' ? 'Day' : 'Day'} value={`${simState.day} / ${MAX_DAYS}`} />
-                    <SimStatTile
-                        label={language === 'ko' ? '계절' : 'Season'}
-                        value={getSeasonLabel(simState.day, language)}
-                        valueClassName="text-[var(--sim-accent)] truncate w-full text-center"
-                    />
-                    <SimStatTile label="HP" value={`${simState.hp} / 20`} labelClassName="text-red-500/80" />
-                    <SimStatTile label={language === 'ko' ? '식량' : 'Food'} value={`${simState.food} / 30`} labelClassName="text-amber-600" />
-                    <SimStatTile label={language === 'ko' ? '치료제' : 'Meds'} value={`${simState.meds} / 30`} labelClassName="text-pink-500" />
-                    <SimStatTile label={language === 'ko' ? '돈' : 'Money'} value={`${simState.money} / 30`} labelClassName="text-green-500" />
-                </div>
-                {simState.evacActive && simState.status === 'running' && (
-                    <div className="text-center text-xs font-bold text-red-300 bg-red-900/20 border border-red-500/40 rounded-lg px-3 py-2">
-                        {language === 'ko'
-                            ? `긴급 탈출 카운트다운 진행 중: ${simState.evacCountdown}일 남음`
-                            : `Emergency evacuation countdown active: ${simState.evacCountdown} days remaining`}
+                <div className="space-y-3">
+                    <div className="sim-section-title">
+                        {language === 'ko' ? '핵심 자원' : 'Core Resources'}
                     </div>
-                )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <SimStatTile label={language === 'ko' ? 'Day' : 'Day'} value={`${currentDisplayDay} / ${MAX_DAYS}`} />
+                        <SimStatTile
+                            label={language === 'ko' ? '계절' : 'Season'}
+                            value={currentSeasonLabel}
+                            valueClassName="text-[var(--sim-accent)] truncate w-full text-center"
+                        />
+                        <SimStatTile label="HP" value={`${simState.hp} / 20`} labelClassName="text-red-500/80" />
+                        <SimStatTile label={language === 'ko' ? '식량' : 'Food'} value={`${simState.food} / 30`} labelClassName="text-amber-600" />
+                        <SimStatTile label={language === 'ko' ? '치료제' : 'Meds'} value={`${simState.meds} / 30`} labelClassName="text-pink-500" />
+                        <SimStatTile label={language === 'ko' ? '돈' : 'Money'} value={`${simState.money} / 30`} labelClassName="text-green-500" />
+                    </div>
+                </div>
                 {simState.activeEffects.length > 0 && (
                     <div className={`rounded-lg px-3 py-2 border ${hasNegativeActiveEffect ? 'bg-red-900/15 border-red-500/40 text-red-200' : 'bg-emerald-900/15 border-emerald-500/40 text-emerald-200'}`}>
                         <div className="text-xs font-bold mb-1">
@@ -5407,119 +5517,132 @@ export default function SimulationClient() {
                         </div>
                     </div>
                 )}
-                <div className="rounded-lg border border-[var(--sim-border)] bg-[var(--sim-surface-1)]/70 px-3 py-3">
-                    <div className="text-[11px] font-bold text-[var(--sim-text-sub)] mb-2">
-                        {language === 'ko' ? '평범한 날 자동 프리셋' : 'Quiet Day Auto Preset'}
+
+                <div className="space-y-3">
+                    <div className="sim-section-title">
+                        {language === 'ko' ? '자동 진행 프리셋' : 'Auto Flow Preset'}
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <label className="text-[10px] text-[var(--sim-text-muted)] uppercase tracking-wide">
-                            {language === 'ko' ? '프리셋' : 'Preset'}
-                        </label>
-                        <select
-                            value={quietAutoPreset}
-                            onChange={(e) => setQuietAutoPreset(e.target.value as QuietAutoPreset)}
-                            className="w-full sm:w-auto min-w-[180px] px-3 py-2 text-xs bg-[var(--sim-surface-2)] border border-[var(--sim-border)] rounded-md text-[var(--sim-text-main)]"
-                        >
-                            {quietPresetOptions.map(option => (
-                                <option key={option.id} value={option.id}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    {quietAutoPreset === 'manual' ? (
+                    <div className="rounded-lg border border-[var(--sim-border)] bg-[var(--sim-surface-1)]/70 px-3 py-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label className="text-[10px] font-bold text-[var(--sim-text-muted)] uppercase tracking-wide">
+                                {language === 'ko' ? '프리셋' : 'Preset'}
+                            </label>
+                            <select
+                                value={quietAutoPreset}
+                                onChange={(e) => setQuietAutoPreset(e.target.value as QuietAutoPreset)}
+                                className="w-full sm:w-auto min-w-[180px] px-3 py-2 text-xs bg-[var(--sim-surface-2)] border border-[var(--sim-border)] rounded-md text-[var(--sim-text-main)]"
+                            >
+                                {quietPresetOptions.map(option => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {quietAutoPreset === 'manual' ? (
+                            <div className="mt-2 text-[10px] text-[var(--sim-text-muted)]">
+                                {language === 'ko'
+                                    ? '수동 선택 모드입니다. 평범한 날에 직접 선택지를 고릅니다.'
+                                    : 'Manual mode: choose options directly on quiet days.'}
+                            </div>
+                        ) : selectedQuietPresetRow ? (
+                            <div className="mt-2 text-[10px] text-[var(--sim-text-sub)]">
+                                {language === 'ko'
+                                    ? `예상 성공률 ${selectedQuietPresetRow.chance}%`
+                                    : `Estimated success ${selectedQuietPresetRow.chance}%`}
+                                {selectedQuietPresetRow.greatChance > 0 && (
+                                    <span className="text-[var(--sim-accent)] font-semibold">
+                                        {language === 'ko'
+                                            ? ` · 대성공 ${selectedQuietPresetRow.greatChance}%`
+                                            : ` · Great ${selectedQuietPresetRow.greatChance}%`}
+                                    </span>
+                                )}
+                            </div>
+                        ) : null}
                         <div className="mt-2 text-[10px] text-[var(--sim-text-muted)]">
                             {language === 'ko'
-                                ? '수동 선택 모드입니다. 평범한 날에 직접 선택지를 고릅니다.'
-                                : 'Manual mode: choose options directly on quiet days.'}
+                                ? '자동 프리셋은 평범한 날에만 적용됩니다. 결과 카드는 기존처럼 직접 넘깁니다.'
+                                : 'Auto preset applies only on quiet days. Result cards still require manual advance.'}
                         </div>
-                    ) : selectedQuietPresetRow ? (
-                        <div className="mt-2 text-[10px] text-[var(--sim-text-sub)]">
-                            {language === 'ko'
-                                ? `예상 성공률 ${selectedQuietPresetRow.chance}%`
-                                : `Estimated success ${selectedQuietPresetRow.chance}%`}
-                            {selectedQuietPresetRow.greatChance > 0 && (
-                                <span className="text-[var(--sim-accent)] font-semibold">
-                                    {language === 'ko'
-                                        ? ` · 대성공 ${selectedQuietPresetRow.greatChance}%`
-                                        : ` · Great ${selectedQuietPresetRow.greatChance}%`}
-                                </span>
-                            )}
-                        </div>
-                    ) : null}
-                    <div className="mt-2 text-[10px] text-[var(--sim-text-muted)]">
-                        {language === 'ko'
-                            ? '자동 프리셋은 평범한 날에만 적용됩니다. 결과 카드는 기존처럼 직접 넘깁니다.'
-                            : 'Auto preset applies only on quiet days. Result cards still require manual advance.'}
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-[var(--sim-border)]">
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={handleUseMeds}
-                            disabled={!canUseMeds}
-                            className={`sim-btn px-4 py-2 text-xs ${canUseMeds
-                                ? 'sim-btn-secondary'
-                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
-                                }`}
-                        >
-                            {hasHealingBlockActive
-                                ? (language === 'ko' ? '💉 치료 봉쇄 중' : '💉 Healing Blocked')
-                                : (language === 'ko' ? `💉 치료제 사용 (+${healAmount})` : `💉 Use Meds (+${healAmount})`)}
-                        </button>
-                        <button
-                            onClick={handleUpgradeBase}
-                            disabled={!canUpgradeBase}
-                            className={`sim-btn px-4 py-2 text-xs ${canUpgradeBase
-                                ? 'sim-btn-primary'
-                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
-                                }`}
-                        >
-                            {language === 'ko'
-                                ? `🏰 기지 강화 Lv.${simState.campLevel} (${nextBaseCost})`
-                                : `🏰 Upgrade Lv.${simState.campLevel} (${nextBaseCost})`}
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (submittedOnExit) return;
-                                if (pendingChoice) {
-                                    alert(language === 'ko' ? '선택지를 먼저 해결해야 합니다.' : 'Resolve the current choice first.');
-                                    return;
-                                }
-                                if (canLaunchNow) {
-                                    setShowLaunchConfirm(true);
-                                } else {
-                                    setShowBoardConfirm(true);
-                                }
-                            }}
-                            disabled={!canBoardNow}
-                            className={`sim-btn px-4 py-2 text-xs ${canBoardNow
-                                ? 'sim-btn-danger'
-                                : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
-                                }`}
-                        >
-                            {simState.evacActive
-                                ? (language === 'ko' ? `🛸 탈출 준비 중 (${simState.evacCountdown}일)` : `🛸 Evac Active (${simState.evacCountdown}d)`)
-                                : simState.evacReady
-                                    ? (language === 'ko' ? '🛸 우주선 출발' : '🛸 Launch Ship')
-                                    : (language === 'ko' ? `🛸 탈출 준비 시작 (${EVAC_SURVIVAL_DAYS}일)` : `🛸 Start Evac (${EVAC_SURVIVAL_DAYS}d)`)}
-                        </button>
+                <div className="grid gap-6 pt-2 border-t border-[var(--sim-border)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                    <div className="space-y-3">
+                        <div className="sim-section-title">
+                            {language === 'ko' ? '생존 행동' : 'Survival Actions'}
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            <button
+                                onClick={handleUseMeds}
+                                disabled={!canUseMeds}
+                                className={`sim-btn w-full min-h-[48px] px-4 py-3 text-xs ${canUseMeds
+                                    ? 'sim-btn-secondary'
+                                    : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
+                                    }`}
+                            >
+                                {hasHealingBlockActive
+                                    ? (language === 'ko' ? '💉 치료 봉쇄 중' : '💉 Healing Blocked')
+                                    : (language === 'ko' ? `💉 치료제 사용 (+${healAmount})` : `💉 Use Meds (+${healAmount})`)}
+                            </button>
+                            <button
+                                onClick={handleUpgradeBase}
+                                disabled={!canUpgradeBase}
+                                className={`sim-btn w-full min-h-[48px] px-4 py-3 text-xs ${canUpgradeBase
+                                    ? 'sim-btn-primary'
+                                    : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
+                                    }`}
+                            >
+                                {language === 'ko'
+                                    ? `🏰 기지 강화 Lv.${simState.campLevel} (${nextBaseCost})`
+                                    : `🏰 Upgrade Lv.${simState.campLevel} (${nextBaseCost})`}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (submittedOnExit) return;
+                                    if (pendingChoice) {
+                                        alert(language === 'ko' ? '선택지를 먼저 해결해야 합니다.' : 'Resolve the current choice first.');
+                                        return;
+                                    }
+                                    if (canLaunchNow) {
+                                        setShowLaunchConfirm(true);
+                                    } else {
+                                        setShowBoardConfirm(true);
+                                    }
+                                }}
+                                disabled={!canBoardNow}
+                                className={`sim-btn w-full min-h-[48px] px-4 py-3 text-xs ${canBoardNow
+                                    ? 'sim-btn-danger'
+                                    : 'bg-[var(--sim-surface-2)] text-[var(--sim-text-muted)] border border-[var(--sim-border)] cursor-not-allowed opacity-50'
+                                    }`}
+                            >
+                                {simState.evacActive
+                                    ? (language === 'ko' ? `🛸 탈출 준비 중 (${simState.evacCountdown}일)` : `🛸 Evac Active (${simState.evacCountdown}d)`)
+                                    : simState.evacReady
+                                        ? (language === 'ko' ? '🛸 우주선 출발' : '🛸 Launch Ship')
+                                        : (language === 'ko' ? `🛸 탈출 준비 시작 (${EVAC_SURVIVAL_DAYS}일)` : `🛸 Start Evac (${EVAC_SURVIVAL_DAYS}d)`)}
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                        <button onClick={() => setShowLog(!showLog)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
-                            {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Logs') : (language === 'ko' ? '로그 보기' : 'Show Logs')}
-                        </button>
-                        <button onClick={() => setShowTraitsModal(true)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
-                            {language === 'ko' ? '특성' : 'Traits'}
-                        </button>
-                        <button onClick={() => setShowSkillsModal(true)} className="sim-btn sim-btn-ghost px-3 py-2 text-[10px] uppercase">
-                            {language === 'ko' ? '기술' : 'Skills'}
-                        </button>
-                        <button onClick={() => setShowHelpModal(true)} className="sim-btn sim-btn-primary px-3 py-2 text-[10px] uppercase flex items-center gap-1">
-                            <span>?</span> {language === 'ko' ? '도움말' : 'Help'}
-                        </button>
+                    <div className="space-y-3">
+                        <div className="sim-section-title">
+                            {language === 'ko' ? '정보 / 관리' : 'Info / Utility'}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
+                            <button onClick={() => setShowLog(!showLog)} className="sim-btn sim-btn-ghost min-h-[44px] px-3 py-2 text-[10px] uppercase">
+                                {showLog ? (language === 'ko' ? '로그 닫기' : 'Hide Logs') : (language === 'ko' ? '로그 보기' : 'Show Logs')}
+                            </button>
+                            <button onClick={() => setShowTraitsModal(true)} className="sim-btn sim-btn-ghost min-h-[44px] px-3 py-2 text-[10px] uppercase">
+                                {language === 'ko' ? '특성' : 'Traits'}
+                            </button>
+                            <button onClick={() => setShowSkillsModal(true)} className="sim-btn sim-btn-ghost min-h-[44px] px-3 py-2 text-[10px] uppercase">
+                                {language === 'ko' ? '기술' : 'Skills'}
+                            </button>
+                            <button onClick={() => setShowHelpModal(true)} className="sim-btn sim-btn-primary min-h-[44px] px-3 py-2 text-[10px] uppercase flex items-center justify-center gap-1">
+                                <span>?</span> {language === 'ko' ? '도움말' : 'Help'}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -5529,24 +5652,34 @@ export default function SimulationClient() {
                     </div>
                 )}
             </div>
-
             {showLog && (
-                <div className="sim-panel p-5 animate-in slide-in-from-bottom-5 duration-300">
-                    <h3 className="text-xs font-black text-[var(--sim-accent)] mb-4 uppercase tracking-[0.2em]">
-                        --- {language === 'ko' ? '정착지 생존 기록' : 'Colony Survival Chronicles'} ---
-                    </h3>
-                    <div className="max-h-[500px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                <div className="sim-panel overflow-hidden p-0 animate-in slide-in-from-bottom-5 duration-300">
+                    <div className="sticky top-0 z-10 border-b border-[var(--sim-border)] bg-[var(--sim-surface-1)]/92 px-4 py-4 backdrop-blur-sm md:px-5">
+                        <div className="flex items-center justify-between gap-3">
+                            <h3 className="text-xs font-black text-[var(--sim-accent)] uppercase tracking-[0.2em]">
+                                --- {language === 'ko' ? '정착지 생존 기록' : 'Colony Survival Chronicles'} ---
+                            </h3>
+                            <div className="rounded-full border border-[var(--sim-border)] bg-[var(--sim-surface-2)] px-2.5 py-1 text-[10px] font-black text-[var(--sim-text-sub)]">
+                                {language === 'ko' ? `${simState.log.length}개 기록` : `${simState.log.length} entries`}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="max-h-[72vh] overflow-y-auto px-4 py-4 pr-3 space-y-3 custom-scrollbar md:max-h-[500px] md:px-5">
                         {simState.log.length === 0 && <div className="text-[var(--sim-text-muted)] text-xs italic text-center py-10">{language === 'ko' ? '아직 기록된 내용이 없습니다.' : 'Chronicles are empty.'}</div>}
                         {simState.log.map((entry, idx) => (
-                            <div key={`${entry.day}-${idx}`} className="sim-card p-4 space-y-3 hover:border-[var(--sim-accent)] transition-colors">
-                                <div className="flex items-center justify-between border-b border-[var(--sim-border)] pb-2">
+                            <div key={`${entry.day}-${idx}`} className="sim-card p-3 md:p-4 space-y-3 hover:border-[var(--sim-accent)] transition-colors">
+                                <div className="flex flex-col gap-2 border-b border-[var(--sim-border)] pb-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="text-[10px] text-[var(--sim-text-muted)] font-bold">DAY {entry.day} • {entry.season}</div>
                                     <div className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${entry.status === 'good' ? 'bg-green-900/30 text-green-400' : entry.status === 'bad' ? 'bg-red-900/30 text-red-400' : 'bg-[var(--sim-surface-1)] text-[var(--sim-text-muted)] border border-[var(--sim-border)]'}`}>
                                         {entry.title}
                                     </div>
                                 </div>
-                                <div className="text-xs text-[var(--sim-text-sub)] leading-relaxed"><span className="text-[var(--sim-accent)]/80 font-bold mr-1">{language === 'ko' ? '상황:' : 'Event:'}</span> {entry.description}</div>
-                                <div className="text-xs text-[var(--sim-text-main)] font-medium bg-[var(--sim-surface-1)] p-2 rounded-lg border border-[var(--sim-border)]"><span className="text-[var(--sim-accent)] font-bold mr-1">{language === 'ko' ? '대처:' : 'Response:'}</span> {entry.response}</div>
+                                <div className="text-xs text-[var(--sim-text-sub)] leading-relaxed">
+                                    <span className="text-[var(--sim-accent)]/80 font-bold mr-1">{language === 'ko' ? '상황:' : 'Event:'}</span> {entry.description}
+                                </div>
+                                <div className="rounded-lg border border-[var(--sim-border)] bg-[var(--sim-surface-1)] px-3 py-2.5 text-xs text-[var(--sim-text-main)] font-medium">
+                                    <span className="text-[var(--sim-accent)] font-bold mr-1">{language === 'ko' ? '대처:' : 'Response:'}</span> {entry.response}
+                                </div>
                                 <div className="pt-1">{renderDeltaItems(entry)}</div>
                             </div>
                         ))}

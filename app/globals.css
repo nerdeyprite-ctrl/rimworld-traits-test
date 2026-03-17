@@ -501,6 +501,32 @@ body {
   }
 }
 
+@media (max-width: 767px) {
+  .reigns-card {
+    width: min(100%, 92vw);
+  }
+
+  .reigns-card-face {
+    padding: 18px;
+  }
+
+  .reigns-card-stack--preview {
+    padding: 18px;
+  }
+
+  .sim-panel {
+    border-radius: 18px;
+  }
+
+  .sim-stat-tile {
+    padding: 0.65rem;
+  }
+
+  .sim-mobile-bottom-safe {
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reigns-card-inner,
   .reigns-card-enter,

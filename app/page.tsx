@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import VisitorCounter from '../components/VisitorCounter';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { hashPassword } from '../lib/auth';
+import { isWorldSimEnabled } from '../lib/world-sim-feature';
 
 const UPDATES_READ_KEY = 'rimworld_updates_read_version';
 const UPDATES_VERSION = '2026-02-14-balance-v1';
@@ -22,6 +23,7 @@ export default function Home() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
   const [checkLoading, setCheckLoading] = useState(false);
+  const worldSimEnabled = isWorldSimEnabled();
 
   // Reset test state whenever Home is mounted (returning from test/result)
   useEffect(() => {
@@ -268,12 +270,7 @@ export default function Home() {
               e.preventDefault();
               const ok = await requireLogin();
               if (ok) {
-                router.push('/settlers');
-                setTimeout(() => {
-                  if (window.location.pathname !== '/settlers') {
-                    window.location.href = '/settlers';
-                  }
-                }, 100);
+                window.location.assign('/settlers');
               }
             }}
             className="inline-block w-full sm:w-auto px-8 py-4 bg-[#1c3d5a] hover:bg-[#2c5282] border-[#102a43] text-white font-bold text-base sm:text-lg shadow-[0_4px_0_#2a2a2a] active:shadow-none active:translate-y-1 transition-all border cursor-pointer"
@@ -287,14 +284,22 @@ export default function Home() {
             {language === 'ko' ? '리더보드 보기' : 'View Leaderboard'}
           </a>
         </div>
-        <div className="w-full sm:w-auto">
-          <a
-            href="/simulation/world"
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-[#234f68] hover:bg-[#2e6a8a] border-[#163649] text-white font-bold text-sm sm:text-base shadow-[0_4px_0_#14232d] active:shadow-none active:translate-y-1 transition-all border"
-          >
-            {language === 'ko' ? '전체 투표 모드 (30분 턴)' : 'Global Vote Mode (30m Turn)'}
-          </a>
-        </div>
+        {worldSimEnabled ? (
+          <div className="w-full sm:w-auto">
+            <a
+              href="/simulation/world"
+              className="inline-block w-full sm:w-auto px-8 py-3 bg-[#234f68] hover:bg-[#2e6a8a] border-[#163649] text-white font-bold text-sm sm:text-base shadow-[0_4px_0_#14232d] active:shadow-none active:translate-y-1 transition-all border"
+            >
+              {language === 'ko' ? '전체 투표 모드 (30분 턴)' : 'Global Vote Mode (30m Turn)'}
+            </a>
+          </div>
+        ) : (
+          <div className="w-full sm:w-auto">
+            <div className="inline-block w-full sm:w-auto px-8 py-3 bg-[#1a1f24] border-[#2d3640] text-gray-400 font-bold text-sm sm:text-base border cursor-not-allowed">
+              {language === 'ko' ? '전체 투표 모드 (임시 비활성화)' : 'Global Vote Mode (Temporarily Disabled)'}
+            </div>
+          </div>
+        )}
         <div id="login-section" className="mt-6 w-full max-w-md mx-auto bg-[#111] border border-[#333] p-3 sm:p-4 text-left space-y-3">
           <div className="text-sm font-bold text-[#9f752a] font-[var(--font-display)]">
             {language === 'ko' ? '정착민 로그인' : 'Settler Login'}

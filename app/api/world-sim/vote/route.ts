@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { submitWorldVote } from '../../../../lib/world-sim-engine';
+import { isWorldSimEnabled, WORLD_SIM_DISABLED_ERROR } from '../../../../lib/world-sim-feature';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+    if (!isWorldSimEnabled()) {
+        return NextResponse.json(
+            { ok: false, error: WORLD_SIM_DISABLED_ERROR },
+            { status: 503, headers: { 'Cache-Control': 'no-store' } }
+        );
+    }
+
     try {
         const body: unknown = await request.json();
         const accountId = typeof (body as { accountId?: unknown })?.accountId === 'string'
@@ -42,4 +50,3 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-
