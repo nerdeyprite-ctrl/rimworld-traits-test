@@ -1,5 +1,7 @@
 "use client";
 
+import Link from 'next/link';
+
 type SettlersErrorPageProps = {
     error: Error & { digest?: string };
     reset: () => void;
@@ -24,9 +26,9 @@ export default function SettlersErrorPage({ error, reset }: SettlersErrorPagePro
                     <button onClick={reset} className="sim-btn sim-btn-primary px-4 py-2 text-xs">
                         다시 시도
                     </button>
-                    <a href="/" className="sim-btn sim-btn-secondary px-4 py-2 text-xs">
+                    <Link href="/" className="sim-btn sim-btn-secondary px-4 py-2 text-xs">
                         홈으로
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

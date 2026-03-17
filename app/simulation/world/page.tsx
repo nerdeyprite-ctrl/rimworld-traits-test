@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import Link from 'next/link';
 import WorldSimulationClient from './world-simulation-client';
 import { isWorldSimEnabled } from '../../../lib/world-sim-feature';
 
@@ -12,12 +13,12 @@ export default function WorldSimulationPage() {
                         핵심 시뮬레이션 경험 개선에 집중하기 위해 월드 투표 모드는 잠시 닫아두었습니다.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                        <a href="/simulation" className="sim-btn sim-btn-primary px-4 py-2 text-xs">
+                        <Link href="/simulation" className="sim-btn sim-btn-primary px-4 py-2 text-xs">
                             일반 시뮬레이션으로 이동
-                        </a>
-                        <a href="/" className="sim-btn sim-btn-secondary px-4 py-2 text-xs">
+                        </Link>
+                        <Link href="/" className="sim-btn sim-btn-secondary px-4 py-2 text-xs">
                             홈으로
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

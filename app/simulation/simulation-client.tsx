@@ -3228,6 +3228,14 @@ export default function SimulationClient() {
         return map;
     }, [result]);
 
+    const quietPresetOptions: Array<{ id: QuietAutoPreset; label: string }> = useMemo(() => ([
+        { id: 'manual', label: language === 'ko' ? '수동 선택' : 'Manual' },
+        ...QUIET_PRESET_CONFIG.map(config => ({
+            id: config.id,
+            label: language === 'ko' ? config.labelKo : config.labelEn
+        }))
+    ]), [language]);
+
     const passions = useMemo(() => {
         const map: Record<string, number> = {};
         if (result?.skills) {
@@ -3284,6 +3292,23 @@ export default function SimulationClient() {
         });
         return total / count;
     }, [skillMap, simState.skillProgress]);
+
+    const quietPresetChanceRows = useMemo(() => {
+        return QUIET_PRESET_CONFIG.map(config => {
+            const avg = getGroupAverage(config.group);
+            let chance = Math.max(5, Math.min(95, getSkillChance(avg)));
+            chance = Math.round(chance);
+            const greatChance = config.hasGreat
+                ? Math.max(0, Math.min(chance, Math.round(getGreatSuccessChance(avg))))
+                : 0;
+            return {
+                id: config.id,
+                label: language === 'ko' ? config.labelKo : config.labelEn,
+                chance,
+                greatChance
+            };
+        });
+    }, [getGroupAverage, language]);
 
     const getCurrentDuelStat = useCallback((track: DuelTrack) => {
         const getSkill = (name: string) => (skillMap[name] ?? 0) + (simState.skillProgress[name]?.level ?? 0);
@@ -4900,7 +4925,34 @@ export default function SimulationClient() {
     }
 
     if (!result) {
-        return <div className="p-10 text-center text-gray-500">{language === 'ko' ? '결과가 없습니다.' : 'No result found.'}</div>;
+        return (
+            <div className="p-10 text-center">
+                <div className="sim-panel p-8 space-y-4">
+                    <h1 className="text-2xl font-bold text-[var(--sim-text-main)]">
+                        {language === 'ko' ? '시뮬레이션을 시작할 정착민이 없습니다.' : 'No settler selected for simulation.'}
+                    </h1>
+                    <p className="text-sm text-[var(--sim-text-sub)] max-w-xl mx-auto">
+                        {language === 'ko'
+                            ? '보관함에서 정착민을 고르거나 새 정착민을 만들어야 시뮬레이션을 시작할 수 있습니다.'
+                            : 'Pick a saved settler or create a new one before starting the simulation.'}
+                    </p>
+                    <div className="flex flex-col justify-center gap-2 sm:flex-row">
+                        <button
+                            onClick={() => router.push('/settlers')}
+                            className="sim-btn sim-btn-primary px-5 py-3 text-sm"
+                        >
+                            {language === 'ko' ? '정착민 보관함 열기' : 'Open Settler Vault'}
+                        </button>
+                        <button
+                            onClick={() => router.push('/test/intro')}
+                            className="sim-btn sim-btn-secondary px-5 py-3 text-sm"
+                        >
+                            {language === 'ko' ? '새 정착민 만들기' : 'Create New Settler'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const canSimulate = isFullResult && result.skills && result.skills.length > 0;
@@ -4947,29 +4999,6 @@ export default function SimulationClient() {
     const isPreparedUiCorrupted = !!preparedTurn?.pendingChoice?.turnEffectModifiers?.obfuscateUi;
     const showEffectPulse = simState.status === 'running' && simState.activeEffects.length > 0 && !simState.evacActive;
     const effectPulseMode = hasNegativeActiveEffect ? 'negative' : (hasPositiveActiveEffect ? 'positive' : 'none');
-    const quietPresetOptions: Array<{ id: QuietAutoPreset; label: string }> = useMemo(() => ([
-        { id: 'manual', label: language === 'ko' ? '수동 선택' : 'Manual' },
-        ...QUIET_PRESET_CONFIG.map(config => ({
-            id: config.id,
-            label: language === 'ko' ? config.labelKo : config.labelEn
-        }))
-    ]), [language]);
-    const quietPresetChanceRows = useMemo(() => {
-        return QUIET_PRESET_CONFIG.map(config => {
-            const avg = getGroupAverage(config.group);
-            let chance = Math.max(5, Math.min(95, getSkillChance(avg)));
-            chance = Math.round(chance);
-            const greatChance = config.hasGreat
-                ? Math.max(0, Math.min(chance, Math.round(getGreatSuccessChance(avg))))
-                : 0;
-            return {
-                id: config.id,
-                label: language === 'ko' ? config.labelKo : config.labelEn,
-                chance,
-                greatChance
-            };
-        });
-    }, [getGroupAverage, language]);
     const selectedQuietPresetRow = quietPresetChanceRows.find(row => row.id === quietAutoPreset);
     const currentDisplayDay = currentCard?.day ?? simState.day;
     const currentSeasonLabel = getSeasonLabel(currentDisplayDay, language);

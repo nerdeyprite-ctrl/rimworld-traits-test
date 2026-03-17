@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local mobile app experiments
+/android/
+/mobile/
+/mobile-shell/
+/app/app/
+/components/app-shell/
+/capacitor.config.ts
+/lib/app-shell.ts
+/lib/use-app-shell.ts
+/app/manifest.ts
+/docs/android-shell.md
+/docs/app-launch-checklist.md
